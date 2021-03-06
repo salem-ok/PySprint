@@ -1,3 +1,4 @@
+from shapely import geometry
 import pygame
 import time
 import math
@@ -9,29 +10,83 @@ display_height = 405
  
  
 gameDisplay = pygame.display.set_mode((display_width,display_height))
-circuit1 = pygame.image.load('Super Sprint Circuit 1.png')
 clock = pygame.time.Clock()
+
+class Track:    
+    background = pygame.image.load('Assets/SuperSprintTrack1.png')
+    externalBorders = [
+        (0,2),
+        (0,405),
+        (640,405),
+        (640,335),
+        (540,87),
+        (605,91),
+        (604,106),
+        (604,121),
+        (603,135),
+        (604,147),
+        (603,178),
+        (607,324),
+        (604,340),
+        (591,354),
+        (573,360),
+        (558,366),
+        (542,370),
+        (443,371),
+        (277,224),
+        (259,225),
+        (255,244),
+        (257,256),
+        (268,323),
+        (267,354),
+        (244,370),
+        (97,369),
+        (83,367),
+        (63,361),
+        (54,353),
+        (40,339),
+        (31,327),
+        (36,111),
+        (37,96),
+        (47,84),
+        (52,72),
+        (63,62),
+        (73,53),
+        (87,52),
+        (101,51),
+        (545,50),
+        (563,49),
+        (578,57),
+        (586,63),
+        (597,73),
+        (604,89),
+        (640,83),
+        (640,0)
+    ]    
+    
+    line = geometry.LineString(externalBorders)        
+    externalPolygon =  geometry.Polygon(line)
 
 class Car:
     #Appearance
     color = "Blue"
     sprites = {
-    0:pygame.image.load('BlueCar0.png'),
-    1:pygame.image.load('BlueCar1.png'),
-    2:pygame.image.load('BlueCar2.png'),
-    3:pygame.image.load('BlueCar3.png'),
-    4:pygame.image.load('BlueCar4.png'),
-    5:pygame.image.load('BlueCar5.png'),
-    6:pygame.image.load('BlueCar6.png'),
-    7:pygame.image.load('BlueCar7.png'),
-    8:pygame.image.load('BlueCar8.png'),
-    9:pygame.image.load('BlueCar9.png'),
-    10:pygame.image.load('BlueCar10.png'),
-    11:pygame.image.load('BlueCar11.png'),
-    12:pygame.image.load('BlueCar12.png'),
-    13:pygame.image.load('BlueCar13.png'),
-    14:pygame.image.load('BlueCar14.png'),
-    15:pygame.image.load('BlueCar15.png')
+    0:pygame.image.load('Assets/BlueCar0.png'),
+    1:pygame.image.load('Assets/BlueCar1.png'),
+    2:pygame.image.load('Assets/BlueCar2.png'),
+    3:pygame.image.load('Assets/BlueCar3.png'),
+    4:pygame.image.load('Assets/BlueCar4.png'),
+    5:pygame.image.load('Assets/BlueCar5.png'),
+    6:pygame.image.load('Assets/BlueCar6.png'),
+    7:pygame.image.load('Assets/BlueCar7.png'),
+    8:pygame.image.load('Assets/BlueCar8.png'),
+    9:pygame.image.load('Assets/BlueCar9.png'),
+    10:pygame.image.load('Assets/BlueCar10.png'),
+    11:pygame.image.load('Assets/BlueCar11.png'),
+    12:pygame.image.load('Assets/BlueCar12.png'),
+    13:pygame.image.load('Assets/BlueCar13.png'),
+    14:pygame.image.load('Assets/BlueCar14.png'),
+    15:pygame.image.load('Assets/BlueCar15.png')
     }
     
     spritesConv = {
@@ -117,7 +172,7 @@ class Car:
             self.speed=0
             self.decelerating=False
 
-    def updatePosition(self):                
+    def updatePosition(self, track):                
         if not self.decelerating:
             #Calculate Vector - No skidding
             self.sin_angle = math.sin(math.radians(abs(self.sprite_angle*22.5-90)))
@@ -139,10 +194,21 @@ class Car:
         
         self.x += self.xVector
         self.y += self.yVector
-        print('sin(angle): {}\nSprite: {}'.format(self.angle,self.sprite_angle))
-        print('xVextor: {}\nyVector: {}'.format(self.xVector,self.yVector))
+        # print('sin(angle): {}\nSprite: {}'.format(self.angle,self.sprite_angle))
+        # print('xVextor: {}\nyVector: {}'.format(self.xVector,self.yVector))
         self.rotating=False
-        #Asteroids Style
+        
+        #Detect External Track Borders
+        carLine = geometry.LineString([
+            (self.x,self.y),
+            (self.x+self.sprites[self.sprite_angle].get_width(),self.y),
+            (self.x,self.y+self.sprites[self.sprite_angle].get_height()),
+            (self.x+self.sprites[self.sprite_angle].get_width(),self.y+self.sprites[self.sprite_angle].get_height())            
+            ])        
+        carPolygon =  geometry.Polygon(carLine)        
+        if track.externalPolygon.overlaps(carPolygon):
+            print('Border Detected')
+        #Asteroids Style - Screen Borders
         if self.x < 0:
             self.x = 640
         if self.x > 640:
@@ -153,15 +219,15 @@ class Car:
         if self.y > 405:
             self.y = 0
             
-    def blit(self):
-        self.updatePosition()
+    def blit(self,track):
+        self.updatePosition(track)
         gameDisplay.blit(self.sprites[self.sprite_angle], (self.x, self.y))    
 
 
 def game_loop():
     global pause
     blueCar = Car()
- 
+    track1= Track()
  
     gameExit = False
  
@@ -187,8 +253,8 @@ def game_loop():
                 if event.key == pygame.K_RIGHT:
                     blueCar.rotate(False)
         
-        gameDisplay.blit(circuit1, (0, 0))
-        blueCar.blit()
+        gameDisplay.blit(track1.background, (0, 0))
+        blueCar.blit(track1)
         pygame.display.update()
         clock.tick(30)
 
