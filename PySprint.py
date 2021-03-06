@@ -14,59 +14,61 @@ clock = pygame.time.Clock()
 
 class Track:    
     background = pygame.image.load('Assets/SuperSprintTrack1.png')
-    externalBorders = [
-        (0,2),
-        (0,405),
-        (640,405),
-        (640,335),
-        (540,87),
-        (605,91),
-        (604,106),
-        (604,121),
-        (603,135),
-        (604,147),
-        (603,178),
-        (607,324),
-        (604,340),
-        (591,354),
-        (573,360),
-        (558,366),
-        (542,370),
-        (443,371),
-        (277,224),
-        (259,225),
-        (255,244),
-        (257,256),
-        (268,323),
-        (267,354),
-        (244,370),
-        (97,369),
-        (83,367),
-        (63,361),
-        (54,353),
-        (40,339),
-        (31,327),
-        (36,111),
-        (37,96),
-        (47,84),
-        (52,72),
-        (63,62),
-        (73,53),
-        (87,52),
-        (101,51),
-        (545,50),
-        (563,49),
-        (578,57),
-        (586,63),
-        (597,73),
-        (604,89),
-        (640,83),
-        (640,0)
-    ]    
-    
+    externalBorders = [   
+    (116,46 ),
+    (92,47),
+    (74,50),
+    (54,62),
+    (43,73),
+    (37,92),
+    (37,112),
+    (34,326),
+    (45,346),
+    (65,362),
+    (95,371),
+    (242,369),
+    (265,355),
+    (265,318),
+    (256,238),
+    (259,226),
+    (269,221),
+    (280,228),
+    (425,358),
+    (439,368),
+    (542,367),
+    (565,366),
+    (583,358),
+    (597,345),
+    (608,333),
+    (609,111),
+    (607,95),
+    (600,81),
+    (593,68),
+    (577,52),
+    (562,47)
+    ]
+
+    internalBorders=[
+        (131,131),
+        (128,291),
+        (142,305),
+        (160,296),
+        (161,160),
+        (178,143),
+        (310,145),
+        (328,151),
+        (494,302),
+        (513,298),
+        (513,136),
+        (504,129),
+        (132,129),
+        (131,131)       
+    ]
+
     line = geometry.LineString(externalBorders)        
     externalPolygon =  geometry.Polygon(line)
-
+    line = geometry.LineString(internalBorders)
+    internalPolygon =  geometry.Polygon(line)
 class Car:
     #Appearance
     color = "Blue"
@@ -207,7 +209,13 @@ class Car:
             ])        
         carPolygon =  geometry.Polygon(carLine)        
         if track.externalPolygon.overlaps(carPolygon):
-            print('Border Detected')
+            print('Ext Border Detected')
+        else:
+            if track.internalPolygon.overlaps(carPolygon):
+                print('Int Border Detected')
+            else:
+                print('Back on Track')
+        
         #Asteroids Style - Screen Borders
         if self.x < 0:
             self.x = 640
