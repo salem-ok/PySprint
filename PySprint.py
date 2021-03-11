@@ -2,7 +2,7 @@ import pygame
 import time
 import math
 pygame.init()
- 
+
 display_width = 640
 display_height = 400
 flags = 0
@@ -12,12 +12,12 @@ flags = 0
 gameDisplay = pygame.display.set_mode((display_width,display_height),flags)
 clock = pygame.time.Clock()
 
-class Track:    
+class Track:
     background = pygame.image.load('Assets/SuperSprintTrack1.png')
-    trackMask = pygame.image.load('Assets/SuperSprintTrack1Mask.png').convert_alpha()            
+    trackMask = pygame.image.load('Assets/SuperSprintTrack1Mask.png').convert_alpha()
 
-    externalBorders = [   
-        (101,52),   
+    externalBorders = [
+        (101,52),
         (544,53),
         (560,54),
         (577,59),
@@ -91,7 +91,7 @@ class Car:
     14:pygame.image.load('Assets/BlueCar14.png').convert_alpha(),
     15:pygame.image.load('Assets/BlueCar15.png').convert_alpha()
     }
-    
+
     angleVectorSign = {
     0:(0,-1),
     1:(1,-1),
@@ -104,7 +104,7 @@ class Car:
     8:(0,1),
     9:(-1,1),
     10:(-1,1),
-    11:(-1,1),    
+    11:(-1,1),
     12:(-1,0),
     13:(-1,-1),
     14:(-1,-1),
@@ -123,12 +123,12 @@ class Car:
     xVector=0
     yVector=0
     sin_angle=0
-    
+
     #Mechanics
     rotation_step=.30
-    acceleration_step=0.3        
+    acceleration_step=0.3
     deceleration_step=0.3
-    bump_decelaration_step=1.5   
+    bump_decelaration_step=1.5
     speed_max=12
     bump_speed=6
     decelerating=False
@@ -137,12 +137,12 @@ class Car:
     bumpingVertical=False
     bumpingHorizontal=False
     bumpingDiagonal=False
-    diagonalDetectionTolerance = 5
-    
+    diagonalDetectionTolerance = 2
+
     def rotate(self, left):
         self.rotating=True
         if left:
-            self.angle -= self.rotation_step 
+            self.angle -= self.rotation_step
         else:
             self.angle += self.rotation_step
 
@@ -216,7 +216,7 @@ class Car:
                     print('y delta <={} - looks horizontal enough'.format(self.diagonalDetectionTolerance))
                     self.bumpingHorizontal = True
                     return True
-                print('Not sure about direction - Diagonal Bumping')
+                print('Not sure about direction - Assuming Diagonal Bumping')
                 self.bumpingDiagonal = True
                 self.bumpingHorizontal = False
                 self.bumpingVertical = False
@@ -225,181 +225,181 @@ class Car:
 
     def calculateVectorFromSprite(self):
             self.sin_angle = math.sin(math.radians(abs(self.sprite_angle*22.5-90)))
-            
             self.yVector = abs(self.speed * self.sin_angle)
-                                
             self.yVector = self.yVector * self.angleVectorSign[self.sprite_angle][1]
-            
             self.xVector = math.sqrt(self.speed*self.speed-self.yVector*self.yVector)
-            
             self.xVector = self.xVector * self.angleVectorSign[self.sprite_angle][0]
-    
 
-    def updatePosition(self, track):                
+    def calculateSkiddingVector(self):
+        #Start Skidding - Ignore current Rotation sprite, update speed and use previous Angle and sign
+        if abs(self.yVector)>0:
+            self.yVector = self.yVector * abs(self.speed * self.sin_angle) / abs(self.yVector)
+
+        if abs(self.xVector)>0:
+            self.xVector = self.xVector * math.sqrt(self.speed*self.speed-self.yVector*self.yVector)  / abs(self.xVector)
+
+        if self.xVector==0 and self.yVector==0 and self.speed>0:
+                #Wrong situation: reset to default vector
+                self.calculateVectorFromSprite()
+
+    def calculateBumpingVector(self,track):
+        if self.bumpingVertical:
+            #Bump horizontally when hitting a vertical border diagonally or horizontally
+            if self.xVector==0:
+                #Edge case: bumping into a Vertical wall while car is vertical
+                self.xVector = self.yVector
+            else:
+                #Invert X component fo the vector
+                self.xVector = -self.xVector
+            self.yVector = 0
+        else:
+            if self.bumpingHorizontal:
+                #Bump vertically when hitting a horizontal border diagonally or vertically
+                if self.yVector==0:
+                    #Edge case: bumping into a Horizontal wall while car is horizontal
+                    self.yVector = self.xVector
+                else:
+                    self.yVector = -self.yVector
+                self.xVector = 0
+            else:
+                if self.bumpingDiagonal:
+                    #Diagonal Bumping: Bump Diagnoally if hit Horizontally - or Vertically  - Vert or Horiz Bump if hit diagonally
+                    aPoint=self.aIntersectSide
+                    bPoint=self.bIntersectSide
+
+                    if self.angleVectorSign[self.sprite_angle][1]==0 or self.angleVectorSign[self.sprite_angle][0]==0:
+                        #Car is Horizontal or Vertical - Force 45 degree angle
+                        self.sin_angle = math.sin(math.radians(abs(45)))
+                        #self.xVector = math.sqrt(self.speed*self.speed-self.yVector*self.yVector)
+                        self.xVector = abs(self.speed * self.sin_angle)
+                        self.yVector = self.xVector
+
+                        if (aPoint[0]<bPoint[0] and aPoint[1]<bPoint[1]) or (aPoint[0]>bPoint[0] and aPoint[1]>bPoint[1]):
+                            #Top-Right or Bottom Left Diagonal
+                            if self.angleVectorSign[self.sprite_angle][1]>0 or self.angleVectorSign[self.sprite_angle][0]<0:
+                                #Bottom Left Diagonal - Invert Y Component
+                                self.yVector = -self.yVector
+                            if self.angleVectorSign[self.sprite_angle][1]<0 or self.angleVectorSign[self.sprite_angle][0]>0:
+                                #Top Right Diagonal - Invert X Component
+                                self.xVector = -self.xVector
+
+                        if (aPoint[0]>bPoint[0] and aPoint[1]<bPoint[1]) or (aPoint[0]<bPoint[0] and aPoint[1]>bPoint[1]):
+                            #Top-left or Bottom Right Diagonal
+                            if self.angleVectorSign[self.sprite_angle][1]<0 or self.angleVectorSign[self.sprite_angle][0]<0:
+                                #Top Left Diagonal - No Changes on vector
+                                self.xVector == self.xVector
+                                self.yVector == self.yVector
+                            if self.angleVectorSign[self.sprite_angle][1]>0 or self.angleVectorSign[self.sprite_angle][0]>0:
+                                #Bottom Right Diagonal - Invert Vector
+                                self.xVector = -self.xVector
+                                self.yVector = -self.yVector
+                    else:
+                        #Car is Diagonal - Normal Bump - Invert Vector
+                        self.xVector = -self.xVector
+                        self.yVector = -self.yVector
+
+    def detectCollision(self,track):
+        print('Checking for Collision at ({},{})'.format(self.x,self.y))
+        track_mask = pygame.mask.from_surface(track.trackMask,50)
+        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle],50)
+        intersect_point = track_mask.overlap(car_mask,((round(self.x),round(self.y))))
+        if intersect_point:
+            #TODO:Check if the car is going into a border a going away from it (i.e. the tail touching the border)
+            #If it is going away from the border then skip the Bump routine
+
+            self.bumping = True
+            self.speed=self.bump_speed
+            #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
+            #Lookup in the map for the closest intersection point and the polygon side that is intersecting
+            xIntersect = intersect_point[0]
+            yIntersect = intersect_point[1]
+            print('Ext Border Detected ({},{})'.format(xIntersect,yIntersect))
+
+            #Search external borders other corners of the sprite in case no border poinst detected
+            if not self.searchBorderSide(track.externalBorders,xIntersect,yIntersect):
+                if not self.searchBorderSide(track.internalBorders,xIntersect,yIntersect):
+                    #Despite overlap detected no intersection with any side of the Track polygons has been found
+                    #Unable to determine the orientation of the colliding border
+                    print('No Macthing Border Side found')
+                    self.endBumpLoop()
+
+
+    def endBumpLoop(self):
+        self.bumpingDiagonal=False
+        self.bumpingHorizontal=False
+        self.bumpingVertical=False
+        self.bumping=False
+
+    def updatePosition(self, track):
         if not self.decelerating:
             #Calculate Vector - No skidding
             self.calculateVectorFromSprite()
         else:
             if not self.rotating:
-                #Start Skidding - Ignore current Rotation sprite, update speed and use previous Angle and sign
-                if abs(self.yVector)>0:
-                    self.yVector = self.yVector * abs(self.speed * self.sin_angle) / abs(self.yVector)
-
-                if abs(self.xVector)>0:                    
-                    self.xVector = self.xVector * math.sqrt(self.speed*self.speed-self.yVector*self.yVector)  / abs(self.xVector)
-                
-                if self.xVector==0 and self.yVector==0 and self.speed>0:
-                     #Wrong situation: reset to default vector
-                     self.calculateVectorFromSprite()
-
-        if self.bumping:            
-            if self.bumpingVertical:
-                #Bump horizontally when hitting a vertical border diagonally or horizontally
-                self.yVector = 0
-                self.x -= self.xVector
-                self.y -= self.yVector
-            else:
-                if self.bumpingHorizontal:
-                    #Bump vertically when hitting a horizontal border diagonally or vertically
-                    self.xVector = 0
-                    self.x -= self.xVector
-                    self.y -= self.yVector
-                else:
-                    if self.bumpingDiagonal:
-                        #Diagonal Bumping: Bump Diagnoally if hit Horizontally - or Vertically  - Vert or Horiz Bump if hit diagonally
-                        aPoint=self.aIntersectSide
-                        bPoint=self.bIntersectSide
-                        
-                        if self.angleVectorSign[self.sprite_angle][1]==0 or self.angleVectorSign[self.sprite_angle][0]==0:
-                            #Car is Horizontal or Vertical - Force 45 degree angle
-                            self.sin_angle = math.sin(math.radians(abs(45)))
-                            self.yVector = abs(self.speed * self.sin_angle)                                            
-                            self.xVector = math.sqrt(self.speed*self.speed-self.yVector*self.yVector)
-
-                            if (aPoint[0]<bPoint[0] and aPoint[1]<bPoint[1]) or (aPoint[0]>bPoint[0] and aPoint[1]>bPoint[1]):
-                                #Top-Right or Bottom Left Diagonal    
-                                if self.angleVectorSign[self.sprite_angle][1]>0 or self.angleVectorSign[self.sprite_angle][0]<0:
-                                    #Bottom Left Diagonal    
-                                    self.x += self.xVector
-                                    self.y -= self.yVector
-                                if self.angleVectorSign[self.sprite_angle][1]<0 or self.angleVectorSign[self.sprite_angle][0]>0:
-                                    #Top Right Diagonal    
-                                    self.x -= self.xVector
-                                    self.y += self.yVector
-
-                            if (aPoint[0]>bPoint[0] and aPoint[1]<bPoint[1]) or (aPoint[0]<bPoint[0] and aPoint[1]>bPoint[1]):
-                                #Top-left or Bottom Right Diagonal                    
-                                if self.angleVectorSign[self.sprite_angle][1]<0 or self.angleVectorSign[self.sprite_angle][0]<0:
-                                    #Top Left Diagonal    
-                                    self.x += self.xVector
-                                    self.y += self.yVector
-                                if self.angleVectorSign[self.sprite_angle][1]>0 or self.angleVectorSign[self.sprite_angle][0]>0:
-                                    #Bottom Right Diagonal    
-                                    self.x -= self.xVector
-                                    self.y -= self.yVector
-                        else:
-                            #Car is Diagonal - Normal Bump
-                            self.x -= self.xVector
-                            self.y -= self.yVector
-                    # else:
-                    #     self.x -= self.yVector
-                    #     self.y -= self.xVector
-
-        else:
-            self.x += self.xVector
-            self.y += self.yVector
+                #Calculate Vector - Skidding
+                self.calculateVectorFromSprite()
+        if self.bumping:
+            #Calculate Vector - Bumping
+            self.calculateBumpingVector(track)
+        #Update Car Offset
+        self.x += self.xVector
+        self.y += self.yVector
+        #Reset Rotation Flag to match Key Pressed Status
         self.rotating=False
-        
+        #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
         if self.speed>0:
-            #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
-            track_mask = pygame.mask.from_surface(track.trackMask,50)
-            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle],50)
-            intersect_point = track_mask.overlap(car_mask,((round(self.x),round(self.y))))
-            if intersect_point:
-                #Check if the car is going into a border a going away from it (i.e. the tail touching the border)
-                #If it is going away from the border then skip the Bump routine
-
-
-                self.bumping = True
-                self.speed=self.bump_speed
-                #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
-                #Lookup in the map for the closest intersection point and the polygon side that is intersecting            
-                xIntersect = intersect_point[0]
-                yIntersect = intersect_point[1]
-                print('Ext Border Detected ({},{})'.format(xIntersect,yIntersect))            
-                            
-                #Search external borders other corners of the sprite in case no border poinst detected
-                if not self.searchBorderSide(track.externalBorders,xIntersect,yIntersect):
-                    if not self.searchBorderSide(track.internalBorders,xIntersect,yIntersect):
-                        self.bumpingDiagonal=False
-                        self.bumpingHorizontal=False
-                        self.bumpingVertical=False                    
-                        self.bumping=False                    
-                        # print('Default Bumping Orientation based on Sprite')            
-                        # if abs(self.angleVectorSign[self.sprite_angle][1])>0 and abs(self.angleVectorSign[self.sprite_angle][0])>0:
-                        #     #Diagonal
-                        #     self.bumpingDiagonal = True
-                        # else:
-                        #     if self.angleVectorSign[self.sprite_angle][1]==0:
-                        #         #Horizontal car bumping Vertical
-                        #         self.bumpingVertical = True
-                        #     else:
-                        #         #Vertical car bumping Horizontal
-                        #         self.bumpingHorizontal = True
+            self.detectCollision(track)
         else:
-            self.bumpingDiagonal=False
-            self.bumpingHorizontal=False
-            self.bumpingVertical=False
-            self.bumping=False                    
-            
+            #Force end of Bump Routine if car is not moving
+            self.endBumpLoop()
 
-
-
-    
-    
     def blit(self,track):
         if not self.bumping:
             self.updatePosition(track)
         if self.bumping:
+            #Ignore controls until Buming routine is finished - Force Skidding & Decelaration
             self.decelerating=True
             self.rotating=False
-            self.updatePosition(track)        
-        gameDisplay.blit(self.sprites[self.sprite_angle], (self.x, self.y))    
+            self.updatePosition(track)
+        gameDisplay.blit(self.sprites[self.sprite_angle], (self.x, self.y))
 
 
 def game_loop():
     blueCar = Car()
     track1= Track()
- 
+
     gameExit = False
- 
+
     while not gameExit:
-        if not blueCar.bumping:
-            if pygame.key.get_pressed()[pygame.K_RCTRL]:
-                blueCar.accelerate()
+        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            gameExit = True
+        else:
+            if not blueCar.bumping:
+                if pygame.key.get_pressed()[pygame.K_RCTRL]:
+                    blueCar.accelerate()
+                else:
+                    blueCar.decelerate()
+
+                if pygame.key.get_pressed()[pygame.K_LEFT]:
+                    blueCar.rotate(True)
+
+                if pygame.key.get_pressed()[pygame.K_RIGHT]:
+                    blueCar.rotate(False)
+
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_RCTRL:
+                            blueCar.accelerate()
+                        if event.key == pygame.K_LEFT:
+                            blueCar.rotate(True)
+                        if event.key == pygame.K_RIGHT:
+                            blueCar.rotate(False)
             else:
                 blueCar.decelerate()
-
-            if pygame.key.get_pressed()[pygame.K_LEFT]:
-                blueCar.rotate(True)
-            
-            if pygame.key.get_pressed()[pygame.K_RIGHT]:
-                blueCar.rotate(False)
-
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RCTRL:
-                        blueCar.accelerate()
-                    if event.key == pygame.K_LEFT:
-                        blueCar.rotate(True)
-                    if event.key == pygame.K_RIGHT:
-                        blueCar.rotate(False)
-        else:
-            blueCar.decelerate()
-        gameDisplay.blit(track1.background, (0, 0))
-        blueCar.blit(track1)
-        pygame.display.update()
-        clock.tick(30)
+            gameDisplay.blit(track1.background, (0, 0))
+            blueCar.blit(track1)
+            pygame.display.update()
+            clock.tick(30)
 
 
 game_loop()
