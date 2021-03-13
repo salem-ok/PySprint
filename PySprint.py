@@ -21,47 +21,6 @@ class Track:
 
 
     externalBorders = [
-        #New Map
-        # (98,  51),
-        # (544, 52),
-        # (565, 53),
-        # (580, 62),
-        # (597, 78),
-        # (604, 90),
-        # (608, 111),
-        # (608, 333),
-        # (586, 357),
-        # (571, 364),
-        # (562, 369),
-        # (544, 370),
-        # (440, 370),
-        # (431, 366),
-        # (273, 225),
-        # (262, 224),
-        # (258, 229),
-        # (257, 236),
-        # (256, 243),
-        # (256, 259),
-        # (258, 277),
-        # (260, 290),
-        # (262, 302),
-        # (265, 316),
-        # (265, 358),
-        # (248, 369),
-        # (98, 370),
-        # (81, 368),
-        # (74, 366),
-        # (57, 358),
-        # (37, 337),
-        # (34, 329),
-        # (35, 112),
-        # (37, 99),
-        # (39, 91),
-        # (45, 79),
-        # (63, 61),
-        # (72, 56),
-        # (81, 54)
-        #Old Map
         (101, 52),
         (544, 53),
         (560, 54),
@@ -73,10 +32,11 @@ class Track:
         (610, 331),
         (572, 364),
         (545, 368),
-        (449, 374),
-        (431, 371),
-        (278, 235),
-        (266, 228),
+        (449, 371),
+        (437, 369),
+        (273, 224),
+        (263, 224),
+        (257, 229),
         (256, 231),
         (257, 258),
         (257, 273),
@@ -172,10 +132,10 @@ class Car:
     #Mechanics
     rotation_step = .30
     acceleration_step = 0.3
-    deceleration_step = 0.3
+    deceleration_step = 0.6
     bump_decelaration_step = 1.5
-    speed_max = 12
-    bump_speed = 6
+    speed_max = 8
+    bump_speed = 5
     decelerating = False
     rotating = False
     bumping = False
@@ -295,7 +255,7 @@ class Car:
                 if self.xVector == 0:
                     #Edge case: bumping into a Vertical wall while car is vertical
                     self.xVector = self.yVector
-                    intersect_point = self.testCollision(track, self.xVector, 0)
+                    intersect_point = self.testCollision(track, True)
                     #Test if the vector is set away or towards the wall, and invert if necessary
                     if intersect_point:
                         self.xVector = -self.xVector
@@ -309,7 +269,7 @@ class Car:
                     if self.yVector == 0:
                         #Edge case: bumping into a Horizontal wall while car is horizontal
                         self.yVector = self.xVector
-                        intersect_point = self.testCollision(track, 0, self.yVector)
+                        intersect_point = self.testCollision(track, True)
                         #Test if the vector is set away or towards the wall, and invert if necessary
                         if intersect_point:
                             self.yVector = -self.yVector
@@ -351,59 +311,79 @@ class Car:
                                         #Bottom Right Diagonal - Invert Vector
                                         self.xVector = -newVector
                                         self.yVector = -newVector
-
-                            #Vector Sanity Check
-                            #Test if the vector is set away or towards the wall, and invert if necessary
-                            intersect_point = self.testCollision(track, self.xVector, self.yVector)
-                            if intersect_point:
-                                #Try inverting X
-                                self.xVector = -self.xVector
-                                intersect_point = self.testCollision(track, self.xVector, self.yVector)
-                                if intersect_point:
-                                    #Try Inverting Y
-                                    self.xVector = -self.xVector
-                                    self.yVector = -self.yVector
-                                    intersect_point = self.testCollision(track, self.xVector, self.yVector)
-                                    if intersect_point:
-                                    #try inverting both
-                                        self.xVector = -self.xVector
-                                        intersect_point = self.testCollision(track, 0, self.yVector)
-                                        if intersect_point:
-                                        #No movement as we're stuck
-                                            self.yVector = 0
-                                            self.xVector = 0
                         else:
-                            #Car is Diagonal - Normal Bump - Invert Vector
+                            #Car is Diagonal - Assuming Orthogonal to the Border - Normal Bump - Invert Vector
                             self.xVector = -self.xVector
                             self.yVector = -self.yVector
+                            #Vector Sanity Check
+                            #Test if the vector is set away or towards the wall, and Refine direction if not
+                            intersect_point = self.testCollision(track, False)
+                            if intersect_point:
+                                #Reset Vector to initial value
+                                self.xVector = -self.xVector
+                                self.yVector = -self.yVector
+                                #Default Bump Vector - Max component of Vector
+                                newVector = max(abs(self.xVector),abs(self.yVector))
+                                #Force the Vector Diagonally if the car is diagonal and "parallel" to the Border
+                                if (aPoint[0] < bPoint[0] and aPoint[1] < bPoint[1]) or (aPoint[0] > bPoint[0] and aPoint[1] > bPoint[1]):
+                                    #Top-Right or Bottom Left Diagonal
+                                    self.xVector = newVector
+                                    self.yVector = -newVector
+
+                                if (aPoint[0] > bPoint[0] and aPoint[1] < bPoint[1]) or (aPoint[0] < bPoint[0] and aPoint[1] > bPoint[1]):
+                                    #Top-left or Bottom Right Diagonal
+                                    self.xVector = -newVector
+                                    self.yVector = -newVector
+                    #Vector Sanity Check
+                    #Test if the vector is set away or towards the wall, and invert if necessary
+                    intersect_point = self.testCollision(track, True)
+                    if intersect_point:
+                        #Try inverting X
+                        self.xVector = -self.xVector
+                        intersect_point = self.testCollision(track, True)
+                        if intersect_point:
+                            #Try Inverting Y
+                            self.xVector = -self.xVector
+                            self.yVector = -self.yVector
+                            intersect_point = self.testCollision(track, True)
+                            if intersect_point:
+                            #try inverting both
+                                self.xVector = -self.xVector
+                                intersect_point = self.testCollision(track, True)
+                                if intersect_point:
+                                #No movement as we're stuck
+                                    self.yVector = 0
+                                    self.xVector = 0
         self.bumpingVectorInitialized = True
 
-    def testCollision(self,track,xTest,yTest):
+    def testCollision(self,track,simulateNextStep):
         track_mask = pygame.mask.from_surface(track.trackMask, 50)
         car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+        xTest = 0
+        yTest = 0
+        if simulateNextStep:
+            if self.xVector > 0:
+                xTest = self.vectorSimulationLength
+            else:
+                if self.xVector < 0:
+                    xTest = -self.vectorSimulationLength
+            if self.yVector > 0:
+                yTest = self.vectorSimulationLength
+            else:
+                if self.yVector < 0:
+                    yTest = -self.vectorSimulationLength
+
         return track_mask.overlap(car_mask, ((round(self.x+xTest), round(self.y+yTest))))
 
     def detectCollision(self, track):
         print('Checking for Collision at ({},{})'.format(self.x, self.y))
-        intersect_point = self.testCollision(track,0,0)
+        intersect_point = self.testCollision(track,False)
         if intersect_point:
             if self.decelerating == False:
                 #Check if the car is going into a border a going away from it (i.e. the tail touching the border)
                 #If it is going away from the border then skip the Bump routine
                 #Simulate  Vector of same direction as current vector and check if still colliding
-                xTest = 0
-                if self.xVector > 0:
-                    xTest = self.vectorSimulationLength
-                else:
-                    if self.xVector > 0:
-                        xTest = -self.vectorSimulationLength
-                yTest = 0
-                if self.yVector > 0:
-                    yTest = self.vectorSimulationLength
-                else:
-                    if self.yVector > 0:
-                        yTest = -self.vectorSimulationLength
-                intersect_point2 = self.testCollision(track,xTest,yTest)
+                intersect_point2 = self.testCollision(track,True)
                 if intersect_point2:
                     #Collision confirmed by next incremental move
                     self.initBumpLoop(track, intersect_point)
