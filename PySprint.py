@@ -132,10 +132,10 @@ class Car:
     #Mechanics
     rotation_step = .30
     acceleration_step = 0.3
-    deceleration_step = 0.6
+    deceleration_step = 0.45
     bump_decelaration_step = 1.5
-    speed_max = 8
-    bump_speed = 5
+    speed_max = 9
+    bump_speed = 6
     decelerating = False
     rotating = False
     bumping = False
