@@ -13,6 +13,28 @@ flags = 0
 gameDisplay = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
 
+
+
+dustCloud = {
+    0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
+    1:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
+    2:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
+    3:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
+    4:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
+    5:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
+    6:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
+    7:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
+    8:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
+    9:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
+    10:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
+    11:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
+    12:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
+    13:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
+    14:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
+    15:pygame.image.load('Assets/DustCloud2.png').convert_alpha()
+}
+
+
 class Track:
     background = pygame.image.load('Assets/SuperSprintTrack1.png')
     trackMask = pygame.image.load('Assets/SuperSprintTrack1Mask.png').convert_alpha()
@@ -125,6 +147,8 @@ class Car:
     speed = 0
     aIntersectSide = (0, 0)
     bIntersectSide = (0, 0)
+    xIntersect = 0
+    yIntersect = 0
     xVector = 0
     yVector = 0
     sin_angle = 0
@@ -146,6 +170,7 @@ class Car:
     diagonalDetectionTolerance = 2
     vectorSimulationLength = 10
     sideDetectionTolerance = 7
+    dustCloudAnimationIndex = 0
 
     def rotate(self, left):
         self.rotating = True
@@ -181,7 +206,7 @@ class Car:
             #Stop Bumping routine once speed down to 0
             self.endBumpLoop()
 
-    def searchBorderSide(self, polygonBorder, xIntersect, yIntersect):
+    def searchBorderSide(self, polygonBorder):
         self.bumpingDiagonal = False
         self.bumpingHorizontal = False
         self.bumpingVertical = False
@@ -208,7 +233,7 @@ class Car:
                 rect_height = 1
             wall_rect = pygame.Rect(top, left, rect_width, rect_height)
             #Enlarge detection Box to maximize chance of hitting a polygon side
-            sprite_rect = pygame.Rect(xIntersect-self.sideDetectionTolerance, yIntersect-self.sideDetectionTolerance, self.sideDetectionTolerance*2, self.sideDetectionTolerance*2)
+            sprite_rect = pygame.Rect(self.xIntersect-self.sideDetectionTolerance, self.yIntersect-self.sideDetectionTolerance, self.sideDetectionTolerance*2, self.sideDetectionTolerance*2)
 
             if sprite_rect.colliderect(wall_rect):
                 print('found matching pair of points ({},{})'.format(polygonBorder[i],polygonBorder[nextIndex]))
@@ -398,13 +423,13 @@ class Car:
         self.speed = self.bump_speed
         #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
         #Lookup in the map for the closest intersection point and the polygon side that is intersecting
-        xIntersect = intersect_point[0]
-        yIntersect = intersect_point[1]
-        print('Ext Border Detected ({},{})'.format(xIntersect, yIntersect))
+        self.xIntersect = intersect_point[0]
+        self.yIntersect = intersect_point[1]
+        print('Ext Border Detected ({},{})'.format(self.xIntersect, self.yIntersect))
 
         #Search external borders other corners of the sprite in case no border poinst detected
-        if not self.searchBorderSide(track.externalBorders, xIntersect, yIntersect):
-            if not self.searchBorderSide(track.internalBorders, xIntersect, yIntersect):
+        if not self.searchBorderSide(track.externalBorders):
+            if not self.searchBorderSide(track.internalBorders):
                 #Despite overlap detected no intersection with any side of the Track polygons has been found
                 #Unable to determine the orientation of the colliding border
                 print('No Macthing Border Side found')
@@ -451,7 +476,8 @@ class Car:
             self.rotating = False
             self.updatePosition(track)
         gameDisplay.blit(self.sprites[self.sprite_angle], (self.x, self.y))
-
+        if self.bumping:
+            gameDisplay.blit(dustCloud[self.dustCloudAnimationIndex], (self.xIntersect, self.yIntersect))
 
 def game_loop():
     blueCar = Car()
