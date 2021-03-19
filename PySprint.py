@@ -17,21 +17,10 @@ clock = pygame.time.Clock()
 
 dustCloud = {
     0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    1:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    2:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    3:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    4:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    5:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    6:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    7:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    8:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    9:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    10:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    11:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    12:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    13:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    14:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    15:pygame.image.load('Assets/DustCloud2.png').convert_alpha()
+    1:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
+    2:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
+    3:pygame.image.load('Assets/DustCloud3.png').convert_alpha(),
+    4:pygame.image.load('Assets/DustCloud4.png').convert_alpha()
 }
 
 
@@ -171,6 +160,8 @@ class Car:
     vectorSimulationLength = 10
     sideDetectionTolerance = 7
     dustCloudAnimationIndex = 0
+    bumpTime = 0
+    BUMPCLOUD = pygame.USEREVENT + 1
 
     def rotate(self, left):
         self.rotating = True
@@ -203,8 +194,9 @@ class Car:
             self.speed = 0
         if self.speed == 0:
             self.decelerating = False
-            #Stop Bumping routine once speed down to 0
-            self.endBumpLoop()
+            if self.bumping:
+                #Stop Bumping routine once speed down to 0
+                self.endBumpLoop()
 
     def searchBorderSide(self, polygonBorder):
         self.bumpingDiagonal = False
@@ -425,8 +417,10 @@ class Car:
         #Lookup in the map for the closest intersection point and the polygon side that is intersecting
         self.xIntersect = intersect_point[0]
         self.yIntersect = intersect_point[1]
-        print('Ext Border Detected ({},{})'.format(self.xIntersect, self.yIntersect))
-
+        self.bumpTime = pygame.time.get_ticks()
+        print('{} - Bump Initiated({},{})'.format(self.bumpTime, self.xIntersect, self.yIntersect))
+        self.dustCloudAnimationIndex = 0
+        pygame.time.set_timer(self.BUMPCLOUD,20)
         #Search external borders other corners of the sprite in case no border poinst detected
         if not self.searchBorderSide(track.externalBorders):
             if not self.searchBorderSide(track.internalBorders):
@@ -435,13 +429,15 @@ class Car:
                 print('No Macthing Border Side found')
                 self.endBumpLoop()
 
-
     def endBumpLoop(self):
         self.bumpingDiagonal = False
         self.bumpingHorizontal = False
         self.bumpingVertical = False
         self.bumpingVectorInitialized = False
         self.bumping = False
+        endTime = pygame.time.get_ticks()
+        print('{} - Bump Terminated - Duration: {})'.format(endTime,endTime-self.bumpTime))
+        pygame.time.set_timer(self.BUMPCLOUD,0)
 
     def updatePosition(self, track):
         if not self.decelerating:
@@ -464,10 +460,11 @@ class Car:
         if self.speed > 0:
             self.detectCollision(track)
         else:
-            #Force end of Bump Routine if car is not moving
-            self.endBumpLoop()
+            if self.bumping:
+                #Force end of Bump Routine if car is not moving
+                self.endBumpLoop()
 
-    def blit(self,track):
+    def blit(self, track):
         if not self.bumping:
             self.updatePosition(track)
         if self.bumping:
@@ -477,7 +474,16 @@ class Car:
             self.updatePosition(track)
         gameDisplay.blit(self.sprites[self.sprite_angle], (self.x, self.y))
         if self.bumping:
-            gameDisplay.blit(dustCloud[self.dustCloudAnimationIndex], (self.xIntersect, self.yIntersect))
+            for event in pygame.event.get():
+                if event.type == self.BUMPCLOUD:
+                    self.displayBumpCloud()
+            if self.dustCloudAnimationIndex <= 4:
+                gameDisplay.blit(dustCloud[self.dustCloudAnimationIndex], (self.xIntersect, self.yIntersect))
+
+    def displayBumpCloud(self):
+        print('{} - Timer triggerred'.format(pygame.time.get_ticks()))
+        if self.dustCloudAnimationIndex <= 4:
+            self.dustCloudAnimationIndex += 1
 
 def game_loop():
     blueCar = Car()
