@@ -17,6 +17,13 @@ game_display = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
 
 
+helicopter_frames = {
+    0:pygame.image.load('Assets/Helicopter0.png').convert_alpha(),
+    1:pygame.image.load('Assets/Helicopter1.png').convert_alpha(),
+    2:pygame.image.load('Assets/Helicopter2.png').convert_alpha(),
+}
+
+helicopter_step = 10
 
 dust_cloud_frames = {
     0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
@@ -201,6 +208,9 @@ class Car:
     bumping_diagonal = False
     crash_finished = False
     animation_index = 0
+    helicopter_index = 0
+    helicopter_x = 0
+    helicopter_y = 0
     collision_time = 0
     max_speed_reached = 0
 
@@ -515,10 +525,12 @@ class Car:
         self.speed = 0
         self.x_intersect = intersect_point[0]
         self.y_intersect = intersect_point[1]
-
+        self.helicopter_x = - helicopter_frames[0].get_width()
+        self.helicopter_y = self.y_intersect - helicopter_frames[0].get_height()
         self.collision_time = pygame.time.get_ticks()
         print('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
+        self.helicopter_index = 0
         pygame.time.set_timer(self.EXPLOSION, 28)
 
     def end_bump_loop(self):
@@ -602,11 +614,11 @@ class Car:
             event = pygame.event.wait()
             if event.type == self.EXPLOSION:
                 self.display_explosion()
-                crash_duration = pygame.time.get_ticks() - self.collision_time
-                if crash_duration >= self.max_crash_duration:
-                    self.crash_finished = True
             if self.animation_index <= 4:
                 game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
+            if self.helicopter_x >= self.x_position:
+                game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+            game_display.blit(helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
 
 
     def display_bump_cloud(self):
@@ -620,6 +632,18 @@ class Car:
             print('{} - Crash Timer triggerred'.format(pygame.time.get_ticks()))
         if self.animation_index < len(explosion_frames):
             self.animation_index += 1
+        if self.helicopter_x < display_width:
+            self.helicopter_x += helicopter_step
+            if self.helicopter_index == 2:
+                self.helicopter_index = 0
+            else:
+                self.helicopter_index += 1
+        else:
+            self.crash_finished = True
+            # crash_duration = pygame.time.get_ticks() - self.collision_time
+            # if crash_duration >= self.max_crash_duration:
+            #     self.crash_finished = True
+
 
 
 def game_loop():
