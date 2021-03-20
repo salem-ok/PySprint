@@ -1,6 +1,7 @@
 import pygame
 import time
 import math
+import random
 
 pygame.init()
 
@@ -63,59 +64,59 @@ class Track:
     trackMask = pygame.image.load('Assets/SuperSprintTrack1Mask.png').convert_alpha()
 
     external_borders = [
-        (101, 52),
-        (544, 53),
-        (560, 54),
-        (577, 59),
-        (591, 71),
-        (601, 84),
-        (606, 96),
-        (608, 110),
-        (610, 331),
-        (572, 364),
-        (545, 368),
-        (449, 371),
-        (437, 369),
-        (273, 224),
-        (263, 224),
-        (257, 229),
-        (256, 231),
-        (257, 258),
-        (257, 273),
-        (266, 318),
-        (266, 354),
-        (247, 373),
-        (99, 373),
-        (71, 368),
-        (35, 330),
-        (37, 112),
-        (40, 93),
-        (46, 79),
-        (64, 59),
-        (75, 55),
-        (84, 51)
+        (101, 52, 0),
+        (544, 53, 1),
+        (560, 54, 1),
+        (577, 59, 1),
+        (591, 71, 1),
+        (601, 84, 1),
+        (606, 96, 1),
+        (608, 110, 0),
+        (610, 331, 1),
+        (572, 364, 1),
+        (545, 368, 1),
+        (449, 371, 0),
+        (437, 369, 0),
+        (273, 224, 0),
+        (263, 224, 1),
+        (257, 229, 1),
+        (256, 231, 1),
+        (257, 258, 1),
+        (257, 273, 1),
+        (266, 318, 1),
+        (266, 354, 1),
+        (247, 373, 1),
+        (99, 373, 0),
+        (71, 368, 1),
+        (35, 330, 1),
+        (37, 112, 0),
+        (40, 93, 1),
+        (46, 79, 1),
+        (64, 59, 1),
+        (75, 55, 1),
+        (84, 51, 1)
         ]
 
     internal_borders = [
-        (133, 134),
-        (129, 143),
-        (125, 153),
-        (124, 295),
-        (132, 305),
-        (143, 307),
-        (157, 298),
-        (161, 163),
-        (178, 148),
-        (292, 148),
-        (314, 152),
-        (333, 161),
-        (489, 306),
-        (499, 307),
-        (504, 302),
-        (512, 299),
-        (512, 141),
-        (503, 131),
-        (137, 130)
+        (133, 134,1),
+        (129, 143,1),
+        (125, 153,1),
+        (124, 295,1),
+        (132, 305,1),
+        (143, 307,1),
+        (157, 298,1),
+        (161, 163,1),
+        (178, 148,1),
+        (292, 148,1),
+        (314, 152,1),
+        (333, 161,1),
+        (489, 306,1),
+        (499, 307,1),
+        (504, 302,1),
+        (512, 299,1),
+        (512, 141,1),
+        (503, 131,1),
+        (137, 130,1)
     ]
 
 class Car:
@@ -194,8 +195,15 @@ class Car:
     diagonal_detection_tolerance = 2
     vector_simulation_length = 10
     side_detection_tolerance = 7
-    max_speed_crash_threshold = 500
-    max_crash_duration = 500
+    max_speed_crash_threshold = 2000
+    #Threshold over which theer is a higher chance to crash
+    speed_crash_probability_threshold = 0.8
+    #% increase of probability to crash if condition is true
+    speed_crash_probability_penalty = 1.2
+    sensitive_border_crash_probability_penalty = 1.4
+    #Max Random number drawn to calculate Crash probability
+    crash_random_max = 60
+    crash_certainty_treshold = 80
 
     #Car State
     decelerating = False
@@ -256,10 +264,11 @@ class Car:
                 #Stop Bumping routine once speed down to 0
                 self.end_bump_loop()
 
-    def search_border_side(self, polygon_border):
-        self.bumping_diagonal = False
-        self.bumping_horizontal = False
-        self.bumping_vertical = False
+    def search_border_side(self, polygon_border, bumping):
+        if bumping:
+            self.bumping_diagonal = False
+            self.bumping_horizontal = False
+            self.bumping_vertical = False
         for i in range(0, len(polygon_border)):
             next_index = i+1
             if next_index == len(polygon_border):
@@ -293,18 +302,21 @@ class Car:
                 if (abs(polygon_border[i][0]-polygon_border[next_index][0]) <= self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1]) > self.diagonal_detection_tolerance):
                     if DEBUG_COLLISION:
                         print('x delta <={} - looks vertical enough'.format(self.diagonal_detection_tolerance))
-                    self.bumping_vertical = True
+                    if bumping:
+                        self.bumping_vertical = True
                     return True
                 if (abs(polygon_border[i][0]-polygon_border[next_index][0])>self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1])<=self.diagonal_detection_tolerance):
                     if DEBUG_COLLISION:
                         print('y delta <={} - looks horizontal enough'.format(self.diagonal_detection_tolerance))
-                    self.bumping_horizontal = True
+                    if bumping:
+                        self.bumping_horizontal = True
                     return True
                 if DEBUG_COLLISION:
                     print('Diagonal Bumping')
-                self.bumping_diagonal = True
-                self.bumping_horizontal = False
-                self.bumping_vertical = False
+                if bumping:
+                    self.bumping_diagonal = True
+                    self.bumping_horizontal = False
+                    self.bumping_vertical = False
                 return True
         return False
 
@@ -488,15 +500,34 @@ class Car:
             else:
                 collision = True
         if collision:
-            if self.max_speed_reached > 0:
-                maxspeed_duration = pygame.time.get_ticks() - self.max_speed_reached
-                #Less than 3 seconds at max_speed when coliding is a Bump
-                if maxspeed_duration <= self.max_speed_crash_threshold:
-                    self.init_bump_loop(track, intersect_point)
-                else:
-                    self.init_crash_loop(track, intersect_point)
+            if  self.detect_crash(track):
+                self.init_crash_loop(track, intersect_point)
             else:
                 self.init_bump_loop(track, intersect_point)
+
+    def detect_crash(self, track):
+        if self.max_speed_reached > 0:
+            maxspeed_duration = pygame.time.get_ticks() - self.max_speed_reached
+            #More than xxx ms at max_speed when coliding is a certain crash
+            if maxspeed_duration <= self.max_speed_crash_threshold:
+                return False
+            else:
+                return True
+        else:
+            #There is a random chance to Crash, increased:
+            crash_probability = random.randint(1,self.crash_random_max)
+            #1- If Speed is higher than xx% of max speed
+            if self.speed >= self.speed_crash_probability_threshold * self.speed_max:
+                crash_probability = crash_probability * self.speed_crash_probability_penalty
+            #2- If A sensitive Border has been hit
+            if self.search_border_side(track.external_borders, False) or self.search_border_side(track.internal_borders, False):
+                if self.a_intersect_side[2] == 1 and self.b_intersect_side[2] == 1:
+                    crash_probability = crash_probability * self.sensitive_border_crash_probability_penalty
+            if crash_probability > self.crash_certainty_treshold:
+                return True
+            else:
+                return False
+
 
     def init_bump_loop(self, track, intersect_point):
         self.bumping = True
@@ -511,8 +542,8 @@ class Car:
         self.animation_index = 0
         pygame.time.set_timer(self.BUMPCLOUD, 20)
         #Search external borders other corners of the sprite in case no border poinst detected
-        if not self.search_border_side(track.external_borders):
-            if not self.search_border_side(track.internal_borders):
+        if not self.search_border_side(track.external_borders, True):
+            if not self.search_border_side(track.internal_borders, True):
                 #Despite overlap detected no intersection with any side of the Track polygons has been found
                 #Unable to determine the orientation of the colliding border
                 if DEBUG_BUMP:
@@ -634,16 +665,12 @@ class Car:
             self.animation_index += 1
         if self.helicopter_x < display_width:
             self.helicopter_x += helicopter_step
-            if self.helicopter_index == 2:
+            if self.helicopter_index == len(helicopter_frames)-1:
                 self.helicopter_index = 0
             else:
                 self.helicopter_index += 1
         else:
             self.crash_finished = True
-            # crash_duration = pygame.time.get_ticks() - self.collision_time
-            # if crash_duration >= self.max_crash_duration:
-            #     self.crash_finished = True
-
 
 
 def game_loop():
