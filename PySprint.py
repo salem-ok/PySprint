@@ -8,10 +8,13 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
+race_laps = 4
+
 #Scale screen
 #flags = pygame.SCALED
+DEBUG_FINISH = True
 DEBUG_COLLISION = False
-DEBUG_BUMP = True
+DEBUG_BUMP = False
 DEBUG_CRASH = False
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
@@ -119,6 +122,10 @@ class Track:
         (137, 130,1)
     ]
 
+    finish_line = pygame.Rect(346, 48,4,82)
+    finish_line_direction = -1
+
+
 class Car:
     #Appearance
     sprites = {
@@ -221,6 +228,13 @@ class Car:
     helicopter_y = 0
     collision_time = 0
     max_speed_reached = 0
+    on_finish_line = False
+    passed_finish_line_wrong_way = False
+    lap_count = 0
+    current_lap_start = 0
+    lap_times = [0,0,0,0]
+    best_lap = 0
+    average_Lap = 0
 
     #Car Events
     BUMPCLOUD = pygame.USEREVENT + 1
@@ -622,6 +636,40 @@ class Car:
             if self.crash_finished:
                 self.end_crash_loop()
 
+    def test_finish_line(self, track):
+        #Detech if car collides with Finish line in the expected direction
+        sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
+        if sprite_rect.colliderect(track.finish_line):
+            if not self.on_finish_line:
+                self.on_finish_line = True
+                if self.x_vector * track.finish_line_direction > 0:
+                    if self.passed_finish_line_wrong_way:
+                        self.passed_finish_line_wrong_way = False
+                        if DEBUG_FINISH:
+                            print('{} - Passed the line in the right direction after going the wrong way)'.format(pygame.time.get_ticks()))
+                    else:
+                        finish_time = pygame.time.get_ticks()
+                        self.lap_times[self.lap_count] = finish_time - self.current_lap_start
+                        if DEBUG_FINISH:
+                            print('{} - New Lap {} - Duration: {})'.format(finish_time, self.lap_count, self.lap_times[self.lap_count]))
+                        self.lap_count+=1
+                        if self.lap_count == race_laps:
+                            #Race finished
+                            self.average_Lap =  sum(self.lap_times)/race_laps
+                            self.best_lap = min(self.lap_times)
+                            if DEBUG_FINISH:
+                                print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_Lap, self.best_lap))
+                            return True
+                        self.current_lap_start = finish_time
+                        return False
+                else:
+                    self.passed_finish_line_wrong_way = True
+                    if DEBUG_FINISH:
+                        print('{} - Passed the line in the wrong direction)'.format(pygame.time.get_ticks()))
+        else:
+            self.on_finish_line = False
+
+
     def blit(self, track):
         if not self.bumping:
             self.update_position(track)
@@ -707,6 +755,7 @@ def game_loop():
                 blue_car.decelerate()
             game_display.blit(track1.background, (0, 0))
             blue_car.blit(track1)
+            game_exit = blue_car.test_finish_line(track1)
             pygame.display.update()
             clock.tick(60)
 
