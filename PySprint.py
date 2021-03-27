@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 100
+race_laps = 3
 
 #Scale screen
 #flags = pygame.SCALED
@@ -36,6 +36,27 @@ green_flag_frames = {
     5:pygame.image.load('Assets/GreenFlag5.png').convert_alpha(),
     6:pygame.image.load('Assets/GreenFlag6.png').convert_alpha(),
 }
+
+white_flag_frames = {
+    0:pygame.image.load('Assets/WhiteFlag0.png').convert_alpha(),
+    1:pygame.image.load('Assets/WhiteFlag1.png').convert_alpha(),
+    2:pygame.image.load('Assets/WhiteFlag2.png').convert_alpha(),
+    3:pygame.image.load('Assets/WhiteFlag3.png').convert_alpha(),
+    4:pygame.image.load('Assets/WhiteFlag4.png').convert_alpha(),
+    5:pygame.image.load('Assets/WhiteFlag5.png').convert_alpha(),
+    6:pygame.image.load('Assets/WhiteFlag6.png').convert_alpha(),
+}
+
+checkered_flag_frames = {
+    0:pygame.image.load('Assets/CheckeredFlag0.png').convert_alpha(),
+    1:pygame.image.load('Assets/CheckeredFlag1.png').convert_alpha(),
+    2:pygame.image.load('Assets/CheckeredFlag2.png').convert_alpha(),
+    3:pygame.image.load('Assets/CheckeredFlag3.png').convert_alpha(),
+    4:pygame.image.load('Assets/CheckeredFlag4.png').convert_alpha(),
+    5:pygame.image.load('Assets/CheckeredFlag5.png').convert_alpha(),
+    6:pygame.image.load('Assets/CheckeredFlag6.png').convert_alpha(),
+}
+
 
 helicopter_frames = {
     0:pygame.image.load('Assets/Helicopter0.png').convert_alpha(),
@@ -749,15 +770,21 @@ def game_loop():
 
     game_exit = False
     race_start = True
+    last_lap = False
+    race_finish = False
     animation_index = 0
     flag_waves = 0
     wave_up = True
+    flag_waved = False
     pygame.time.set_timer(GREENFLAG, 40)
     while not game_exit:
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             game_exit = True
         else:
-            if not blue_car.bumping:
+            ignore_controls = False
+            if blue_car.bumping or race_finish:
+                ignore_controls = True
+            if not ignore_controls:
                 if pygame.key.get_pressed()[pygame.K_RCTRL]:
                     blue_car.accelerate()
                 else:
@@ -772,7 +799,7 @@ def game_loop():
                 blue_car.decelerate()
 
             for event in pygame.event.get():
-                if not blue_car.bumping:
+                if not ignore_controls:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_RCTRL:
                             blue_car.accelerate()
@@ -797,7 +824,7 @@ def game_loop():
                 #Draw Green Flag at Race Start
                 if event.type == GREENFLAG:
                     if DEBUG_FLAG:
-                        print('{} - Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                        print('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
                     if wave_up:
                         animation_index += 1
                     else:
@@ -814,13 +841,85 @@ def game_loop():
                     if flag_waves > 5:
                         race_start = False
                         pygame.time.set_timer(GREENFLAG, 00)
+
+                #Draw White Flag for Last lap
+                if event.type == WHITEFLAG:
+                    if DEBUG_FLAG:
+                        print('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                    if wave_up:
+                        animation_index += 1
+                    else:
+                        animation_index -= 1
+                    if animation_index >= len(white_flag_frames):
+                        animation_index -= 1
+                        flag_waves += 1
+                        wave_up = False
+
+                    if animation_index < 0:
+                        animation_index += 1
+                        wave_up = True
+
+                    if flag_waves > 5:
+                        flag_waved = True
+                        pygame.time.set_timer(WHITEFLAG, 00)
+
+                #Draw Checkered Flag
+                if event.type == CHECKEREDFLAG:
+                    if DEBUG_FLAG:
+                        print('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                    if wave_up:
+                        animation_index += 1
+                    else:
+                        animation_index -= 1
+                    if animation_index >= len(checkered_flag_frames):
+                        animation_index -= 1
+                        flag_waves += 1
+                        wave_up = False
+
+                    if animation_index < 0:
+                        animation_index += 1
+                        wave_up = True
+
+                    if flag_waves > 5:
+                        flag_waved = True
+                        pygame.time.set_timer(CHECKEREDFLAG, 00)
+
+
             blue_car.draw(track1)
+            if not race_finish:
+                race_finish = blue_car.test_finish_line(track1)
+                #Draw Checkered Flag and finish race
+                if race_finish:
+                    animation_index = 0
+                    flag_waves = 0
+                    flag_waved = False
+                    wave_up = True
+                    pygame.time.set_timer(CHECKEREDFLAG, 40)
+
+
+            #Draw White Flag for Last lap
+            if not last_lap and blue_car.lap_count == race_laps -1:
+                animation_index = 0
+                flag_waves = 0
+                wave_up = True
+                last_lap = True
+                pygame.time.set_timer(WHITEFLAG, 40)
+
+
             game_display.blit(track1.background, (0, 0))
             if race_start:
                 game_display.blit(green_flag_frames[animation_index],track1.flag_anchor)
+
+            if last_lap and not flag_waved:
+                game_display.blit(white_flag_frames[animation_index],track1.flag_anchor)
+
+            if race_finish and not flag_waved:
+                game_display.blit(checkered_flag_frames[animation_index],track1.flag_anchor)
+
             blue_car.blit(track1)
-            game_exit = blue_car.test_finish_line(track1)
             pygame.display.update()
+            if race_finish and flag_waved:
+                game_exit = True
             clock.tick(60)
 
 game_loop()
