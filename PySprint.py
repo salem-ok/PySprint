@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 4
+race_laps = 100
 
 #Scale screen
 #flags = pygame.SCALED
@@ -16,10 +16,26 @@ DEBUG_FINISH = True
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
+DEBUG_FLAG = False
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
 
+#Flag Events
+GREENFLAG = pygame.USEREVENT + 50
+WHITEFLAG = GREENFLAG + 1
+CHECKEREDFLAG = WHITEFLAG + 1
+
+
+green_flag_frames = {
+    0:pygame.image.load('Assets/GreenFlag0.png').convert_alpha(),
+    1:pygame.image.load('Assets/GreenFlag1.png').convert_alpha(),
+    2:pygame.image.load('Assets/GreenFlag2.png').convert_alpha(),
+    3:pygame.image.load('Assets/GreenFlag3.png').convert_alpha(),
+    4:pygame.image.load('Assets/GreenFlag4.png').convert_alpha(),
+    5:pygame.image.load('Assets/GreenFlag5.png').convert_alpha(),
+    6:pygame.image.load('Assets/GreenFlag6.png').convert_alpha(),
+}
 
 helicopter_frames = {
     0:pygame.image.load('Assets/Helicopter0.png').convert_alpha(),
@@ -65,6 +81,8 @@ explosion_frames = {
 class Track:
     background = pygame.image.load('Assets/SuperSprintTrack1.png')
     trackMask = pygame.image.load('Assets/SuperSprintTrack1Mask.png').convert_alpha()
+
+    flag_anchor = (320, 28)
 
     external_borders = [
         (101, 52, 0),
@@ -190,13 +208,18 @@ class Car:
     # speed_max = 9
     # bump_speed = 6
 
-    #60FPS Settings
-    rotation_step = .19
-    acceleration_step = 0.10
-    deceleration_step = 0.15
-    bump_decelaration_step = 0.7
-    speed_max = 6
-    bump_speed = 5
+    #60FPS Settings - Calibrated to an unmodified car
+    rotation_step = .16
+    acceleration_step = 0.065
+    deceleration_step = 0.9
+    bump_decelaration_step = 0.25
+    speed_max = 4
+    bump_speed = 3.25
+
+
+
+    bump_animation_timer = 30
+    crash_animation_timer = 40
 
     #Collision Settings
     diagonal_detection_tolerance = 2
@@ -551,10 +574,6 @@ class Car:
         self.x_intersect = intersect_point[0]
         self.y_intersect = intersect_point[1]
         self.collision_time = pygame.time.get_ticks()
-        if DEBUG_BUMP:
-            print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
-        self.animation_index = 0
-        pygame.time.set_timer(self.BUMPCLOUD, 20)
         #Search external borders other corners of the sprite in case no border poinst detected
         if not self.search_border_side(track.external_borders, True):
             if not self.search_border_side(track.internal_borders, True):
@@ -563,6 +582,10 @@ class Car:
                 if DEBUG_BUMP:
                     print('No Macthing Border Side found')
                 self.end_bump_loop()
+        if DEBUG_BUMP:
+            print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
+        self.animation_index = 0
+        pygame.time.set_timer(self.BUMPCLOUD, self.bump_animation_timer)
 
     def init_crash_loop(self, track, intersect_point):
         self.crashing = True
@@ -576,7 +599,7 @@ class Car:
         print('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
         self.helicopter_index = 0
-        pygame.time.set_timer(self.EXPLOSION, 28)
+        pygame.time.set_timer(self.EXPLOSION, self.crash_animation_timer)
 
     def end_bump_loop(self):
         self.bumping_diagonal = False
@@ -670,7 +693,8 @@ class Car:
             self.on_finish_line = False
 
 
-    def blit(self, track):
+    def draw(self, track):
+        #Draw Car
         if not self.bumping:
             self.update_position(track)
         if self.bumping:
@@ -678,21 +702,19 @@ class Car:
             self.decelerating = True
             self.rotating = False
             self.update_position(track)
+
+    def blit(self, track):
         #Car is not visible durign explosion
         if not self.crashing:
             game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-        #Blit Dust Cloud
+        #Blit Dust Cloud if Bumping
         if self.bumping:
-            event = pygame.event.wait()
-            if event.type == self.BUMPCLOUD:
-                self.display_bump_cloud()
+            if DEBUG_BUMP:
+                print('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
             if self.animation_index <= 4:
                 game_display.blit(dust_cloud_frames[self.animation_index], (self.x_intersect, self.y_intersect))
-        #Blit Explosion
+        #Blit Explosion & Helicopter
         if self.crashing:
-            event = pygame.event.wait()
-            if event.type == self.EXPLOSION:
-                self.display_explosion()
             if self.animation_index <= 4:
                 game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
             if self.helicopter_x >= self.x_position:
@@ -702,13 +724,13 @@ class Car:
 
     def display_bump_cloud(self):
         if DEBUG_BUMP:
-            print('{} - Bump Timer triggerred'.format(pygame.time.get_ticks()))
+            print('{} - Increment Bump Frame'.format(pygame.time.get_ticks()))
         if self.animation_index < len(dust_cloud_frames):
             self.animation_index += 1
 
     def display_explosion(self):
         if DEBUG_CRASH:
-            print('{} - Crash Timer triggerred'.format(pygame.time.get_ticks()))
+            print('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
         if self.animation_index < len(explosion_frames):
             self.animation_index += 1
         if self.helicopter_x < display_width:
@@ -726,7 +748,11 @@ def game_loop():
     track1 = Track()
 
     game_exit = False
-
+    race_start = True
+    animation_index = 0
+    flag_waves = 0
+    wave_up = True
+    pygame.time.set_timer(GREENFLAG, 40)
     while not game_exit:
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             game_exit = True
@@ -742,8 +768,11 @@ def game_loop():
 
                 if pygame.key.get_pressed()[pygame.K_RIGHT]:
                     blue_car.rotate(False)
+            else:
+                blue_car.decelerate()
 
-                for event in pygame.event.get():
+            for event in pygame.event.get():
+                if not blue_car.bumping:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_RCTRL:
                             blue_car.accelerate()
@@ -751,13 +780,47 @@ def game_loop():
                             blue_car.rotate(True)
                         if event.key == pygame.K_RIGHT:
                             blue_car.rotate(False)
-            else:
-                blue_car.decelerate()
+                else:
+                    blue_car.decelerate()
+                #Draw Dust Cloud
+                if event.type == blue_car.BUMPCLOUD:
+                    if DEBUG_BUMP:
+                        print('{} - Bump Timer triggerred'.format(pygame.time.get_ticks()))
+                    if blue_car.bumping:
+                        blue_car.display_bump_cloud()
+                #Draw Explosion
+                if event.type == blue_car.EXPLOSION:
+                    if DEBUG_CRASH:
+                        print('{} - Crash Timer triggerred'.format(pygame.time.get_ticks()))
+                    if blue_car.crashing:
+                        blue_car.display_explosion()
+                #Draw Green Flag at Race Start
+                if event.type == GREENFLAG:
+                    if DEBUG_FLAG:
+                        print('{} - Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                    if wave_up:
+                        animation_index += 1
+                    else:
+                        animation_index -= 1
+                    if animation_index >= len(green_flag_frames):
+                        animation_index -= 1
+                        flag_waves += 1
+                        wave_up = False
+
+                    if animation_index < 0:
+                        animation_index += 1
+                        wave_up = True
+
+                    if flag_waves > 5:
+                        race_start = False
+                        pygame.time.set_timer(GREENFLAG, 00)
+            blue_car.draw(track1)
             game_display.blit(track1.background, (0, 0))
+            if race_start:
+                game_display.blit(green_flag_frames[animation_index],track1.flag_anchor)
             blue_car.blit(track1)
             game_exit = blue_car.test_finish_line(track1)
             pygame.display.update()
             clock.tick(60)
-
 
 game_loop()
