@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 3
+race_laps = 4
 
 #Scale screen
 #flags = pygame.SCALED
@@ -230,25 +230,25 @@ class Car:
     # bump_speed = 6
 
     #60FPS Settings - Calibrated to an unmodified car
-    rotation_step = .16
+    rotation_step = .13
     acceleration_step = 0.065
-    deceleration_step = 0.9
-    bump_decelaration_step = 0.25
+    deceleration_step = 0.1
+    bump_decelaration_step = 0.15
     speed_max = 4
     bump_speed = 3.25
 
 
 
     bump_animation_timer = 30
-    crash_animation_timer = 40
+    crash_animation_timer = 30
 
     #Collision Settings
     diagonal_detection_tolerance = 2
     vector_simulation_length = 10
     side_detection_tolerance = 7
-    max_speed_crash_threshold = 2000
+    max_speed_crash_threshold = 3000
     #Threshold over which theer is a higher chance to crash
-    speed_crash_probability_threshold = 0.8
+    speed_crash_probability_threshold = 0.85
     #% increase of probability to crash if condition is true
     speed_crash_probability_penalty = 1.2
     sensitive_border_crash_probability_penalty = 1.4
@@ -272,7 +272,7 @@ class Car:
     helicopter_y = 0
     collision_time = 0
     max_speed_reached = 0
-    on_finish_line = False
+    on_finish_line = True
     passed_finish_line_wrong_way = False
     lap_count = 0
     current_lap_start = 0
@@ -681,7 +681,7 @@ class Car:
                 self.end_crash_loop()
 
     def test_finish_line(self, track):
-        #Detech if car collides with Finish line in the expected direction
+        #Detect if car collides with Finish line in the expected direction
         sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
         if sprite_rect.colliderect(track.finish_line):
             if not self.on_finish_line:
@@ -894,6 +894,7 @@ def game_loop():
                     flag_waves = 0
                     flag_waved = False
                     wave_up = True
+                    blue_car.speed = 0
                     pygame.time.set_timer(CHECKEREDFLAG, 40)
 
 
