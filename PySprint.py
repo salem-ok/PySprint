@@ -27,8 +27,10 @@ GREENFLAG = pygame.USEREVENT + 50
 WHITEFLAG = GREENFLAG + 1
 CHECKEREDFLAG = WHITEFLAG + 1
 
-loading_screen = pygame.image.load('Assets/SuperSrintLoadingScreen.png').convert_alpha()
-loading_screen_foreground = pygame.image.load('Assets/SuperSrintLoadingScreenForeground.png').convert_alpha()
+loading_screen = pygame.image.load('Assets/SuperSprintLoadingScreen.png').convert_alpha()
+loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
+credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
+splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
 
 scrolling_font = {
     'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
@@ -799,9 +801,9 @@ class Car:
         else:
             self.crash_finished = True
 
-def display_loading_screen():
+def display_loading_screen(loop):
     screen_exit = False
-    scroll_message = "REMADE WITH PYGAME BY SALEM_OK... ORIGINAL CREDITS: CREATED FOR THE ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE... GRAPHICS: CHRIS GIBBS... SOUND: MARK TISDALE... A SOFTWARE STUDIOS PRODUCTIN"
+    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
     left_end = 148
     scroll_x = right_end
@@ -816,14 +818,40 @@ def display_loading_screen():
             game_display.blit(scrolling_font[char], (scroll_x + x_offset, scroll_y))
             x_offset += scrolling_font[char].get_width() + 1
         if scroll_x + x_offset < left_end:
-            scroll_x = right_end
+            if loop:
+                scroll_x = right_end
+            else:
+                screen_exit = True
         game_display.blit(loading_screen_foreground, (0, 0))
         pygame.display.update()
-        scroll_x-= 1
+        scroll_x -= 2
         clock.tick(FPS)
 
+def display_credits_screen():
+    screen_exit = False
+    game_display.blit(credits_screen, (0, 0))
+    pygame.display.update()
+    while not screen_exit:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                screen_exit = True
+
+def display_splash_screen():
+    screen_exit = False
+    game_display.blit(splash_screen, (0, 0))
+    pygame.display.update()
+    while not screen_exit:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                screen_exit = True
+
+
 def game_loop():
-    display_loading_screen()
+
+    display_loading_screen(False)
+    display_splash_screen()
+    display_credits_screen()
+
     blue_car = Car()
     track1 = Track()
     game_exit = False
