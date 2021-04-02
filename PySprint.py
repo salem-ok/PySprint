@@ -12,7 +12,7 @@ race_laps = 4
 
 #Scale screen
 #flags = pygame.SCALED
-FPS = 60
+FPS = 30
 DEBUG_FINISH = True
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
@@ -23,7 +23,7 @@ game_display = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
 
 #Flag Events
-GREENFLAG = pygame.USEREVENT + 50
+GREENFLAG = pygame.USEREVENT + 1
 WHITEFLAG = GREENFLAG + 1
 CHECKEREDFLAG = WHITEFLAG + 1
 
@@ -260,22 +260,22 @@ class Car:
 
     #Mechanics
     #30FPS Settings
-    # rotation_step = .30
-    # acceleration_step = 0.3
-    # deceleration_step = 0.45
-    # bump_decelaration_step = 1.5
-    # speed_max = 9
-    # bump_speed = 6
+    if FPS == 30:
+        rotation_step = .26
+        acceleration_step = 0.13
+        deceleration_step = 0.2
+        bump_decelaration_step = 0.3
+        speed_max = 8
+        bump_speed = 6.5
 
     #60FPS Settings - Calibrated to an unmodified car
-    rotation_step = .13
-    acceleration_step = 0.065
-    deceleration_step = 0.1
-    bump_decelaration_step = 0.15
-    speed_max = 4
-    bump_speed = 3.25
-
-
+    if FPS == 60:
+        rotation_step = .13
+        acceleration_step = 0.065
+        deceleration_step = 0.1
+        bump_decelaration_step = 0.15
+        speed_max = 4
+        bump_speed = 3.25
 
     bump_animation_timer = 30
     crash_animation_timer = 30
@@ -319,7 +319,7 @@ class Car:
     average_Lap = 0
 
     #Car Events
-    BUMPCLOUD = pygame.USEREVENT + 1
+    BUMPCLOUD = CHECKEREDFLAG + 1
     EXPLOSION = BUMPCLOUD + 1
 
     def rotate(self, left):
