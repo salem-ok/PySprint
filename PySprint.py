@@ -31,6 +31,17 @@ loading_screen = pygame.image.load('Assets/SuperSprintLoadingScreen.png').conver
 loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
 credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
 splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
+transition_dots = {
+    0:pygame.image.load('Assets/TransitionDot0.png').convert_alpha(),
+    1:pygame.image.load('Assets/TransitionDot1.png').convert_alpha(),
+    2:pygame.image.load('Assets/TransitionDot2.png').convert_alpha(),
+    3:pygame.image.load('Assets/TransitionDot3.png').convert_alpha(),
+    4:pygame.image.load('Assets/TransitionDot4.png').convert_alpha(),
+    5:pygame.image.load('Assets/TransitionDot5.png').convert_alpha(),
+    6:pygame.image.load('Assets/TransitionDot6.png').convert_alpha(),
+    7:pygame.image.load('Assets/TransitionDot7.png').convert_alpha()
+}
+
 
 scrolling_font = {
     'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
@@ -72,7 +83,7 @@ green_flag_frames = {
     3:pygame.image.load('Assets/GreenFlag3.png').convert_alpha(),
     4:pygame.image.load('Assets/GreenFlag4.png').convert_alpha(),
     5:pygame.image.load('Assets/GreenFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/GreenFlag6.png').convert_alpha(),
+    6:pygame.image.load('Assets/GreenFlag6.png').convert_alpha()
 }
 
 white_flag_frames = {
@@ -82,7 +93,7 @@ white_flag_frames = {
     3:pygame.image.load('Assets/WhiteFlag3.png').convert_alpha(),
     4:pygame.image.load('Assets/WhiteFlag4.png').convert_alpha(),
     5:pygame.image.load('Assets/WhiteFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/WhiteFlag6.png').convert_alpha(),
+    6:pygame.image.load('Assets/WhiteFlag6.png').convert_alpha()
 }
 
 checkered_flag_frames = {
@@ -92,14 +103,14 @@ checkered_flag_frames = {
     3:pygame.image.load('Assets/CheckeredFlag3.png').convert_alpha(),
     4:pygame.image.load('Assets/CheckeredFlag4.png').convert_alpha(),
     5:pygame.image.load('Assets/CheckeredFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/CheckeredFlag6.png').convert_alpha(),
+    6:pygame.image.load('Assets/CheckeredFlag6.png').convert_alpha()
 }
 
 
 helicopter_frames = {
     0:pygame.image.load('Assets/Helicopter0.png').convert_alpha(),
     1:pygame.image.load('Assets/Helicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Helicopter2.png').convert_alpha(),
+    2:pygame.image.load('Assets/Helicopter2.png').convert_alpha()
 }
 
 helicopter_step = 10
@@ -132,7 +143,7 @@ explosion_frames = {
     15:pygame.image.load('Assets/Explosion15.png').convert_alpha(),
     16:pygame.image.load('Assets/Explosion16.png').convert_alpha(),
     17:pygame.image.load('Assets/Explosion17.png').convert_alpha(),
-    18:pygame.image.load('Assets/Explosion18.png').convert_alpha(),
+    18:pygame.image.load('Assets/Explosion18.png').convert_alpha()
 }
 
 
@@ -802,6 +813,7 @@ class Car:
             self.crash_finished = True
 
 def display_loading_screen(loop):
+    screen_fadein(loading_screen)
     screen_exit = False
     scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
@@ -826,24 +838,47 @@ def display_loading_screen(loop):
         pygame.display.update()
         scroll_x -= 2
         clock.tick(FPS)
+    screen_fadeout()
 
 def display_credits_screen():
     screen_exit = False
-    game_display.blit(credits_screen, (0, 0))
+    screen_fadein(credits_screen)
     pygame.display.update()
     while not screen_exit:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
+    screen_fadeout()
 
 def display_splash_screen():
     screen_exit = False
-    game_display.blit(splash_screen, (0, 0))
+    screen_fadein(splash_screen)
     pygame.display.update()
     while not screen_exit:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
+    screen_fadeout()
+
+def screen_fadeout():
+    for frame in range (0,len(transition_dots)):
+        for i in range (0,40):
+            for j in  range (0,24):
+                game_display.blit(transition_dots[frame], (i * 16, j *17))
+        pygame.display.update()
+        clock.tick(len(transition_dots))
+
+
+def screen_fadein(screen):
+    frame = len(transition_dots)
+    while frame > 0:
+        game_display.blit(screen, (0, 0))
+        for i in range (0,40):
+            for j in  range (0,24):
+                game_display.blit(transition_dots[frame-1], (i * 16, j *17))
+        pygame.display.update()
+        clock.tick(len(transition_dots))
+        frame -= 1
 
 
 def game_loop():
@@ -854,6 +889,8 @@ def game_loop():
 
     blue_car = Car()
     track1 = Track()
+    screen_fadein(track1.background)
+
     game_exit = False
     race_start = True
     last_lap = False
@@ -1008,5 +1045,5 @@ def game_loop():
             if race_finish and flag_waved:
                 game_exit = True
             clock.tick(FPS)
-
+    screen_fadeout()
 game_loop()
