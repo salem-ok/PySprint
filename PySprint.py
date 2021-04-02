@@ -12,6 +12,7 @@ race_laps = 4
 
 #Scale screen
 #flags = pygame.SCALED
+FPS = 60
 DEBUG_FINISH = True
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
@@ -26,6 +27,41 @@ GREENFLAG = pygame.USEREVENT + 50
 WHITEFLAG = GREENFLAG + 1
 CHECKEREDFLAG = WHITEFLAG + 1
 
+loading_screen = pygame.image.load('Assets/SuperSrintLoadingScreen.png').convert_alpha()
+loading_screen_foreground = pygame.image.load('Assets/SuperSrintLoadingScreenForeground.png').convert_alpha()
+
+scrolling_font = {
+    'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
+    'B':pygame.image.load('Assets/ScrollingFontB.png').convert_alpha(),
+    'C':pygame.image.load('Assets/ScrollingFontC.png').convert_alpha(),
+    'D':pygame.image.load('Assets/ScrollingFontD.png').convert_alpha(),
+    'E':pygame.image.load('Assets/ScrollingFontE.png').convert_alpha(),
+    'F':pygame.image.load('Assets/ScrollingFontF.png').convert_alpha(),
+    'G':pygame.image.load('Assets/ScrollingFontG.png').convert_alpha(),
+    'H':pygame.image.load('Assets/ScrollingFontH.png').convert_alpha(),
+    'I':pygame.image.load('Assets/ScrollingFontI.png').convert_alpha(),
+    'J':pygame.image.load('Assets/ScrollingFontJ.png').convert_alpha(),
+    'K':pygame.image.load('Assets/ScrollingFontK.png').convert_alpha(),
+    'L':pygame.image.load('Assets/ScrollingFontL.png').convert_alpha(),
+    'M':pygame.image.load('Assets/ScrollingFontM.png').convert_alpha(),
+    'N':pygame.image.load('Assets/ScrollingFontN.png').convert_alpha(),
+    'O':pygame.image.load('Assets/ScrollingFontO.png').convert_alpha(),
+    'P':pygame.image.load('Assets/ScrollingFontP.png').convert_alpha(),
+    'Q':pygame.image.load('Assets/ScrollingFontQ.png').convert_alpha(),
+    'R':pygame.image.load('Assets/ScrollingFontR.png').convert_alpha(),
+    'S':pygame.image.load('Assets/ScrollingFontS.png').convert_alpha(),
+    'T':pygame.image.load('Assets/ScrollingFontT.png').convert_alpha(),
+    'U':pygame.image.load('Assets/ScrollingFontU.png').convert_alpha(),
+    'V':pygame.image.load('Assets/ScrollingFontV.png').convert_alpha(),
+    'W':pygame.image.load('Assets/ScrollingFontW.png').convert_alpha(),
+    'X':pygame.image.load('Assets/ScrollingFontX.png').convert_alpha(),
+    'Y':pygame.image.load('Assets/ScrollingFontY.png').convert_alpha(),
+    'Z':pygame.image.load('Assets/ScrollingFontZ.png').convert_alpha(),
+    '.':pygame.image.load('Assets/ScrollingFontDOT.png').convert_alpha(),
+    ' ':pygame.image.load('Assets/ScrollingFontSPACE.png').convert_alpha(),
+    '_':pygame.image.load('Assets/ScrollingFont_.png').convert_alpha(),
+    ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
+}
 
 green_flag_frames = {
     0:pygame.image.load('Assets/GreenFlag0.png').convert_alpha(),
@@ -763,11 +799,33 @@ class Car:
         else:
             self.crash_finished = True
 
+def display_loading_screen():
+    screen_exit = False
+    scroll_message = "REMADE WITH PYGAME BY SALEM_OK... ORIGINAL CREDITS: CREATED FOR THE ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE... GRAPHICS: CHRIS GIBBS... SOUND: MARK TISDALE... A SOFTWARE STUDIOS PRODUCTIN"
+    right_end = 490
+    left_end = 148
+    scroll_x = right_end
+    scroll_y = 370
+    while not screen_exit:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                screen_exit = True
+        game_display.blit(loading_screen, (0, 0))
+        x_offset = 0
+        for char in scroll_message:
+            game_display.blit(scrolling_font[char], (scroll_x + x_offset, scroll_y))
+            x_offset += scrolling_font[char].get_width() + 1
+        if scroll_x + x_offset < left_end:
+            scroll_x = right_end
+        game_display.blit(loading_screen_foreground, (0, 0))
+        pygame.display.update()
+        scroll_x-= 1
+        clock.tick(FPS)
 
 def game_loop():
+    display_loading_screen()
     blue_car = Car()
     track1 = Track()
-
     game_exit = False
     race_start = True
     last_lap = False
@@ -921,6 +979,6 @@ def game_loop():
             pygame.display.update()
             if race_finish and flag_waved:
                 game_exit = True
-            clock.tick(60)
+            clock.tick(FPS)
 
 game_loop()
