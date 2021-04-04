@@ -27,10 +27,26 @@ GREENFLAG = pygame.USEREVENT + 1
 WHITEFLAG = GREENFLAG + 1
 CHECKEREDFLAG = WHITEFLAG + 1
 
+
+#Load Assets
+
+small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+black_color = (0, 0, 0)
+white_color = (255, 255, 255)
+red_color = (238, 0, 34)
+blue_color = (68, 102, 238)
+yellow_color = (238, 238, 102)
+
+
+
+
 loading_screen = pygame.image.load('Assets/SuperSprintLoadingScreen.png').convert_alpha()
 loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
 credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
 splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
+start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').convert_alpha()
+
+
 transition_dots = {
     0:pygame.image.load('Assets/TransitionDot0.png').convert_alpha(),
     1:pygame.image.load('Assets/TransitionDot1.png').convert_alpha(),
@@ -818,25 +834,24 @@ def display_loading_screen(loop):
     scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
     left_end = 148
-    scroll_x = right_end
     scroll_y = 370
+    background = pygame.Surface((display_width,display_height))
+    background.fill(black_color)
+    text = pygame.Surface(((scrolling_font['A'].get_width() + 1) * len(scroll_message) + right_end - left_end, scrolling_font['A'].get_height()))
+    x_offset = right_end - left_end
+    for char in scroll_message:
+        text.blit(scrolling_font[char], (x_offset, 0))
+        x_offset += scrolling_font[char].get_width() + 1
+
     while not screen_exit:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
-        game_display.blit(loading_screen, (0, 0))
-        x_offset = 0
-        for char in scroll_message:
-            game_display.blit(scrolling_font[char], (scroll_x + x_offset, scroll_y))
-            x_offset += scrolling_font[char].get_width() + 1
-        if scroll_x + x_offset < left_end:
-            if loop:
-                scroll_x = right_end
-            else:
-                screen_exit = True
+        game_display.blit(background, (0, 0))
+        game_display.blit(text, (left_end, scroll_y))
         game_display.blit(loading_screen_foreground, (0, 0))
         pygame.display.update()
-        scroll_x -= 2
+        text.scroll(-3)
         clock.tick(FPS)
     screen_fadeout()
 
@@ -849,6 +864,42 @@ def display_credits_screen():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
     screen_fadeout()
+
+def print_press_acceltoplay(top_left, color, seconds):
+    game_display.blit(small_font.render("PRESS", False, color), top_left)
+    game_display.blit(small_font.render("ACCELERATE", False, color), (top_left[0] - 28, top_left[1] + 20))
+    game_display.blit(small_font.render("TO PLAY".format(seconds), False, color), (top_left[0] - 10, top_left[1] + 40))
+    game_display.blit(small_font.render("{}".format(seconds), False, color), (top_left[0] + 24, top_left[1] + 60))
+
+def print_start_race_text(seconds):
+    print_press_acceltoplay((77,6), blue_color, seconds)
+    print_press_acceltoplay((291,6), red_color, seconds)
+    print_press_acceltoplay((505,6), yellow_color, seconds)
+    game_display.blit(small_font.render("PRESS SPACE TO SKIP", False, white_color), (240,384))
+
+def display_start_race_screen():
+    seconds = 5
+    screen_exit = False
+    screen_fadein(start_race_screen)
+    print_start_race_text(seconds)
+    pygame.display.update()
+    countdown = pygame.time.get_ticks()
+    while not screen_exit:
+        time = pygame.time.get_ticks()
+        if time - countdown >= 1000:
+            seconds -= 1
+            countdown = time
+            game_display.blit(start_race_screen, (0, 0))
+            print_start_race_text(seconds)
+            pygame.display.update()
+        if seconds == 0:
+            screen_exit = True
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    screen_exit = True
+    screen_fadeout()
+
 
 def display_splash_screen():
     screen_exit = False
@@ -866,7 +917,7 @@ def screen_fadeout():
             for j in  range (0,24):
                 game_display.blit(transition_dots[frame], (i * 16, j *17))
         pygame.display.update()
-        clock.tick(len(transition_dots))
+        clock.tick(len(transition_dots)*1.5)
 
 
 def screen_fadein(screen):
@@ -877,7 +928,7 @@ def screen_fadein(screen):
             for j in  range (0,24):
                 game_display.blit(transition_dots[frame-1], (i * 16, j *17))
         pygame.display.update()
-        clock.tick(len(transition_dots))
+        clock.tick(len(transition_dots)*1.5)
         frame -= 1
 
 
@@ -886,6 +937,7 @@ def game_loop():
     display_loading_screen(False)
     display_splash_screen()
     display_credits_screen()
+    display_start_race_screen()
 
     blue_car = Car()
     track1 = Track()
