@@ -932,6 +932,10 @@ def screen_fadein(screen):
         clock.tick(len(transition_dots)*1.5)
         frame -= 1
 
+def trace_frame_time(trace_event, frame_start):
+    if DEBUG_FPS:
+        print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
+
 
 def game_loop():
 
@@ -955,6 +959,7 @@ def game_loop():
     pygame.time.set_timer(GREENFLAG, 40)
     while not game_exit:
         frame_start = pygame.time.get_ticks()
+        trace_frame_time("Frame start", frame_start)
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             game_exit = True
         else:
@@ -974,7 +979,7 @@ def game_loop():
                     blue_car.rotate(False)
             else:
                 blue_car.decelerate()
-
+            trace_frame_time("Checked Key input", frame_start)
             for event in pygame.event.get():
                 if not ignore_controls:
                     if event.type == pygame.KEYDOWN:
@@ -1061,8 +1066,10 @@ def game_loop():
                         flag_waved = True
                         pygame.time.set_timer(CHECKEREDFLAG, 00)
 
+            trace_frame_time("Managed all Events", frame_start)
 
             blue_car.draw(track1)
+            trace_frame_time("Drawn car", frame_start)
             if not race_finish:
                 race_finish = blue_car.test_finish_line(track1)
                 #Draw Checkered Flag and finish race
@@ -1083,7 +1090,7 @@ def game_loop():
                 last_lap = True
                 pygame.time.set_timer(WHITEFLAG, 40)
 
-
+            trace_frame_time("Test Finish ", frame_start)
             game_display.blit(track1.background, (0, 0))
             if race_start:
                 game_display.blit(green_flag_frames[animation_index],track1.flag_anchor)
@@ -1096,11 +1103,13 @@ def game_loop():
 
             blue_car.blit(track1)
             pygame.display.update()
+            trace_frame_time("Display Updated ", frame_start)
             if race_finish and flag_waved:
                 game_exit = True
             frame_duration = pygame.time.get_ticks() - frame_start
             current_fps = round(1000/frame_duration)
-            print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
+            if DEBUG_FPS:
+                print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
             clock.tick(FPS)
     screen_fadeout()
 game_loop()
