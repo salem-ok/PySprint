@@ -18,7 +18,7 @@ DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
-DEBUG_FPS = True
+DEBUG_FPS = False
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
@@ -46,7 +46,10 @@ loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenFo
 credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
 splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
 start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').convert_alpha()
+high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
+lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 
+attract_mode_display_duration = 5000
 
 transition_dots = {
     0:pygame.image.load('Assets/TransitionDot0.png').convert_alpha(),
@@ -829,9 +832,30 @@ class Car:
         else:
             self.crash_finished = True
 
+def screen_fadeout():
+    for frame in range (0,len(transition_dots)):
+        for i in range (0,40):
+            for j in  range (0,24):
+                game_display.blit(transition_dots[frame], (i * 16, j *17))
+        pygame.display.update()
+        clock.tick(len(transition_dots)*1.5)
+
+
+def screen_fadein(screen):
+    frame = len(transition_dots)
+    while frame > 0:
+        game_display.blit(screen, (0, 0))
+        for i in range (0,40):
+            for j in  range (0,24):
+                game_display.blit(transition_dots[frame-1], (i * 16, j *17))
+        pygame.display.update()
+        clock.tick(len(transition_dots)*1.5)
+        frame -= 1
+
 def display_loading_screen(loop):
     screen_fadein(loading_screen)
     screen_exit = False
+    accelerate_pressed = False
     scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
     left_end = 148
@@ -843,28 +867,140 @@ def display_loading_screen(loop):
     for char in scroll_message:
         text.blit(scrolling_font[char], (x_offset, 0))
         x_offset += scrolling_font[char].get_width() + 1
-
+    dx = 0
+    if FPS == 30:
+        scroll_increment = -6
+    if FPS == 60:
+        scroll_increment = -3
     while not screen_exit:
+        if dx >= text.get_width() and not loop:
+            screen_exit = True
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
+                if event.key == pygame.K_RCTRL:
+                    accelerate_pressed = True
         game_display.blit(background, (0, 0))
         game_display.blit(text, (left_end, scroll_y))
         game_display.blit(loading_screen_foreground, (0, 0))
         pygame.display.update()
-        text.scroll(-3)
+        text.scroll(scroll_increment)
+        dx -= scroll_increment
         clock.tick(FPS)
     screen_fadeout()
+    return accelerate_pressed
 
 def display_credits_screen():
     screen_exit = False
+    accelerate_pressed = False
     screen_fadein(credits_screen)
     pygame.display.update()
+    screen_start_time = pygame.time.get_ticks()
     while not screen_exit:
+        if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
+            screen_exit = True
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
+                if event.key == pygame.K_RCTRL:
+                    accelerate_pressed = True
     screen_fadeout()
+    return accelerate_pressed
+
+def display_splash_screen():
+    screen_exit = False
+    accelerate_pressed = False
+    screen_fadein(splash_screen)
+    pygame.display.update()
+    screen_start_time = pygame.time.get_ticks()
+    while not screen_exit:
+        if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
+            screen_exit = True
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                screen_exit = True
+                if event.key == pygame.K_RCTRL:
+                    accelerate_pressed = True
+    screen_fadeout()
+    return accelerate_pressed
+
+def display_high_scores():
+    screen_exit = False
+    accelerate_pressed = False
+    screen_fadein(high_score_screen)
+    top3 = (250, 100)
+    top12 = (60, 225)
+    top21 = (245, 225)
+    top30 = (425, 225)
+    score = 0
+    name = 'xxx'
+    for i in range (0,3):
+        game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top3[0], top3[1] + i * 15))
+        game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top3[0] + 25, top3[1] + i * 15))
+        game_display.blit(small_font.render(name, False, white_color), (top3[0] + 110, top3[1] + i * 15))
+
+    for i in range (0,9):
+        game_display.blit(small_font.render('{}'.format(i+4), False, white_color), (top12[0], top12[1] + i * 15))
+        game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top12[0] + 25, top12[1] + i * 15))
+        game_display.blit(small_font.render(name, False, white_color), (top12[0] + 110, top12[1] + i * 15))
+
+    for i in range (0,9):
+        game_display.blit(small_font.render('{}'.format(i+13), False, white_color), (top21[0], top21[1] + i * 15))
+        game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top21[0] + 30, top21[1] + i * 15))
+        game_display.blit(small_font.render(name, False, white_color), (top21[0] + 115, top21[1] + i * 15))
+
+    for i in range (0,9):
+        game_display.blit(small_font.render('{}'.format(i+22), False, white_color), (top30[0], top30[1] + i * 15))
+        game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top30[0] + 30, top30[1] + i * 15))
+        game_display.blit(small_font.render(name, False, white_color), (top30[0] + 115, top30[1] + i * 15))
+
+    pygame.display.update()
+    screen_start_time = pygame.time.get_ticks()
+    while not screen_exit:
+        if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
+            screen_exit = True
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                screen_exit = True
+                if event.key == pygame.K_RCTRL:
+                    accelerate_pressed = True
+    screen_fadeout()
+    return accelerate_pressed
+
+def display_lap_records():
+    screen_exit = False
+    accelerate_pressed = False
+    screen_fadein(lap_records_screen)
+    top4 = (55, 270)
+    top8 = (335, 270)
+    time = 0.0
+    name = 'xxx'
+    for i in range (0,4):
+        game_display.blit(small_font.render('Track', False, white_color), (top4[0], top4[1] + i * 15))
+        game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top4[0] + 70, top4[1] + i * 15))
+        game_display.blit(small_font.render('{}'.format(time), False, white_color), (top4[0] + 100, top4[1] + i * 15))
+        game_display.blit(small_font.render('secs    {}'.format(name), False, white_color), (top4[0] + 145, top4[1] + i * 15))
+
+    for i in range (0,4):
+        game_display.blit(small_font.render('Track', False, white_color), (top8[0], top8[1] + i * 15))
+        game_display.blit(small_font.render('{}'.format(i+4), False, white_color), (top8[0] + 70, top8[1] + i * 15))
+        game_display.blit(small_font.render('{}'.format(time), False, white_color), (top8[0] + 100, top8[1] + i * 15))
+        game_display.blit(small_font.render('secs    {}'.format(name), False, white_color), (top8[0] + 145, top8[1] + i * 15))
+
+    pygame.display.update()
+    screen_start_time = pygame.time.get_ticks()
+    while not screen_exit:
+        if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
+            screen_exit = True
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                screen_exit = True
+                if event.key == pygame.K_RCTRL:
+                    accelerate_pressed = True
+    screen_fadeout()
+    return accelerate_pressed
+
+
 
 def print_press_acceltoplay(top_left, color, seconds):
     game_display.blit(small_font.render("PRESS", False, color), top_left)
@@ -901,37 +1037,6 @@ def display_start_race_screen():
                     screen_exit = True
     screen_fadeout()
 
-
-def display_splash_screen():
-    screen_exit = False
-    screen_fadein(splash_screen)
-    pygame.display.update()
-    while not screen_exit:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                screen_exit = True
-    screen_fadeout()
-
-def screen_fadeout():
-    for frame in range (0,len(transition_dots)):
-        for i in range (0,40):
-            for j in  range (0,24):
-                game_display.blit(transition_dots[frame], (i * 16, j *17))
-        pygame.display.update()
-        clock.tick(len(transition_dots)*1.5)
-
-
-def screen_fadein(screen):
-    frame = len(transition_dots)
-    while frame > 0:
-        game_display.blit(screen, (0, 0))
-        for i in range (0,40):
-            for j in  range (0,24):
-                game_display.blit(transition_dots[frame-1], (i * 16, j *17))
-        pygame.display.update()
-        clock.tick(len(transition_dots)*1.5)
-        frame -= 1
-
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS:
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
@@ -939,9 +1044,18 @@ def trace_frame_time(trace_event, frame_start):
 
 def game_loop():
 
-    display_loading_screen(False)
-    display_splash_screen()
-    display_credits_screen()
+    accelerate_pressed = False
+    accelerate_pressed = display_loading_screen(False)
+    while not accelerate_pressed:
+        if not accelerate_pressed:
+           accelerate_pressed = display_splash_screen()
+        if not accelerate_pressed:
+           accelerate_pressed = display_high_scores()
+        if not accelerate_pressed:
+           accelerate_pressed = display_lap_records()
+        if not accelerate_pressed:
+            accelerate_pressed = display_credits_screen()
+
     display_start_race_screen()
 
     blue_car = Car()
