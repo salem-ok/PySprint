@@ -13,11 +13,12 @@ race_laps = 4
 #Scale screen
 #flags = pygame.SCALED
 FPS = 30
-DEBUG_FINISH = True
+DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
+DEBUG_FPS = True
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
@@ -953,6 +954,7 @@ def game_loop():
     flag_waved = False
     pygame.time.set_timer(GREENFLAG, 40)
     while not game_exit:
+        frame_start = pygame.time.get_ticks()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             game_exit = True
         else:
@@ -1096,6 +1098,9 @@ def game_loop():
             pygame.display.update()
             if race_finish and flag_waved:
                 game_exit = True
+            frame_duration = pygame.time.get_ticks() - frame_start
+            current_fps = round(1000/frame_duration)
+            print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
             clock.tick(FPS)
     screen_fadeout()
 game_loop()
