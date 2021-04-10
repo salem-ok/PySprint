@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 4
+race_laps = 2
 
 #Scale screen
 #flags = pygame.SCALED
@@ -48,6 +48,7 @@ splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_
 start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').convert_alpha()
 high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
+race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
 
 attract_mode_display_duration = 5000
 
@@ -345,7 +346,9 @@ class Car:
     passed_finish_line_wrong_way = False
     lap_count = 0
     current_lap_start = 0
-    lap_times = [0,0,0,0]
+    #lap_times = [0,0,0,0]
+    lap_times = [0,0]
+
     best_lap = 0
     average_Lap = 0
 
@@ -1037,6 +1040,55 @@ def display_start_race_screen():
                     screen_exit = True
     screen_fadeout()
 
+def display_race_podium_screen(firstcar):
+
+    bonus = 1000
+    avg_laptime = small_font.render('{:2.1f}'.format(firstcar.average_Lap/1000), False, black_color)
+    best_laptime = small_font.render('{:2.1f}'.format(firstcar.best_lap/1000), False, black_color)
+
+
+    for score in range(0,1010,10):
+        game_display.blit(race_podium_screen,(0,0))
+        score_surf = small_font.render('{}'.format(score), False, black_color)
+        #First car
+        game_display.blit(avg_laptime, (359 - avg_laptime.get_width(), 153))
+        game_display.blit(best_laptime, (359 - best_laptime.get_width(), 171))
+
+
+        game_display.blit(score_surf, (433 - score_surf.get_width(), 135))
+        game_display.blit(score_surf, (433 - score_surf.get_width(), 153))
+        game_display.blit(score_surf, (433 - score_surf.get_width(), 171))
+
+        #Second car
+        game_display.blit(avg_laptime, (192 - avg_laptime.get_width(), 257))
+        game_display.blit(best_laptime, (192 - best_laptime.get_width(), 275))
+
+        game_display.blit(score_surf, (265 - score_surf.get_width(), 239))
+        game_display.blit(score_surf, (265 - score_surf.get_width(), 257))
+        game_display.blit(score_surf, (265 - score_surf.get_width(), 275))
+
+        #Third car
+        game_display.blit(avg_laptime, (503 - avg_laptime.get_width(), 257))
+        game_display.blit(best_laptime, (503 - best_laptime.get_width(), 275))
+
+        game_display.blit(score_surf, (576 - score_surf.get_width(), 239))
+        game_display.blit(score_surf, (576 - score_surf.get_width(), 257))
+        game_display.blit(score_surf, (576 - score_surf.get_width(), 275))
+
+        #Fourth car
+        game_display.blit(avg_laptime, (155 - avg_laptime.get_width(), 355))
+        game_display.blit(best_laptime, (155 - best_laptime.get_width(), 373))
+
+        game_display.blit(score_surf, (228 - score_surf.get_width(), 337))
+        game_display.blit(score_surf, (228 - score_surf.get_width(), 355))
+        game_display.blit(score_surf, (228 - score_surf.get_width(), 373))
+
+
+        pygame.display.update()
+
+
+        clock.tick(10)
+
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS:
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
@@ -1218,12 +1270,15 @@ def game_loop():
             blue_car.blit(track1)
             pygame.display.update()
             trace_frame_time("Display Updated ", frame_start)
-            if race_finish and flag_waved:
-                game_exit = True
             frame_duration = pygame.time.get_ticks() - frame_start
             current_fps = round(1000/frame_duration)
             if DEBUG_FPS:
                 print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
             clock.tick(FPS)
+            if race_finish and flag_waved:
+                screen_fadein(race_podium_screen)
+                display_race_podium_screen(blue_car)
+                game_exit = True
+
     screen_fadeout()
 game_loop()
