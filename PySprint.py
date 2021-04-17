@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 2
+race_laps = 4
 
 #Scale screen
 #flags = pygame.SCALED
@@ -41,7 +41,6 @@ yellow_color = (238, 238, 102)
 
 
 
-loading_screen = pygame.image.load('Assets/SuperSprintLoadingScreen.png').convert_alpha()
 loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
 credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
 splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
@@ -49,6 +48,14 @@ start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').c
 high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
+
+
+engine_idle = {
+    0:pygame.image.load('Assets/EngineIdle0.png').convert_alpha(),
+    1:pygame.image.load('Assets/EngineIdle1.png').convert_alpha(),
+    2:pygame.image.load('Assets/EngineIdle2.png').convert_alpha(),
+}
+
 
 attract_mode_display_duration = 5000
 
@@ -346,8 +353,8 @@ class Car:
     passed_finish_line_wrong_way = False
     lap_count = 0
     current_lap_start = 0
-    #lap_times = [0,0,0,0]
-    lap_times = [0,0]
+    lap_times = [0,0,0,0]
+    #lap_times = [0,0]
 
     best_lap = 0
     average_Lap = 0
@@ -856,7 +863,7 @@ def screen_fadein(screen):
         frame -= 1
 
 def display_loading_screen(loop):
-    screen_fadein(loading_screen)
+    screen_fadein(loading_screen_foreground)
     screen_exit = False
     accelerate_pressed = False
     scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
@@ -1020,24 +1027,35 @@ def print_start_race_text(seconds):
 def display_start_race_screen():
     seconds = 5
     screen_exit = False
+    engine_idle_counter = 0
     screen_fadein(start_race_screen)
     print_start_race_text(seconds)
+    game_display.blit(engine_idle[engine_idle_counter], (73, 146))
+    game_display.blit(engine_idle[engine_idle_counter], (391, 146))
+    game_display.blit(engine_idle[engine_idle_counter], (233, 284))
     pygame.display.update()
     countdown = pygame.time.get_ticks()
     while not screen_exit:
+        game_display.blit(start_race_screen, (0, 0))
+        engine_idle_counter +=1
+        if engine_idle_counter > 2:
+            engine_idle_counter = 0
         time = pygame.time.get_ticks()
         if time - countdown >= 1000:
             seconds -= 1
             countdown = time
-            game_display.blit(start_race_screen, (0, 0))
-            print_start_race_text(seconds)
-            pygame.display.update()
+        print_start_race_text(seconds)
+        game_display.blit(engine_idle[engine_idle_counter], (72, 146))
+        game_display.blit(engine_idle[engine_idle_counter], (390, 146))
+        game_display.blit(engine_idle[engine_idle_counter], (232, 284))
+        pygame.display.update()
         if seconds == 0:
             screen_exit = True
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     screen_exit = True
+        clock.tick(15)
     screen_fadeout()
 
 def display_race_podium_screen(firstcar):
