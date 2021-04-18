@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 4
+race_laps = 1
 
 #Scale screen
 #flags = pygame.SCALED
@@ -50,13 +50,117 @@ lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').conve
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
 
 
+crowd_flags = {
+    0:pygame.image.load('Assets/CrowdFlags0.png').convert_alpha(),
+    1:pygame.image.load('Assets/CrowdFlags1.png').convert_alpha(),
+    2:pygame.image.load('Assets/CrowdFlags2.png').convert_alpha(),
+    3:pygame.image.load('Assets/CrowdFlags3.png').convert_alpha(),
+    4:pygame.image.load('Assets/CrowdFlags4.png').convert_alpha(),
+    5:pygame.image.load('Assets/CrowdFlags5.png').convert_alpha()
+}
+
+hammer_frames_loader = {
+    0:pygame.image.load('Assets/Hammer0.png').convert_alpha(),
+    1:pygame.image.load('Assets/Hammer1.png').convert_alpha(),
+    2:pygame.image.load('Assets/Hammer2.png').convert_alpha()
+}
+hammer_frames = {
+    0:hammer_frames_loader[0],
+    1:hammer_frames_loader[1],
+    2:hammer_frames_loader[2],
+    3:hammer_frames_loader[2],
+    4:hammer_frames_loader[2]
+}
+
+saw_frames_loader =  {
+    0:pygame.image.load('Assets/Saw0.png').convert_alpha(),
+    1:pygame.image.load('Assets/Saw1.png').convert_alpha(),
+    2:pygame.image.load('Assets/Saw2.png').convert_alpha()
+}
+
+saw_frames =  {
+    0:saw_frames_loader[0],
+    1:saw_frames_loader[1],
+    2:saw_frames_loader[2],
+    3:saw_frames_loader[1],
+    4:saw_frames_loader[0]
+}
+
+head_scratch_frames_loader =  {
+    0:pygame.image.load('Assets/HeadScratch0.png').convert_alpha(),
+    1:pygame.image.load('Assets/HeadScratch1.png').convert_alpha(),
+    2:pygame.image.load('Assets/HeadScratch2.png').convert_alpha()
+}
+
+
+head_scratch_frames =  {
+    0:head_scratch_frames_loader[0],
+    1:head_scratch_frames_loader[1],
+    2:head_scratch_frames_loader[0],
+    3:head_scratch_frames_loader[1],
+    4:head_scratch_frames_loader[0],
+    5:head_scratch_frames_loader[1],
+    6:head_scratch_frames_loader[1],
+    7:head_scratch_frames_loader[2],
+    8:head_scratch_frames_loader[2],
+    9:head_scratch_frames_loader[2],
+    10:head_scratch_frames_loader[1],
+    11:head_scratch_frames_loader[2],
+    12:head_scratch_frames_loader[1],
+    13:head_scratch_frames_loader[2]
+}
+
+blow_frames_loader =  {
+    0:pygame.image.load('Assets/Blow0.png').convert_alpha(),
+    1:pygame.image.load('Assets/Blow1.png').convert_alpha(),
+    2:pygame.image.load('Assets/Blow2.png').convert_alpha(),
+    3:pygame.image.load('Assets/Blow3.png').convert_alpha(),
+    4:pygame.image.load('Assets/Blow4.png').convert_alpha()
+}
+
+
+blow_frames =  {
+    0:blow_frames_loader[1],
+    1:blow_frames_loader[0],
+    2:blow_frames_loader[1],
+    3:blow_frames_loader[0],
+    4:blow_frames_loader[1],
+    5:blow_frames_loader[2],
+    6:blow_frames_loader[3],
+    7:blow_frames_loader[4],
+    8:blow_frames_loader[4],
+    9:blow_frames_loader[4],
+    10:blow_frames_loader[4],
+    11:blow_frames_loader[4],
+    12:blow_frames_loader[4],
+    13:blow_frames_loader[4],
+    14:blow_frames_loader[4],
+    15:blow_frames_loader[4],
+    16:blow_frames_loader[4]
+}
+
+
+
 engine_idle = {
     0:pygame.image.load('Assets/EngineIdle0.png').convert_alpha(),
     1:pygame.image.load('Assets/EngineIdle1.png').convert_alpha(),
     2:pygame.image.load('Assets/EngineIdle2.png').convert_alpha(),
 }
 
-
+prepare_to_race = {
+    0:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
+    1:pygame.image.load('Assets/PrePareToRace1.png').convert_alpha(),
+    2:pygame.image.load('Assets/PrePareToRace2.png').convert_alpha(),
+    3:pygame.image.load('Assets/PrePareToRace3.png').convert_alpha(),
+    4:pygame.image.load('Assets/PrePareToRace4.png').convert_alpha(),
+    5:pygame.image.load('Assets/PrePareToRace5.png').convert_alpha(),
+    6:pygame.image.load('Assets/PrePareToRace6.png').convert_alpha(),
+    7:pygame.image.load('Assets/PrePareToRace7.png').convert_alpha(),
+    8:pygame.image.load('Assets/PrePareToRace8.png').convert_alpha(),
+    9:pygame.image.load('Assets/PrePareToRace2.png').convert_alpha(),
+    10:pygame.image.load('Assets/PrePareToRace1.png').convert_alpha(),
+    11:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
+}
 attract_mode_display_duration = 5000
 
 transition_dots = {
@@ -283,6 +387,9 @@ class Car:
         16:(0, -1)
     }
 
+    #Color
+    main_color = blue_color
+
     #Position & Vector
     x_position = 325
     y_position = 65
@@ -353,8 +460,8 @@ class Car:
     passed_finish_line_wrong_way = False
     lap_count = 0
     current_lap_start = 0
-    lap_times = [0,0,0,0]
-    #lap_times = [0,0]
+    #lap_times = [0,0,0,0]
+    lap_times = [0]
 
     best_lap = 0
     average_Lap = 0
@@ -1028,11 +1135,18 @@ def display_start_race_screen():
     seconds = 5
     screen_exit = False
     engine_idle_counter = 0
+    prepare_to_race_counter = -1
     screen_fadein(start_race_screen)
     print_start_race_text(seconds)
-    game_display.blit(engine_idle[engine_idle_counter], (73, 146))
-    game_display.blit(engine_idle[engine_idle_counter], (391, 146))
-    game_display.blit(engine_idle[engine_idle_counter], (233, 284))
+    blue_engine = (72, 146)
+    yellow_engine = (390, 146)
+    red_engine = (232, 284)
+    blue_thumb = (51, 120)
+    yellow_thumb = (369, 120)
+    red_thumb = (211, 258)
+    game_display.blit(engine_idle[engine_idle_counter], blue_engine)
+    game_display.blit(engine_idle[engine_idle_counter], yellow_engine)
+    game_display.blit(engine_idle[engine_idle_counter], red_engine)
     pygame.display.update()
     countdown = pygame.time.get_ticks()
     while not screen_exit:
@@ -1040,14 +1154,22 @@ def display_start_race_screen():
         engine_idle_counter +=1
         if engine_idle_counter > 2:
             engine_idle_counter = 0
+            prepare_to_race_counter += 1
+
         time = pygame.time.get_ticks()
         if time - countdown >= 1000:
             seconds -= 1
             countdown = time
         print_start_race_text(seconds)
-        game_display.blit(engine_idle[engine_idle_counter], (72, 146))
-        game_display.blit(engine_idle[engine_idle_counter], (390, 146))
-        game_display.blit(engine_idle[engine_idle_counter], (232, 284))
+        game_display.blit(engine_idle[engine_idle_counter], blue_engine)
+        game_display.blit(engine_idle[engine_idle_counter], yellow_engine)
+        game_display.blit(engine_idle[engine_idle_counter], red_engine)
+
+        if prepare_to_race_counter >0 and prepare_to_race_counter <= 11:
+            game_display.blit(prepare_to_race[prepare_to_race_counter], blue_thumb)
+            game_display.blit(prepare_to_race[prepare_to_race_counter], yellow_thumb)
+            game_display.blit(prepare_to_race[prepare_to_race_counter], red_thumb)
+
         pygame.display.update()
         if seconds == 0:
             screen_exit = True
@@ -1058,15 +1180,22 @@ def display_start_race_screen():
         clock.tick(15)
     screen_fadeout()
 
-def display_race_podium_screen(firstcar):
+def display_race_podium_screen(firstcar, mechanic_frames):
 
     bonus = 1000
     avg_laptime = small_font.render('{:2.1f}'.format(firstcar.average_Lap/1000), False, black_color)
     best_laptime = small_font.render('{:2.1f}'.format(firstcar.best_lap/1000), False, black_color)
+    crowd_background = pygame.Surface((display_width,120))
+    #Background color for Flags and winner Car
+    #TODO: Masks for the other cars to be added later once multiplayer and ranking is implemented
+    crowd_background.fill(firstcar.main_color)
 
-
+    #Animate Score Increases
     for score in range(0,1010,10):
-        game_display.blit(race_podium_screen,(0,0))
+        game_display.blit(crowd_background, (0, 0))
+        game_display.blit(race_podium_screen, (0,0))
+        game_display.blit(crowd_flags[0], (0,0))
+        game_display.blit(mechanic_frames[0], (0,0))
         score_surf = small_font.render('{}'.format(score), False, black_color)
         #First car
         game_display.blit(avg_laptime, (359 - avg_laptime.get_width(), 153))
@@ -1103,9 +1232,31 @@ def display_race_podium_screen(firstcar):
 
 
         pygame.display.update()
-
-
         clock.tick(10)
+
+    #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
+    wave_count = 0
+    frame_count = 0
+    mechanic_index = 0
+    for waves in range (0, 11, 1):
+        for index in range (0, len(crowd_flags), 1):
+            game_display.blit(crowd_background, (0, 0))
+            game_display.blit(race_podium_screen, (0,0))
+            game_display.blit(crowd_flags[index], (0,0))
+            game_display.blit(mechanic_frames[mechanic_index], (0,0))
+            pygame.display.update()
+            index += 1
+            if index > len(crowd_flags)-1:
+                index = 0
+            frame_count += 1
+            if frame_count % 4 ==0:
+                mechanic_index += 1
+                if mechanic_index == len(mechanic_frames):
+                    mechanic_index = 0
+                    frame_count = 0
+            clock.tick(18)
+        wave_count += 1
+
 
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS:
@@ -1294,8 +1445,19 @@ def game_loop():
                 print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
             clock.tick(FPS)
             if race_finish and flag_waved:
-                screen_fadein(race_podium_screen)
-                display_race_podium_screen(blue_car)
+                #mechanic_frames = hammer_frames
+                #mechanic_frames = saw_frames
+                mechanic_frames = head_scratch_frames
+                #mechanic_frames = blow_frames
+                crowd_background = pygame.Surface((display_width,120))
+                crowd_background.fill(blue_car.main_color)
+                composed_race_podium = pygame.Surface((display_width, display_height))
+                composed_race_podium.blit(crowd_background, (0, 0))
+                composed_race_podium.blit(race_podium_screen, (0,0))
+                composed_race_podium.blit(crowd_flags[0], (0,0))
+                composed_race_podium.blit(mechanic_frames[0], (0,0))
+                screen_fadein(composed_race_podium)
+                display_race_podium_screen(blue_car, mechanic_frames)
                 game_exit = True
 
     screen_fadeout()
