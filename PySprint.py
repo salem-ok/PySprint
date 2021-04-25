@@ -38,7 +38,10 @@ red_color = (238, 0, 34)
 blue_color = (68, 102, 238)
 yellow_color = (238, 238, 102)
 green_color = (34, 170, 102)
-
+green_secondary_color = (170, 204, 102)
+blue_secondary_color = (170, 204, 238)
+red_secondary_color = (170, 0, 0)
+yellow_secondary_color = (170, 170, 0)
 
 
 
@@ -139,6 +142,17 @@ blow_frames =  {
     15:blow_frames_loader[4],
     16:blow_frames_loader[4]
 }
+
+first_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarBlueCar.png').convert_alpha()
+first_car_red = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRedCar.png').convert_alpha()
+first_car_green = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCar.png').convert_alpha()
+first_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCar.png').convert_alpha()
+
+first_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarBlueCarDrone.png').convert_alpha()
+first_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRedCarDrone.png').convert_alpha()
+first_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCarDrone.png').convert_alpha()
+first_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCarDrone.png').convert_alpha()
+
 
 
 
@@ -514,8 +528,9 @@ class Car:
     #Appearance
     #Color
     main_color = blue_color
+    secondary_color = blue_secondary_color
     sprites = blue_drone_sprites
-
+    first_car = first_car_blue_drone
     #Score
     score = 0
 
@@ -1340,18 +1355,7 @@ def display_start_race_screen():
         clock.tick(15)
     screen_fadeout()
 
-def display_race_podium_screen(cars, track, mechanic_frames):
-
-    #Ranking Cars
-    ranking = [-1, -1, -1, -1]
-    for i in range(0, len(cars)):
-        if cars[i].lap_count == race_laps:
-            ranking[0] = i
-        else:
-            for j in range(1, len(ranking)):
-                if ranking[j] == -1:
-                    ranking[j] = i
-                    break
+def display_race_podium_screen(cars, track, mechanic_frames, ranking):
 
     crowd_background = pygame.Surface((display_width,120))
     #Background color for Flags and winner Car
@@ -1386,6 +1390,7 @@ def display_race_podium_screen(cars, track, mechanic_frames):
         game_display.blit(race_podium_screen, (0,0))
         game_display.blit(crowd_flags[0], (0,0))
         game_display.blit(mechanic_frames[0], (0,0))
+        game_display.blit(cars[ranking[0]].first_car, (0,0))
         for i in range (0, len(ranking)):
             #Blit Lap times
             game_display.blit(avg_lap_times[i], (text_positions[i][0] - avg_lap_times[i].get_width(), text_positions[i][3]))
@@ -1419,7 +1424,7 @@ def display_race_podium_screen(cars, track, mechanic_frames):
     #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
     wave_count = 0
     frame_count = 0
-     mechanic_index = 0
+    mechanic_index = 0
     for waves in range (0, 11, 1):
         for index in range (0, len(crowd_flags), 1):
             game_display.blit(crowd_background, (0, 0))
@@ -1486,10 +1491,23 @@ def game_loop():
         cars[2].sprites = red_car_sprites
         cars[3].sprites = yellow_car_sprites
 
+        cars[0].first_car = first_car_blue
+        cars[1].first_car = first_car_green
+        cars[2].first_car = first_car_red
+        cars[3].first_car = first_car_yellow
+
+
         #cars[0].sprites = blue_drone_sprites
         #cars[1].sprites = green_drone_sprites
         #cars[2].sprites = red_drone_sprites
         #cars[3].sprites = yellow_drone_sprites
+
+        #cars[0].first_car = first_car_blue_drone
+        #cars[1].first_car = first_car_green_drone
+        #cars[2].first_car = first_car_red_drone
+        #cars[3].first_car = first_car_yellow_drone
+
+
 
         cars[1].main_color = green_color
         cars[1].y_position += 15
@@ -1696,24 +1714,34 @@ def game_loop():
 
                 #Display Podium Screen
                 if race_finish and flag_waved:
+
+                    #Ranking Cars
+                    ranking = [-1, -1, -1, -1]
+                    for i in range(0, len(cars)):
+                        if cars[i].lap_count == race_laps:
+                            ranking[0] = i
+                        else:
+                            for j in range(1, len(ranking)):
+                                if ranking[j] == -1:
+                                    ranking[j] = i
+                                    break
+
                     #mechanic_frames = hammer_frames
                     #mechanic_frames = saw_frames
                     mechanic_frames = head_scratch_frames
                     #mechanic_frames = blow_frames
                     crowd_background = pygame.Surface((display_width,120))
 
-                    for i in range (0, len(cars)):
-                        if cars[i].lap_count == race_laps:
-                            crowd_background.fill(cars[i].main_color)
-                            break
+                    crowd_background.fill(cars[ranking[0]].main_color)
 
                     composed_race_podium = pygame.Surface((display_width, display_height))
                     composed_race_podium.blit(crowd_background, (0, 0))
                     composed_race_podium.blit(race_podium_screen, (0,0))
                     composed_race_podium.blit(crowd_flags[0], (0,0))
                     composed_race_podium.blit(mechanic_frames[0], (0,0))
+                    composed_race_podium.blit(cars[ranking[0]].first_car, (0,0))
                     screen_fadein(composed_race_podium)
-                    display_race_podium_screen(cars, track1, mechanic_frames)
+                    display_race_podium_screen(cars, track1, mechanic_frames, ranking)
                     podium_displayed = True
                     screen_fadeout()
 
