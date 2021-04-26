@@ -12,21 +12,21 @@ Hit acclerate for any player to start a game.
 Controls:
 
 Blue car: 
-Accelerate: Right Ctrl
-Left: Left
-Right: Right
+  Accelerate: Right Ctrl
+  Left: Left
+  Right: Right
 
 Green car: 
-Accelerate: Left Ctrl
-Left: X
-Right: C
-Red car:
+  Accelerate: Left Ctrl
+  Left: X
+  Right: C
 
-Accelerate: S
-Left: E
-Right: R
+Red car:
+  Accelerate: S
+  Left: E
+  Right: R
 
 Yellow car:
-Accelerate: H
-Left: U
-Right: I
+  Accelerate: H
+  Left: U
+  Right: I
