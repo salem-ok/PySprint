@@ -8,7 +8,7 @@ pygame.init()
 display_width = 640
 display_height = 400
 flags = 0
-race_laps = 2
+race_laps = 4
 
 #Scale screen
 #flags = pygame.SCALED
@@ -1148,7 +1148,7 @@ def display_loading_screen(loop):
     screen_fadein(loading_screen_foreground)
     screen_exit = False
     accelerate_pressed = False
-    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
+    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. THANKS TO JOHNATHAN THOMAS FOR THE SPRITES RIP AND COGWEASEL FOR THE SPLASH SCREEN. ORIGINAL CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
     left_end = 148
     scroll_y = 370
@@ -1170,7 +1170,7 @@ def display_loading_screen(loop):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL or event.key == pygame.K_s or event.key == pygame.K_h:
                     accelerate_pressed = True
         game_display.blit(background, (0, 0))
         game_display.blit(text, (left_end, scroll_y))
@@ -1194,7 +1194,7 @@ def display_credits_screen():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL or event.key == pygame.K_s or event.key == pygame.K_h:
                     accelerate_pressed = True
     screen_fadeout()
     return accelerate_pressed
@@ -1211,7 +1211,7 @@ def display_splash_screen():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL or event.key == pygame.K_s or event.key == pygame.K_h:
                     accelerate_pressed = True
     screen_fadeout()
     return accelerate_pressed
@@ -1254,7 +1254,7 @@ def display_high_scores():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL or event.key == pygame.K_s or event.key == pygame.K_h:
                     accelerate_pressed = True
     screen_fadeout()
     return accelerate_pressed
@@ -1287,7 +1287,7 @@ def display_lap_records():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 screen_exit = True
-                if event.key == pygame.K_RCTRL:
+                if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL or event.key == pygame.K_s or event.key == pygame.K_h:
                     accelerate_pressed = True
     screen_fadeout()
     return accelerate_pressed
