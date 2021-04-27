@@ -153,6 +153,35 @@ first_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRed
 first_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCarDrone.png').convert_alpha()
 first_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCarDrone.png').convert_alpha()
 
+second_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCar.png').convert_alpha()
+second_car_red = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCar.png').convert_alpha()
+second_car_green = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarGreenCar.png').convert_alpha()
+second_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarYellowCar.png').convert_alpha()
+
+second_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCarDrone.png').convert_alpha()
+second_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCarDrone.png').convert_alpha()
+second_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarGreenCarDrone.png').convert_alpha()
+second_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarYellowCarDrone.png').convert_alpha()
+
+third_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarBlueCar.png').convert_alpha()
+third_car_red = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarRedCar.png').convert_alpha()
+third_car_green = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarGreenCar.png').convert_alpha()
+third_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarYellowCar.png').convert_alpha()
+
+third_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarBlueCarDrone.png').convert_alpha()
+third_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarRedCarDrone.png').convert_alpha()
+third_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarGreenCarDrone.png').convert_alpha()
+third_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarYellowCarDrone.png').convert_alpha()
+
+fourth_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarBlueCar.png').convert_alpha()
+fourth_car_red = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCar.png').convert_alpha()
+fourth_car_green = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCar.png').convert_alpha()
+fourth_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCar.png').convert_alpha()
+
+fourth_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png').convert_alpha()
+fourth_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png').convert_alpha()
+fourth_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png').convert_alpha()
+fourth_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png').convert_alpha()
 
 
 
@@ -531,6 +560,9 @@ class Car:
     secondary_color = blue_secondary_color
     sprites = blue_drone_sprites
     first_car = first_car_blue_drone
+    second_car = second_car_blue_drone
+    third_car = third_car_blue_drone
+    fourth_car = fourth_car_blue_drone
     #Score
     score = 0
 
@@ -1355,12 +1387,7 @@ def display_start_race_screen():
         clock.tick(15)
     screen_fadeout()
 
-def display_race_podium_screen(cars, track, mechanic_frames, ranking):
-
-    crowd_background = pygame.Surface((display_width,120))
-    #Background color for Flags and winner Car
-    #TODO: Masks for the other cars to be added later once multiplayer and ranking is implemented
-    crowd_background.fill(cars[ranking[0]].main_color)
+def display_race_podium_screen(cars, track, mechanic_frames, ranking, composed_race_podium, crowd_background):
 
     #Animate Score Increases
     text_positions = [(359, 433, 135, 153, 171) , (192, 265, 239, 257, 275) , (503, 576, 239, 257, 275) , (155, 228, 337, 355, 373)]
@@ -1386,11 +1413,7 @@ def display_race_podium_screen(cars, track, mechanic_frames, ranking):
 
 
     for score in range(0,1010,10):
-        game_display.blit(crowd_background, (0, 0))
-        game_display.blit(race_podium_screen, (0,0))
-        game_display.blit(crowd_flags[0], (0,0))
-        game_display.blit(mechanic_frames[0], (0,0))
-        game_display.blit(cars[ranking[0]].first_car, (0,0))
+        game_display.blit(composed_race_podium, (0, 0))
         for i in range (0, len(ranking)):
             #Blit Lap times
             game_display.blit(avg_lap_times[i], (text_positions[i][0] - avg_lap_times[i].get_width(), text_positions[i][3]))
@@ -1496,6 +1519,20 @@ def game_loop():
         cars[2].first_car = first_car_red
         cars[3].first_car = first_car_yellow
 
+        cars[0].second_car = second_car_blue
+        cars[1].second_car = second_car_green
+        cars[2].second_car = second_car_red
+        cars[3].second_car = second_car_yellow
+
+        cars[0].third_car = third_car_blue
+        cars[1].third_car = third_car_green
+        cars[2].third_car = third_car_red
+        cars[3].third_car = third_car_yellow
+
+        cars[0].fourth_car = fourth_car_blue
+        cars[1].fourth_car = fourth_car_green
+        cars[2].fourth_car = fourth_car_red
+        cars[3].fourth_car = fourth_car_yellow
 
         #cars[0].sprites = blue_drone_sprites
         #cars[1].sprites = green_drone_sprites
@@ -1740,8 +1777,12 @@ def game_loop():
                     composed_race_podium.blit(crowd_flags[0], (0,0))
                     composed_race_podium.blit(mechanic_frames[0], (0,0))
                     composed_race_podium.blit(cars[ranking[0]].first_car, (0,0))
+                    composed_race_podium.blit(cars[ranking[1]].second_car, (0,0))
+                    composed_race_podium.blit(cars[ranking[2]].third_car, (0,0))
+                    composed_race_podium.blit(cars[ranking[3]].fourth_car, (0,0))
+
                     screen_fadein(composed_race_podium)
-                    display_race_podium_screen(cars, track1, mechanic_frames, ranking)
+                    display_race_podium_screen(cars, track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
                     podium_displayed = True
                     screen_fadeout()
 
