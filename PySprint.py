@@ -2,6 +2,7 @@ import pygame
 import time
 import math
 import random
+import numpy as np
 
 pygame.init()
 
@@ -11,7 +12,7 @@ flags = 0
 race_laps = 2
 
 #Scale screen
-#flags = pygame.SCALED
+flags = pygame.SCALED
 FPS = 30
 DEBUG_FINISH = False
 DEBUG_COLLISION = False
@@ -542,101 +543,134 @@ class Track:
     finish_line = pygame.Rect(346, 48,4,82)
     finish_line_direction = -1
 
-    progress_gates = [
-        (335,66),
-        (311,67),
-        (288,66),
-        (260,67),
-        (239,69),
-        (223,67),
-        (196,71),
-        (173,71),
-        (146,70),
-        (130,72),
-        (113,75),
-        (89,74),
-        (81,89),
-        (76,101),
-        (76,119),
-        (75,134),
-        (73,155),
-        (74,167),
-        (73,178),
-        (72,190),
-        (74,209),
-        (71,230),
-        (73,249),
-        (73,264),
-        (71,278),
-        (74,294),
-        (77,312),
-        (78,322),
-        (94,331),
-        (111,329),
-        (126,328),
-        (142,331),
-        (166,329),
-        (176,329),
-        (187,325),
-        (201,318),
-        (206,299),
-        (205,284),
-        (202,266),
-        (204,249),
-        (204,241),
-        (208,224),
-        (210,210),
-        (213,198),
-        (217,191),
-        (254,194),
-        (264,195),
-        (297,197),
-        (314,215),
-        (331,232),
-        (340,240),
-        (349,249),
-        (359,259),
-        (364,267),
-        (384,287),
-        (409,302),
-        (419,310),
-        (428,320),
-        (443,334),
-        (482,345),
-        (509,350),
-        (540,344),
-        (554,329),
-        (549,310),
-        (549,294),
-        (548,275),
-        (550,247),
-        (547,229),
-        (551,203),
-        (552,183),
-        (548,164),
-        (553,146),
-        (547,113),
-        (547,92),
-        (546,72),
-        (526,72),
-        (493,71),
-        (466,72),
-        (431,69),
-        (391,69),
-        (360,68)
+
+    #External gate points
+
+    external_gate_points = [
+        (331,50),
+        (281,49),
+        (221,50),
+        (174,50),
+        (122,49),
+        (70,55),
+        (40,84),
+        (34,114),
+        (34,153),
+        (32,200),
+        (33,229),
+        (33,271),
+        (33,297),
+        (33,330),
+        (51,357),
+        (84,373),
+        (120,375),
+        (165,376),
+        (210,376),
+        (236,375),
+        (265,358),
+        (268,330),
+        (258,282),
+        (256,249),
+        (255,229),
+        (275,226),
+        (289,240),
+        (302,252),
+        (327,274),
+        (355,304),
+        (385,328),
+        (407,350),
+        (430,369),
+        (449,375),
+        (485,375),
+        (525,376),
+        (561,374),
+        (589,356),
+        (609,334),
+        (608,302),
+        (610,255),
+        (609,213),
+        (608,167),
+        (607,128),
+        (606,95),
+        (591,68),
+        (570,55),
+        (544,49),
+        (485,48),
+        (434,48),
+        (380,50)
+    ]
+    internal_gate_points = [
+        (330,130),
+        (281,129),
+        (217,131),
+        (170,130),
+        (136,129),
+        (131,133),
+        (129,138),
+        (128,142),
+        (126,151),
+        (126,198),
+        (125,230),
+        (125,270),
+        (124,292),
+        (126,295),
+        (129,299),
+        (133,301),
+        (141,303),
+        (149,302),
+        (153,300),
+        (156,296),
+        (158,292),
+        (158,287),
+        (158,281),
+        (159,253),
+        (158,228),
+        (160,167),
+        (170,146),
+        (298,147),
+        (331,159),
+        (381,201),
+        (410,234),
+        (444,261),
+        (463,282),
+        (480,296),
+        (495,306),
+        (501,303),
+        (506,298),
+        (508,296),
+        (510,293),
+        (512,289),
+        (510,253),
+        (510,215),
+        (511,165),
+        (509,137),
+        (510,133),
+        (509,131),
+        (507,129),
+        (504,128),
+        (486,128),
+        (430,128),
+        (380,129)
     ]
 
-    def find_progress_gate(self, position):
+    def find_gate_point(self, position, gate_points):
         shortest_distance = -1
         shortest_index = -1
-        for i in range (0, len(self.progress_gates)):
-            distance =  calculate_distance(self.progress_gates[i], position)
+        for i in range (0, len(gate_points)):
+            distance =  calculate_distance(gate_points[i], position)
             if (shortest_distance < 0) or (distance < shortest_distance):
                 shortest_distance = distance
                 shortest_index = i
         return shortest_index
 
-
+    def find_progress_gate(self, position):
+        int_index = self.find_gate_point(position, self.internal_gate_points)
+        ext_index = self.find_gate_point(position, self.external_gate_points)
+        #Check closest Internal and external gate point, return the highest index to ignore postion relative to borders
+        if ext_index >= int_index:
+            return ext_index
+        else:
+            return int_index
 
     def get_score_from_laptime(self, laptime):
         if laptime == 0:
@@ -1867,24 +1901,44 @@ def game_loop():
                             cars[i].progress_gate = track1.find_progress_gate((cars[i].x_position, cars[i].y_position))
                         #Ranking cars
                         cars.sort(reverse = True, key=get_progress)
-                        #Checking for cars in the same gate
                         for i in range(0, len(cars)):
                             ranking[i] = i
-                            if i < len(cars) - 1 :
-                                if get_progress(cars[i]) == get_progress(cars[i+1]):
-                                    #Check didtance to the next gate
-                                    next_gate = cars[i].progress_gate + 1
-                                    if next_gate == len(track1.progress_gates):
-                                        next_gate = 0
-                                    current_car_dist = calculate_distance((cars[i].x_position, cars[i].y_position), track1.progress_gates[next_gate])
-                                    next_car_dist = calculate_distance((cars[i+1].x_position, cars[i+1].y_position), track1.progress_gates[next_gate])
-                                    #Switch order if next cars is closer to the next gate
-                                    if next_car_dist < current_car_dist:
-                                        ranking[i] = i + 1
-                                        ranking[i + 1] = i
 
+                        #Checking for cars in the same gate
+                        sorted = False
+                        while sorted == False:
+                            switched = False
+                            for i in range(0, len(cars)):
+                                if i < len(cars) - 1 :
+                                    if get_progress(cars[ranking[i]]) == get_progress(cars[ranking[i+1]]):
+                                        #Check distance to the next gate
+                                        #p3 = car position P&1,p2 = gate = line between closest internal and external point
+                                        next_gate = cars[ranking[i]].progress_gate + 1
+                                        if next_gate == len(track1.external_gate_points):
+                                            next_gate = 0
+                                        p1 = track1.internal_gate_points[next_gate]
+                                        p2 = track1.external_gate_points[next_gate]
+                                        p3 = (cars[ranking[i]].x_position, cars[ranking[i]].y_position)
 
+                                        p1=np.array(p1)
+                                        p2=np.array(p2)
+                                        p3=np.array(p3)
 
+                                        current_car_dist = np.cross(p2-p1,p3-p1)/np.linalg.norm(p2-p1)
+
+                                        p3 = (cars[ranking[i+1]].x_position, cars[ranking[i+1]].y_position)
+                                        p3=np.array(p3)
+
+                                        next_car_dist = np.cross(p2-p1,p3-p1)/np.linalg.norm(p2-p1)
+
+                                        #Switch order if next cars is closer to the next gate
+                                        if next_car_dist < current_car_dist:
+                                            swap = ranking[i]
+                                            ranking[i] = ranking[i + 1]
+                                            ranking[i + 1] = swap
+                                            switched = True
+                            if switched == False:
+                                sorted = True
 
                         #mechanic_frames = hammer_frames
                         #mechanic_frames = saw_frames
