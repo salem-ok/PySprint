@@ -12,21 +12,21 @@ Hit acclerate for any player to start a game.
 Controls:
 
 Blue car: 
-  Accelerate: Right Ctrl
-  Left: Left
-  Right: Right
+  - Accelerate: Right Ctrl
+  - Left: Left
+  - Right: Right
 
 Green car: 
-  Accelerate: Left Ctrl
-  Left: X
-  Right: C
+  - Accelerate: Left Ctrl
+  - Left: X
+  - Right: C
 
 Yellow car:
-  First Detected Joystick:
-  Any D-PAD or Analog Pad or Stick for Left and Right
-  Any button for accelerate
+  - First Detected Joystick:
+  - Any D-PAD or Analog Pad or Stick for Left and Right
+  - Any button for accelerate
   
 Red car:
-  Second Detected Joystick
-  Any D-PAD or Analog Pad or Stick for Left and Right
-  Any button for accelerate
+  - Second Detected Joystick
+  - Any D-PAD or Analog Pad or Stick for Left and Right
+  - Any button for accelerate
