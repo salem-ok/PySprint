@@ -1,29 +1,38 @@
 import pygame
 import time
-import math
-import random
 import numpy as np
+import pysprint_car
+import pysprint_tracks
 
 pygame.init()
 pygame.joystick.init()
 
 display_width = 640
 display_height = 400
+pysprint_car.display_width = 640
+pysprint_car.display_height = 400
+
 flags = 0
 race_laps = 2
-
-#Scale screen
-#flags = pygame.SCALED
-FPS = 30
-DEBUG_FINISH = False
-DEBUG_COLLISION = False
-DEBUG_BUMP = False
-DEBUG_CRASH = False
-DEBUG_FLAG = False
-DEBUG_FPS = False
+pysprint_car.race_laps = race_laps
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
 clock = pygame.time.Clock()
+
+pysprint_car.game_display = game_display
+
+cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car()]
+
+#Scale screen
+
+#flags = pygame.SCALED
+FPS = 30
+DEBUG_BUMP = False
+DEBUG_CRASH = False
+pysprint_car.DEBUG_BUMP = DEBUG_BUMP
+pysprint_car.DEBUG_CRASH = DEBUG_CRASH
+DEBUG_FLAG = False
+DEBUG_FPS = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT + 1
@@ -35,6 +44,8 @@ JOYSTICK_BUTTON_PRESSED = -2
 #Load Assets
 
 small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
+
 black_color = (0, 0, 0)
 white_color = (255, 255, 255)
 red_color = (238, 0, 34)
@@ -46,6 +57,20 @@ blue_secondary_color = (170, 204, 238)
 red_secondary_color = (170, 0, 0)
 yellow_secondary_color = (170, 170, 0)
 
+blue_engine = (72, 146)
+green_engine = (390, 284)
+yellow_engine = (390, 146)
+red_engine = (72, 284)
+
+blue_thumb = (51, 120)
+green_thumb = (369, 258)
+yellow_thumb = (369, 120)
+red_thumb = (51, 258)
+
+press_start_blue = (30,6)
+press_start_green = (510,6)
+press_start_red = (190,6)
+press_start_yellow = (350,6)
 
 
 loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
@@ -286,15 +311,13 @@ checkered_flag_frames = {
 }
 
 
-helicopter_frames = {
+pysprint_car.helicopter_frames = {
     0:pygame.image.load('Assets/Helicopter0.png').convert_alpha(),
     1:pygame.image.load('Assets/Helicopter1.png').convert_alpha(),
     2:pygame.image.load('Assets/Helicopter2.png').convert_alpha()
 }
 
-helicopter_step = 10
-
-dust_cloud_frames = {
+pysprint_car.dust_cloud_frames = {
     0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
     1:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
     2:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
@@ -303,7 +326,7 @@ dust_cloud_frames = {
 }
 
 
-explosion_frames = {
+pysprint_car.explosion_frames = {
     0:pygame.image.load('Assets/Explosion0.png').convert_alpha(),
     1:pygame.image.load('Assets/Explosion1.png').convert_alpha(),
     2:pygame.image.load('Assets/Explosion2.png').convert_alpha(),
@@ -476,822 +499,6 @@ green_car_sprites = {
         14:pygame.image.load('Assets/GreenCar14.png').convert_alpha(),
         15:pygame.image.load('Assets/GreenCar15.png').convert_alpha()
 }
-
-
-class Track:
-    background = pygame.image.load('Assets/SuperSprintTrack1.png')
-    trackMask = pygame.image.load('Assets/SuperSprintTrack1Mask.png').convert_alpha()
-
-    score_time_reference = 6.6
-
-    flag_anchor = (320, 28)
-
-    external_borders = [
-        (101, 52, 0),
-        (544, 53, 1),
-        (560, 54, 1),
-        (577, 59, 1),
-        (591, 71, 1),
-        (601, 84, 1),
-        (606, 96, 1),
-        (608, 110, 0),
-        (610, 331, 1),
-        (572, 364, 1),
-        (545, 368, 1),
-        (449, 371, 0),
-        (437, 369, 0),
-        (273, 224, 0),
-        (263, 224, 1),
-        (257, 229, 1),
-        (256, 231, 1),
-        (257, 258, 1),
-        (257, 273, 1),
-        (266, 318, 1),
-        (266, 354, 1),
-        (247, 373, 1),
-        (99, 373, 0),
-        (71, 368, 1),
-        (35, 330, 1),
-        (37, 112, 0),
-        (40, 93, 1),
-        (46, 79, 1),
-        (64, 59, 1),
-        (75, 55, 1),
-        (84, 51, 1)
-        ]
-
-    internal_borders = [
-        (133, 134,1),
-        (129, 143,1),
-        (125, 153,1),
-        (124, 295,1),
-        (132, 305,1),
-        (143, 307,1),
-        (157, 298,1),
-        (161, 163,1),
-        (178, 148,1),
-        (292, 148,1),
-        (314, 152,1),
-        (333, 161,1),
-        (489, 306,1),
-        (499, 307,1),
-        (504, 302,1),
-        (512, 299,1),
-        (512, 141,1),
-        (503, 131,1),
-        (137, 130,1)
-    ]
-
-    finish_line = pygame.Rect(346, 48,4,82)
-    finish_line_direction = -1
-
-
-    #External gate points
-
-    external_gate_points = [
-        (331,50),
-        (281,49),
-        (221,50),
-        (174,50),
-        (122,49),
-        (70,55),
-        (40,84),
-        (34,114),
-        (34,153),
-        (32,200),
-        (33,229),
-        (33,271),
-        (33,297),
-        (33,330),
-        (51,357),
-        (84,373),
-        (120,375),
-        (165,376),
-        (210,376),
-        (236,375),
-        (265,358),
-        (268,330),
-        (258,282),
-        (256,249),
-        (255,229),
-        (275,226),
-        (289,240),
-        (302,252),
-        (327,274),
-        (355,304),
-        (385,328),
-        (407,350),
-        (430,369),
-        (449,375),
-        (485,375),
-        (525,376),
-        (561,374),
-        (589,356),
-        (609,334),
-        (608,302),
-        (610,255),
-        (609,213),
-        (608,167),
-        (607,128),
-        (606,95),
-        (591,68),
-        (570,55),
-        (544,49),
-        (485,48),
-        (434,48),
-        (380,50)
-    ]
-    internal_gate_points = [
-        (330,130),
-        (281,129),
-        (217,131),
-        (170,130),
-        (136,129),
-        (131,133),
-        (129,138),
-        (128,142),
-        (126,151),
-        (126,198),
-        (125,230),
-        (125,270),
-        (124,292),
-        (126,295),
-        (129,299),
-        (133,301),
-        (141,303),
-        (149,302),
-        (153,300),
-        (156,296),
-        (158,292),
-        (158,287),
-        (158,281),
-        (159,253),
-        (158,228),
-        (160,167),
-        (170,146),
-        (298,147),
-        (331,159),
-        (381,201),
-        (410,234),
-        (444,261),
-        (463,282),
-        (480,296),
-        (495,306),
-        (501,303),
-        (506,298),
-        (508,296),
-        (510,293),
-        (512,289),
-        (510,253),
-        (510,215),
-        (511,165),
-        (509,137),
-        (510,133),
-        (509,131),
-        (507,129),
-        (504,128),
-        (486,128),
-        (430,128),
-        (380,129)
-    ]
-
-    def find_gate_point(self, position, gate_points):
-        shortest_distance = -1
-        shortest_index = -1
-        for i in range (0, len(gate_points)):
-            distance =  calculate_distance(gate_points[i], position)
-            if (shortest_distance < 0) or (distance < shortest_distance):
-                shortest_distance = distance
-                shortest_index = i
-        return shortest_index
-
-    def find_progress_gate(self, position):
-        int_index = self.find_gate_point(position, self.internal_gate_points)
-        ext_index = self.find_gate_point(position, self.external_gate_points)
-        #Check closest Internal and external gate point, return the highest index to ignore postion relative to borders
-        if ext_index >= int_index:
-            return ext_index
-        else:
-            return int_index
-
-    def get_score_from_laptime(self, laptime):
-        if laptime == 0:
-            return 0
-        else:
-            score = math.ceil((500 * (1 + self.score_time_reference/(laptime/1000)) - 600) / 10) * 10
-            if score < 0:
-                return 0
-            else:
-                return score
-
-
-class Car:
-    #Appearance
-    #Color
-    main_color = blue_color
-    secondary_color = blue_secondary_color
-    sprites = blue_drone_sprites
-    first_car = first_car_blue_drone
-    second_car = second_car_blue_drone
-    third_car = third_car_blue_drone
-    fourth_car = fourth_car_blue_drone
-    #Score
-    score = 0
-
-    #Position & Vector
-    angle_vector_sign = {
-        0:(0, -1),
-        1:(1, -1),
-        2:(1, -1),
-        3:(1, -1),
-        4:(1, 0),
-        5:(1, 1),
-        6:(1, 1),
-        7:(1, 1),
-        8:(0, 1),
-        9:(-1, 1),
-        10:(-1, 1),
-        11:(-1, 1),
-        12:(-1, 0),
-        13:(-1, -1),
-        14:(-1, -1),
-        15:(-1, -1),
-        16:(0, -1)
-    }
-
-    x_position = 325
-    y_position = 55
-    sprite_angle = 12
-    angle = 12
-    speed = 0
-    a_intersect_side = (0, 0)
-    b_intersect_side = (0, 0)
-    x_intersect = 0
-    y_intersect = 0
-    x_vector = 0
-    y_vector = 0
-    sin_angle = 0
-    progress_gate = -1
-
-    #Mechanics
-    #Car Controls
-    #Default for Blue Car is keyboard
-    accelerate_key = None
-    left_key = None
-    right_key = None
-    joystick = None
-
-    ignore_controls = False
-
-    #30FPS Settings
-    if FPS == 30:
-        rotation_step = .26
-        acceleration_step = 0.13
-        deceleration_step = 0.2
-        bump_decelaration_step = 0.3
-        speed_max = 8
-        bump_speed = 6.5
-
-    #60FPS Settings - Calibrated to an unmodified car
-    if FPS == 60:
-        rotation_step = .13
-        acceleration_step = 0.065
-        deceleration_step = 0.1
-        bump_decelaration_step = 0.15
-        speed_max = 4
-        bump_speed = 3.25
-
-    bump_animation_timer = 30
-    crash_animation_timer = 30
-
-    #Collision Settings
-    diagonal_detection_tolerance = 2
-    vector_simulation_length = 10
-    side_detection_tolerance = 7
-    max_speed_crash_threshold = 3000
-    #Threshold over which theer is a higher chance to crash
-    speed_crash_probability_threshold = 0.85
-    #% increase of probability to crash if condition is true
-    speed_crash_probability_penalty = 1.2
-    sensitive_border_crash_probability_penalty = 1.4
-    #Max Random number drawn to calculate Crash probability
-    crash_random_max = 60
-    crash_certainty_treshold = 80
-
-    #Car State
-    decelerating = False
-    rotating = False
-    bumping = False
-    crashing = False
-    bumping_vector_initialized = False
-    bumping_vertical = False
-    bumping_horizontal = False
-    bumping_diagonal = False
-    crash_finished = False
-    animation_index = 0
-    helicopter_index = 0
-    helicopter_x = 0
-    helicopter_y = 0
-    collision_time = 0
-    max_speed_reached = 0
-    on_finish_line = True
-    passed_finish_line_wrong_way = False
-    lap_count = 0
-    current_lap_start = 0
-    lap_times = []
-
-    best_lap = 0
-    average_lap = 0
-
-    #Car Events
-    BUMPCLOUD = CHECKEREDFLAG + 1
-    EXPLOSION = BUMPCLOUD + 1
-
-    def rotate(self, left):
-        self.rotating = True
-        if left:
-            self.angle -= self.rotation_step
-        else:
-            self.angle += self.rotation_step
-
-        if self.angle < 0:
-            self.angle += 16
-        if self.angle >= 16:
-            self.angle -= 16
-        self.sprite_angle = round(self.angle,0)
-        if self.sprite_angle == 16:
-            self.sprite_angle = 0
-
-    def accelerate(self):
-        self.decelerating = False
-        if self.speed < self.speed_max:
-            self.speed += self.acceleration_step
-            if self.speed >= self.speed_max:
-                self.max_speed_reached = pygame.time.get_ticks()
-
-    def decelerate(self):
-        self.decelerating = True
-        self.max_speed_reached = 0
-        if self.bumping:
-            self.speed -= self.bump_decelaration_step
-        else:
-            self.speed -= self.deceleration_step
-
-        if self.speed < 0:
-            self.speed = 0
-        if self.speed == 0:
-            self.decelerating = False
-            if self.bumping:
-                #Stop Bumping routine once speed down to 0
-                self.end_bump_loop()
-
-    def search_border_side(self, polygon_border, bumping):
-        if bumping:
-            self.bumping_diagonal = False
-            self.bumping_horizontal = False
-            self.bumping_vertical = False
-        for i in range(0, len(polygon_border)):
-            next_index = i+1
-            if next_index == len(polygon_border):
-                next_index = 0
-            top = 0
-            left = 0
-            if polygon_border[i][0] <= polygon_border[next_index][0]:
-                top = polygon_border[i][0]
-            else:
-                top = polygon_border[next_index][0]
-            if polygon_border[i][1] <= polygon_border[next_index][1]:
-                left = polygon_border[i][1]
-            else:
-                left = polygon_border[next_index][1]
-
-            rect_width = abs(polygon_border[next_index][0]-polygon_border[i][0])
-            if rect_width == 0:
-                rect_width = 1
-            rect_height = abs(polygon_border[next_index][1]-polygon_border[i][1])
-            if rect_height == 0:
-                rect_height = 1
-            wall_rect = pygame.Rect(top, left, rect_width, rect_height)
-            #Enlarge detection Box to maximize chance of hitting a polygon side
-            sprite_rect = pygame.Rect(self.x_intersect-self.side_detection_tolerance, self.y_intersect-self.side_detection_tolerance, self.side_detection_tolerance*2, self.side_detection_tolerance*2)
-
-            if sprite_rect.colliderect(wall_rect):
-                if DEBUG_COLLISION:
-                    print('found matching pair of points ({},{})'.format(polygon_border[i],polygon_border[next_index]))
-                self.a_intersect_side = polygon_border[i]
-                self.b_intersect_side = polygon_border[next_index]
-                if (abs(polygon_border[i][0]-polygon_border[next_index][0]) <= self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1]) > self.diagonal_detection_tolerance):
-                    if DEBUG_COLLISION:
-                        print('x delta <={} - looks vertical enough'.format(self.diagonal_detection_tolerance))
-                    if bumping:
-                        self.bumping_vertical = True
-                    return True
-                if (abs(polygon_border[i][0]-polygon_border[next_index][0])>self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1])<=self.diagonal_detection_tolerance):
-                    if DEBUG_COLLISION:
-                        print('y delta <={} - looks horizontal enough'.format(self.diagonal_detection_tolerance))
-                    if bumping:
-                        self.bumping_horizontal = True
-                    return True
-                if DEBUG_COLLISION:
-                    print('Diagonal Bumping')
-                if bumping:
-                    self.bumping_diagonal = True
-                    self.bumping_horizontal = False
-                    self.bumping_vertical = False
-                return True
-        return False
-
-    def calculate_vector_from_sprite(self):
-        self.sin_angle = math.sin(math.radians(abs(self.sprite_angle*22.5-90)))
-        self.y_vector = abs(self.speed * self.sin_angle)
-        self.y_vector = self.y_vector * self.angle_vector_sign[self.sprite_angle][1]
-        self.x_vector = math.sqrt(self.speed*self.speed-self.y_vector*self.y_vector)
-        self.x_vector = self.x_vector * self.angle_vector_sign[self.sprite_angle][0]
-
-    def calculate_skidding_vector(self):
-        #Start Skidding - Ignore current Rotation sprite, update speed and use previous Angle and sign
-        if not self.y_vector == 0:
-            self.y_vector = self.y_vector * abs(self.speed * self.sin_angle) / abs(self.y_vector)
-
-        if not self.x_vector == 0:
-            self.x_vector = self.x_vector * math.sqrt(self.speed*self.speed-self.y_vector*self.y_vector)  / abs(self.x_vector)
-
-        if self.x_vector==0 and self.y_vector==0 and self.speed>0:
-            #Wrong situation: reset to default vector
-            self.calculate_vector_from_sprite()
-
-    def calculate_bumping_vector(self,track):
-        if not self.bumping_vector_initialized:
-            if self.bumping_vertical:
-                #Bump horizontally when hitting a vertical border diagonally or horizontally
-                if self.x_vector == 0:
-                    #Edge case: bumping into a Vertical wall while car is vertical
-                    self.x_vector = self.y_vector
-                    intersect_point = self.test_collision(track, True)
-                    #Test if the vector is set away or towards the wall, and invert if necessary
-                    if intersect_point:
-                        self.x_vector = -self.x_vector
-                else:
-                    #Invert X component fo the vector
-                    self.x_vector = -self.x_vector
-                self.y_vector = 0
-            else:
-                if self.bumping_horizontal:
-                    #Bump vertically when hitting a horizontal border diagonally or vertically
-                    if self.y_vector == 0:
-                        #Edge case: bumping into a Horizontal wall while car is horizontal
-                        self.y_vector = self.x_vector
-                        intersect_point = self.test_collision(track, True)
-                        #Test if the vector is set away or towards the wall, and invert if necessary
-                        if intersect_point:
-                            self.y_vector = -self.y_vector
-                    else:
-                        #Invert Y component fo the vector
-                        self.y_vector = -self.y_vector
-                    self.x_vector = 0
-                else:
-                    if self.bumping_diagonal:
-                        #Diagonal Bumping: Bump Diagnoally if hit Horizontally - or Vertically  - Vert or Horiz Bump if hit diagonally
-                        a_point = self.a_intersect_side
-                        b_point = self.b_intersect_side
-
-                        if self.x_vector == 0 or self.y_vector == 0:
-                            #Car is moving Horizontally or Vertical - Force 45 degree angle
-                            self.sin_angle = math.sin(math.radians(abs(45)))
-                            new_vector = abs(self.speed * self.sin_angle)
-
-                            if (a_point[0] < b_point[0] and a_point[1] < b_point[1]) or (a_point[0] > b_point[0] and a_point[1] > b_point[1]):
-                                #Top-Right or Bottom Left Diagonal
-                                if self.y_vector > 0 or self.x_vector < 0:
-                                    #Bottom Left Diagonal - Invert Y Component
-                                    self.x_vector = new_vector
-                                    self.y_vector = -new_vector
-                                else:
-                                    if self.y_vector < 0 or self.x_vector > 0:
-                                        #Top Right Diagonal - Invert X Component
-                                        self.x_vector = -new_vector
-                                        self.y_vector = new_vector
-
-                            if (a_point[0] > b_point[0] and a_point[1] < b_point[1]) or (a_point[0] < b_point[0] and a_point[1] > b_point[1]):
-                                #Top-left or Bottom Right Diagonal
-                                if self.y_vector < 0 or self.x_vector < 0:
-                                    #Top Left Diagonal - No Changes on vector
-                                    self.x_vector = new_vector
-                                    self.y_vector = new_vector
-                                else:
-                                    if self.y_vector > 0 or self.x_vector > 0:
-                                        #Bottom Right Diagonal - Invert Vector
-                                        self.x_vector = -new_vector
-                                        self.y_vector = -new_vector
-                        else:
-                            #Car is Diagonal - Assuming Orthogonal to the Border - Normal Bump - Invert Vector
-                            self.x_vector = -self.x_vector
-                            self.y_vector = -self.y_vector
-                            #Vector Sanity Check
-                            #Test if the vector is set away or towards the wall, and Refine direction if not
-                            intersect_point = self.test_collision(track, False)
-                            if intersect_point:
-                                #Reset Vector to initial value
-                                self.x_vector = -self.x_vector
-                                self.y_vector = -self.y_vector
-                                #Default Bump Vector - Max component of Vector
-                                new_vector = max(abs(self.x_vector),abs(self.y_vector))
-                                #Force the Vector Diagonally if the car is diagonal and "parallel" to the Border
-                                if (a_point[0] < b_point[0] and a_point[1] < b_point[1]) or (a_point[0] > b_point[0] and a_point[1] > b_point[1]):
-                                    #Top-Right or Bottom Left Diagonal
-                                    self.x_vector = new_vector
-                                    self.y_vector = -new_vector
-
-                                if (a_point[0] > b_point[0] and a_point[1] < b_point[1]) or (a_point[0] < b_point[0] and a_point[1] > b_point[1]):
-                                    #Top-left or Bottom Right Diagonal
-                                    self.x_vector = -new_vector
-                                    self.y_vector = -new_vector
-                    #Vector Sanity Check
-                    #Test if the vector is set away or towards the wall, and invert if necessary
-                    intersect_point = self.test_collision(track, True)
-                    if intersect_point:
-                        #Try inverting X
-                        self.x_vector = -self.x_vector
-                        intersect_point = self.test_collision(track, True)
-                        if intersect_point:
-                            #Try Inverting Y
-                            self.x_vector = -self.x_vector
-                            self.y_vector = -self.y_vector
-                            intersect_point = self.test_collision(track, True)
-                            if intersect_point:
-                            #try inverting both
-                                self.x_vector = -self.x_vector
-                                intersect_point = self.test_collision(track, True)
-                                if intersect_point:
-                                #No movement as we're stuck
-                                    self.y_vector = 0
-                                    self.x_vector = 0
-        self.bumping_vector_initialized = True
-
-    def test_collision(self, track, simulate_next_step):
-        track_mask = pygame.mask.from_surface(track.trackMask, 50)
-        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
-        x_test = 0
-        y_test = 0
-        if simulate_next_step:
-            if self.x_vector > 0:
-                x_test = self.vector_simulation_length
-            else:
-                if self.x_vector < 0:
-                    x_test = -self.vector_simulation_length
-            if self.y_vector > 0:
-                y_test = self.vector_simulation_length
-            else:
-                if self.y_vector < 0:
-                    y_test = -self.vector_simulation_length
-
-        return track_mask.overlap(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
-
-    def calculate_crashing_vector(self,track):
-        #Reposition car in a suitable spot - Move car backwards until no collision detected.
-        #Invert vector
-        self.x_vector = -self.x_vector
-        self.y_vector = -self.y_vector
-
-        intersect_point = self.test_collision(track, True)
-        #Test if thr car is still collidign and keep moving backwards until not the case
-        if intersect_point:
-            #No movement as we're stuck
-            self.y_vector = 0
-            self.x_vector = 0
-
-
-    def detect_collision(self, track):
-        if DEBUG_COLLISION:
-            print('Checking for Collision at ({},{})'.format(self.x_position, self.y_position))
-        intersect_point = self.test_collision(track,False)
-        collision = False
-        if intersect_point:
-            if not self.decelerating:
-                #Check if the car is going into a border a going away from it (i.e. the tail touching the border)
-                #If it is going away from the border then skip the Bump routine
-                #Simulate  Vector of same direction as current vector and check if still colliding
-                intersect_point2 = self.test_collision(track,True)
-                if intersect_point2:
-                    #Collision confirmed by next incremental move
-                    collision = True
-                else:
-                    #Moving away from wall - Force End Bump routine
-                    self.end_bump_loop()
-            else:
-                collision = True
-        if collision:
-            if  self.detect_crash(track):
-                self.init_crash_loop(track, intersect_point)
-            else:
-                self.init_bump_loop(track, intersect_point)
-
-    def detect_crash(self, track):
-        if self.max_speed_reached > 0:
-            maxspeed_duration = pygame.time.get_ticks() - self.max_speed_reached
-            #More than xxx ms at max_speed when coliding is a certain crash
-            if maxspeed_duration <= self.max_speed_crash_threshold:
-                return False
-            else:
-                return True
-        else:
-            #There is a random chance to Crash, increased:
-            crash_probability = random.randint(1,self.crash_random_max)
-            #1- If Speed is higher than xx% of max speed
-            if self.speed >= self.speed_crash_probability_threshold * self.speed_max:
-                crash_probability = crash_probability * self.speed_crash_probability_penalty
-            #2- If A sensitive Border has been hit
-            if self.search_border_side(track.external_borders, False) or self.search_border_side(track.internal_borders, False):
-                if self.a_intersect_side[2] == 1 and self.b_intersect_side[2] == 1:
-                    crash_probability = crash_probability * self.sensitive_border_crash_probability_penalty
-            if crash_probability > self.crash_certainty_treshold:
-                return True
-            else:
-                return False
-
-
-    def init_bump_loop(self, track, intersect_point):
-        self.bumping = True
-        self.speed = self.bump_speed
-        #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
-        #Lookup in the map for the closest intersection point and the polygon side that is intersecting
-        self.x_intersect = intersect_point[0]
-        self.y_intersect = intersect_point[1]
-        self.collision_time = pygame.time.get_ticks()
-        #Search external borders other corners of the sprite in case no border poinst detected
-        if not self.search_border_side(track.external_borders, True):
-            if not self.search_border_side(track.internal_borders, True):
-                #Despite overlap detected no intersection with any side of the Track polygons has been found
-                #Unable to determine the orientation of the colliding border
-                if DEBUG_BUMP:
-                    print('No Macthing Border Side found')
-                self.end_bump_loop()
-        if DEBUG_BUMP:
-            print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
-        self.animation_index = 0
-        pygame.time.set_timer(self.BUMPCLOUD, self.bump_animation_timer)
-
-    def init_crash_loop(self, track, intersect_point):
-        self.crashing = True
-        self.crash_finished = False
-        self.speed = 0
-        self.x_intersect = intersect_point[0]
-        self.y_intersect = intersect_point[1]
-        self.helicopter_x = - helicopter_frames[0].get_width()
-        self.helicopter_y = self.y_intersect - helicopter_frames[0].get_height()
-        self.collision_time = pygame.time.get_ticks()
-        if DEBUG_CRASH:
-            print('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
-        self.animation_index = 0
-        self.helicopter_index = 0
-        pygame.time.set_timer(self.EXPLOSION, self.crash_animation_timer)
-
-    def end_bump_loop(self):
-        self.bumping_diagonal = False
-        self.bumping_horizontal = False
-        self.bumping_vertical = False
-        self.bumping_vector_initialized = False
-        self.bumping = False
-        end_time = pygame.time.get_ticks()
-        if DEBUG_BUMP:
-            print('{} - Bump Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
-        pygame.time.set_timer(self.BUMPCLOUD,0)
-
-    def end_crash_loop(self):
-        self.crashing = False
-        self.crash_finished = False
-        end_time = pygame.time.get_ticks()
-        if DEBUG_CRASH:
-            print('{} - Crash Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
-        pygame.time.set_timer(self.EXPLOSION,0)
-
-
-    def update_position(self, track):
-        if self.crashing:
-            self.calculate_crashing_vector(track)
-        else:
-            if not self.decelerating:
-                #Calculate Vector - Accelarating means No skidding
-                self.calculate_vector_from_sprite()
-            else:
-                if not self.rotating:
-                    #Calculate Vector - Skidding
-                    self.calculate_skidding_vector()
-            if self.bumping:
-                #Calculate Vector - Bumping
-                self.calculate_bumping_vector(track)
-
-        #Update Car Offset
-        self.x_position += self.x_vector
-        self.y_position += self.y_vector
-
-        if not self.crashing:
-            #Reset Rotation Flag to match Key Pressed Status
-            self.rotating = False
-            #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
-            if self.speed > 0:
-                self.detect_collision(track)
-            else:
-                if self.bumping:
-                    #Force end of Bump Routine if car is not moving
-                    self.end_bump_loop()
-        else:
-            #Car is not moving anymore
-            self.x_vector = 0
-            self.y_vector = 0
-            self.speed = 0
-            #End Crash Routine if animation has run to the end.
-            if self.crash_finished:
-                self.end_crash_loop()
-
-    def test_finish_line(self, track):
-        #Detect if car collides with Finish line in the expected direction
-        sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
-        if sprite_rect.colliderect(track.finish_line):
-            if not self.on_finish_line:
-                self.on_finish_line = True
-                if self.x_vector * track.finish_line_direction > 0:
-                    if self.passed_finish_line_wrong_way:
-                        self.passed_finish_line_wrong_way = False
-                        if DEBUG_FINISH:
-                            print('{} - Passed the line in the right direction after going the wrong way)'.format(pygame.time.get_ticks()))
-                    else:
-                        finish_time = pygame.time.get_ticks()
-                        self.lap_times[self.lap_count] = finish_time - self.current_lap_start
-                        if DEBUG_FINISH:
-                            print('{} - New Lap {} - Duration: {})'.format(finish_time, self.lap_count, self.lap_times[self.lap_count]))
-                        self.lap_count+=1
-                        self.average_lap =  sum(self.lap_times)/self.lap_count
-                        if self.best_lap == 0:
-                            self.best_lap = self.lap_times[self.lap_count-1]
-                        else:
-                            if self.best_lap > self.lap_times[self.lap_count-1]:
-                                self.best_lap = self.lap_times[self.lap_count-1]
-
-                        if self.lap_count == race_laps:
-                            #Race finished
-                            if DEBUG_FINISH:
-                                print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_Lap, self.best_lap))
-                            return True
-                        self.current_lap_start = finish_time
-                        return False
-                else:
-                    self.passed_finish_line_wrong_way = True
-                    if DEBUG_FINISH:
-                        print('{} - Passed the line in the wrong direction)'.format(pygame.time.get_ticks()))
-        else:
-            self.on_finish_line = False
-
-
-    def draw(self, track):
-        #Draw Car
-        if not self.bumping:
-            self.update_position(track)
-            self.ignore_controls = False
-        if self.bumping:
-            #Ignore controls until Buming routine is finished - Force Skidding & Decelaration
-            self.decelerating = True
-            self.rotating = False
-            self.update_position(track)
-
-    def blit(self, track):
-        #Car is not visible durign explosion
-        if not self.crashing:
-            game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-        #Blit Dust Cloud if Bumping
-        if self.bumping:
-            if DEBUG_BUMP:
-                print('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
-            if self.animation_index <= 4:
-                game_display.blit(dust_cloud_frames[self.animation_index], (self.x_intersect, self.y_intersect))
-        #Blit Explosion & Helicopter
-        if self.crashing:
-            if self.animation_index <= 4:
-                game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
-            if self.helicopter_x >= self.x_position:
-                game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-            game_display.blit(helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
-
-
-    def display_bump_cloud(self):
-        if DEBUG_BUMP:
-            print('{} - Increment Bump Frame'.format(pygame.time.get_ticks()))
-        if self.animation_index < len(dust_cloud_frames):
-            self.animation_index += 1
-
-    def display_explosion(self):
-        if DEBUG_CRASH:
-            print('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
-        if self.animation_index < len(explosion_frames):
-            self.animation_index += 1
-        if self.helicopter_x < display_width:
-            self.helicopter_x += helicopter_step
-            if self.helicopter_index == len(helicopter_frames)-1:
-                self.helicopter_index = 0
-            else:
-                self.helicopter_index += 1
-        else:
-            self.crash_finished = True
 
 def screen_fadeout():
     for frame in range (0,len(transition_dots)):
@@ -1490,6 +697,11 @@ def display_lap_records():
     return key_pressed
 
 
+def print_prepare_to_race(top_left, color):
+    game_display.blit(big_font.render("PREPARE", False, color), top_left)
+    game_display.blit(big_font.render("TO", False, color), (top_left[0] + 40, top_left[1] + 25))
+    game_display.blit(big_font.render("RACE", False, color), (top_left[0] + 25, top_left[1] + 50))
+
 
 def print_press_acceltoplay(top_left, color, seconds):
     game_display.blit(small_font.render("PRESS", False, color), top_left)
@@ -1498,27 +710,26 @@ def print_press_acceltoplay(top_left, color, seconds):
     game_display.blit(small_font.render("{}".format(seconds), False, color), (top_left[0] + 24, top_left[1] + 60))
 
 def print_start_race_text(seconds):
-    print_press_acceltoplay((77,6), blue_color, seconds)
-    print_press_acceltoplay((291,6), red_color, seconds)
-    print_press_acceltoplay((505,6), yellow_color, seconds)
+    for car in cars:
+        if car.is_drone:
+            print_press_acceltoplay(car.start_screen_text_position, car.main_color, seconds)
+        else:
+            print_prepare_to_race(car.start_screen_text_position, car.main_color)
+
     game_display.blit(small_font.render("PRESS SPACE TO SKIP", False, white_color), (240,384))
 
 def display_start_race_screen():
     seconds = 5
     screen_exit = False
     engine_idle_counter = 0
-    prepare_to_race_counter = -1
+
+    #Add Green car
     screen_fadein(start_race_screen)
     print_start_race_text(seconds)
-    blue_engine = (72, 146)
-    yellow_engine = (390, 146)
-    red_engine = (232, 284)
-    blue_thumb = (51, 120)
-    yellow_thumb = (369, 120)
-    red_thumb = (211, 258)
-    game_display.blit(engine_idle[engine_idle_counter], blue_engine)
-    game_display.blit(engine_idle[engine_idle_counter], yellow_engine)
-    game_display.blit(engine_idle[engine_idle_counter], red_engine)
+    for car in cars:
+        game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
+        car.prepare_to_race_counter = -1
+
     pygame.display.update()
     countdown = pygame.time.get_ticks()
     while not screen_exit:
@@ -1526,23 +737,22 @@ def display_start_race_screen():
         engine_idle_counter +=1
         if engine_idle_counter > 2:
             engine_idle_counter = 0
-            prepare_to_race_counter += 1
+            for car in cars:
+                if not car.is_drone:
+                    car.prepare_to_race_counter += 1
 
         time = pygame.time.get_ticks()
         if time - countdown >= 1000:
             seconds -= 1
             countdown = time
         print_start_race_text(seconds)
-        game_display.blit(engine_idle[engine_idle_counter], blue_engine)
-        game_display.blit(engine_idle[engine_idle_counter], yellow_engine)
-        game_display.blit(engine_idle[engine_idle_counter], red_engine)
-
-        if prepare_to_race_counter >0 and prepare_to_race_counter <= 11:
-            game_display.blit(prepare_to_race[prepare_to_race_counter], blue_thumb)
-            game_display.blit(prepare_to_race[prepare_to_race_counter], yellow_thumb)
-            game_display.blit(prepare_to_race[prepare_to_race_counter], red_thumb)
+        for car in cars:
+            game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
+            if car.prepare_to_race_counter >0 and car.prepare_to_race_counter <= 11:
+                game_display.blit(prepare_to_race[car.prepare_to_race_counter], car.start_screen_thumb_position)
 
         pygame.display.update()
+        key_pressed = -1
         if seconds == 0:
             screen_exit = True
         for event in pygame.event.get():
@@ -1550,16 +760,22 @@ def display_start_race_screen():
                 screen_exit = True
                 return pygame.K_ESCAPE
             if event.type == pygame.KEYDOWN:
+                key_pressed = event.key
                 if event.key == pygame.K_SPACE:
                     screen_exit = True
                 if event.key == pygame.K_ESCAPE:
                     screen_exit = True
                     return pygame.K_ESCAPE
+
+        any_joystick_button_pressed()
+        if key_pressed >= 0:
+            accelerate_pressed(key_pressed)
+
         clock.tick(15)
     screen_fadeout()
     return pygame.K_SPACE
 
-def display_race_podium_screen(cars, track, mechanic_frames, ranking, composed_race_podium, crowd_background):
+def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_podium, crowd_background):
 
     #Animate Score Increases
     text_positions = [(359, 433, 135, 153, 171) , (192, 265, 239, 257, 275) , (503, 576, 239, 257, 275) , (155, 228, 337, 355, 373)]
@@ -1661,28 +877,145 @@ def trace_frame_time(trace_event, frame_start):
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
 
 def accelerate_pressed(key_pressed):
-    if key_pressed == JOYSTICK_BUTTON_PRESSED or key_pressed == pygame.K_RCTRL or key_pressed == pygame.K_LCTRL or key_pressed == pygame.K_s or key_pressed == pygame.K_h:
+    if key_pressed == JOYSTICK_BUTTON_PRESSED:
         return True
-    else:
-        return False
+    for car in cars:
+        if not car.accelerate_key is None:
+            if key_pressed == car.accelerate_key:
+                car.start_game()
+                return True
+    return False
 
 def any_joystick_button_pressed():
     button_pressed = False
-    for i in range (pygame.joystick.get_count()):
-        joy = pygame.joystick.Joystick(i)
-        buttons = joy.get_numbuttons()
-        for j in range(buttons):
-            button = joy.get_button(j)
-            if button == 1:
-                button_pressed = True
+    for car in cars:
+        if not car.joystick is None:
+            joy = car.joystick
+            buttons = joy.get_numbuttons()
+            for j in range(buttons):
+                button = joy.get_button(j)
+                if button == 1:
+                    button_pressed = True
+                    car.start_game()
     return button_pressed
 
 
-def calculate_distance(point1,point2):
-     return math.sqrt( ((point1[0]-point2[0])**2)+((point1[1]-point2[1])**2))
-
 def get_progress(car):
     return car.lap_count * 1000 + car.progress_gate
+
+def initialize_cars():
+    #Initiate Cars as Drones.
+    for car in cars:
+        car.lap_times.clear()
+        for i in range(0, race_laps):
+            car.lap_times.append(0)
+
+    cars[0].start_screen_engine_position = blue_engine
+    cars[1].start_screen_engine_position = green_engine
+    cars[2].start_screen_engine_position = yellow_engine
+    cars[3].start_screen_engine_position = red_engine
+
+    cars[0].start_screen_thumb_position = blue_thumb
+    cars[1].start_screen_thumb_position = green_thumb
+    cars[2].start_screen_thumb_position = yellow_thumb
+    cars[3].start_screen_thumb_position = red_thumb
+
+    cars[0].start_screen_text_position = press_start_blue
+    cars[1].start_screen_text_position = press_start_green
+    cars[2].start_screen_text_position = press_start_yellow
+    cars[3].start_screen_text_position = press_start_red
+
+    cars[0].main_color = blue_color
+    cars[1].main_color = green_color
+    cars[2].main_color = yellow_color
+    cars[3].main_color = red_color
+
+    #Initialize car Specific Event codes
+    cars[0].BUMPCLOUD = CHECKEREDFLAG + 1
+    cars[0].EXPLOSION = cars[0].BUMPCLOUD + 1
+    cars[1].BUMPCLOUD = cars[0].EXPLOSION + 1
+    cars[1].EXPLOSION = cars[1].BUMPCLOUD + 1
+    cars[2].BUMPCLOUD = cars[1].EXPLOSION + 1
+    cars[2].EXPLOSION = cars[2].BUMPCLOUD + 1
+    cars[3].BUMPCLOUD = cars[2].EXPLOSION + 1
+    cars[3].EXPLOSION = cars[3].BUMPCLOUD + 1
+
+    #Initialize Default Controls
+    #Default for Blue Car is keyboard
+    cars[0].accelerate_key = pygame.K_RCTRL
+    cars[0].left_key = pygame.K_LEFT
+    cars[0].right_key = pygame.K_RIGHT
+
+
+    #Default for Green Car is keyboard
+    cars[1].accelerate_key = pygame.K_LCTRL
+    cars[1].left_key = pygame.K_x
+    cars[1].right_key = pygame.K_c
+
+    #Default for Yellow Car is Joystick 1 if detected.
+    if pygame.joystick.get_count() > 0:
+        cars[2].joystick = pygame.joystick.Joystick(0)
+        cars[2].joystick.init()
+
+    #Default for Red Car is Joystick 2 if detected
+    if pygame.joystick.get_count() > 1:
+        cars[3].joystick = pygame.joystick.Joystick(1)
+        cars[3].joystick.init()
+
+def activate_cars():
+    if cars[0].is_drone:
+        cars[0].sprites = blue_drone_sprites
+        cars[0].first_car = first_car_blue_drone
+        cars[0].second_car = second_car_blue_drone
+        cars[0].third_car = third_car_blue_drone
+        cars[0].fourth_car = fourth_car_blue_drone
+    else:
+        cars[0].sprites = blue_car_sprites
+        cars[0].first_car = first_car_blue
+        cars[0].second_car = second_car_blue
+        cars[0].third_car = third_car_blue
+        cars[0].fourth_car = fourth_car_blue
+
+    if cars[1].is_drone:
+        cars[1].sprites = green_drone_sprites
+        cars[1].first_car = first_car_green_drone
+        cars[1].second_car = second_car_green_drone
+        cars[1].third_car = third_car_green_drone
+        cars[1].fourth_car = fourth_car_green_drone
+    else:
+        cars[1].sprites = green_car_sprites
+        cars[1].first_car = first_car_green
+        cars[1].second_car = second_car_green
+        cars[1].third_car = third_car_green
+        cars[1].fourth_car = fourth_car_green
+
+    if cars[2].is_drone:
+        cars[2].sprites = yellow_drone_sprites
+        cars[2].first_car = first_car_yellow_drone
+        cars[2].second_car = second_car_yellow_drone
+        cars[2].third_car = third_car_red_drone
+        cars[2].fourth_car = fourth_car_yellow_drone
+    else:
+        cars[2].sprites = yellow_car_sprites
+        cars[2].first_car = first_car_yellow
+        cars[2].second_car = second_car_yellow
+        cars[2].third_car = third_car_red
+        cars[2].fourth_car = fourth_car_yellow
+
+    if cars[3].is_drone:
+        cars[3].sprites = red_drone_sprites
+        cars[3].first_car = first_car_red_drone
+        cars[3].second_car = second_car_red_drone
+        cars[3].third_car = third_car_yellow_drone
+        cars[3].fourth_car = fourth_car_red_drone
+    else:
+        cars[3].sprites = red_car_sprites
+        cars[3].first_car = first_car_red
+        cars[3].second_car = second_car_red
+        cars[3].third_car = third_car_yellow
+        cars[3].fourth_car = fourth_car_red
+
+
 
 def game_loop():
 
@@ -1692,6 +1025,8 @@ def game_loop():
     for i in range (pygame.joystick.get_count()):
         joy = pygame.joystick.Joystick(i)
         print ('{}'.format(joy.get_name()))
+
+    initialize_cars()
 
     while not game_exit:
         key_pressed = -1
@@ -1707,93 +1042,21 @@ def game_loop():
                 key_pressed = display_credits_screen()
         if accelerate_pressed(key_pressed):
             #Initiate Race
-            #Initiate Cars
-            cars = [Car(), Car(), Car(), Car()]
-            for car in cars:
-                car.lap_times.clear()
-                for i in range(0, race_laps):
-                    car.lap_times.append(0)
-
-            cars[0].sprites = blue_car_sprites
-            cars[1].sprites = green_car_sprites
-            cars[2].sprites = yellow_car_sprites
-            cars[3].sprites = red_car_sprites
-
-            cars[0].first_car = first_car_blue
-            cars[1].first_car = first_car_green
-            cars[2].first_car = first_car_yellow
-            cars[3].first_car = first_car_red
-
-            cars[0].second_car = second_car_blue
-            cars[1].second_car = second_car_green
-            cars[2].second_car = second_car_yellow
-            cars[3].second_car = second_car_red
-
-            cars[0].third_car = third_car_blue
-            cars[1].third_car = third_car_green
-            cars[2].third_car = third_car_red
-            cars[3].third_car = third_car_yellow
-
-            cars[0].fourth_car = fourth_car_blue
-            cars[1].fourth_car = fourth_car_green
-            cars[2].fourth_car = fourth_car_yellow
-            cars[3].fourth_car = fourth_car_red
-
-
-            #cars[0].sprites = blue_drone_sprites
-            #cars[1].sprites = green_drone_sprites
-            #cars[2].sprites = red_drone_sprites
-            #cars[3].sprites = yellow_drone_sprites
-
-            #cars[0].first_car = first_car_blue_drone
-            #cars[1].first_car = first_car_green_drone
-            #cars[2].first_car = first_car_red_drone
-            #cars[3].first_car = first_car_yellow_drone
-
-            #Default for Blue Car is keyboard
-            cars[0].accelerate_key = pygame.K_RCTRL
-            cars[0].left_key = pygame.K_LEFT
-            cars[0].right_key = pygame.K_RIGHT
-
-            cars[1].main_color = green_color
-            cars[1].y_position += 15
-            #Default for Green Car is keyboard
-            cars[1].accelerate_key = pygame.K_LCTRL
-            cars[1].left_key = pygame.K_x
-            cars[1].right_key = pygame.K_c
-            cars[1].BUMPCLOUD = cars[0].EXPLOSION + 1
-            cars[1].EXPLOSION = cars[1].BUMPCLOUD + 1
-
-
-
-            cars[2].main_color = yellow_color
-            cars[2].y_position += 30
-            #Default for Yellow Car is Joystick 1
-            # cars[2].accelerate_key = pygame.K_s
-            # cars[2].left_key = pygame.K_e
-            # cars[2].right_key = pygame.K_r
-            if pygame.joystick.get_count() > 0:
-                cars[2].joystick = pygame.joystick.Joystick(0)
-                cars[2].joystick.init()
-            cars[2].BUMPCLOUD = cars[1].EXPLOSION + 1
-            cars[2].EXPLOSION = cars[2].BUMPCLOUD + 1
-
-            cars[3].main_color = red_color
-            cars[3].y_position += 45
-            #Default for Red Car is Joystick 2
-            if pygame.joystick.get_count() > 1:
-                cars[3].joystick = pygame.joystick.Joystick(1)
-                cars[3].joystick.init()
-            # cars[3].accelerate_key = pygame.K_h
-            # cars[3].left_key = pygame.K_u
-            # cars[3].right_key = pygame.K_i
-            cars[3].BUMPCLOUD = cars[2].EXPLOSION + 1
-            cars[3].EXPLOSION = cars[3].BUMPCLOUD + 1
-
             key_pressed = display_start_race_screen()
             if not key_pressed == pygame.K_ESCAPE:
-                track1 = Track()
+                activate_cars()
+                track1 = pysprint_tracks.Track()
+                track1.background = pygame.image.load(track1.background_filename)
+                track1.track_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
+                track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
                 screen_fadein(track1.background)
+
+                #Align Cars on Start Line
+                for i in range (0,4):
+                    cars[i].x_position = track1.first_car_start_position[0]
+                    cars[i].y_position = track1.first_car_start_position[1] + i * 15
+                    cars[i].sprite_angle = track1.start_sprite_angle
+                    cars[i].angle = track1.start_sprite_angle
 
                 race_start = True
                 last_lap = False
@@ -1815,8 +1078,6 @@ def game_loop():
                         podium_displayed = True
                     else:
                         for car in cars:
-                            if car.joystick is None and car.accelerate_key is None:
-                                car.ignore_controls = True
                             if car.bumping or race_finish:
                                 car.ignore_controls = True
                             if not car.ignore_controls:
@@ -2086,7 +1347,7 @@ def game_loop():
                             composed_race_podium.blit(cars[ranking[3]].fourth_car, (0,0))
 
                             screen_fadein(composed_race_podium)
-                            display_race_podium_screen(cars, track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
+                            display_race_podium_screen(track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
                             podium_displayed = True
                             screen_fadeout()
             else:
