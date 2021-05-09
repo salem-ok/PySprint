@@ -25,6 +25,7 @@ Yellow car:
   First Detected Joystick:
   Any D-PAD or Analog Pad or Stick for Left and Right
   Any button for accelerate
+  
 Red car:
   Second Detected Joystick
   Any D-PAD or Analog Pad or Stick for Left and Right
