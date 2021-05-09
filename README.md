@@ -21,12 +21,11 @@ Green car:
   Left: X
   Right: C
 
-Red car:
-  Accelerate: S
-  Left: E
-  Right: R
-
 Yellow car:
-  Accelerate: H
-  Left: U
-  Right: I
+  First Detected Joystick:
+  Any D-PAD or Analog Pad or Stick for Left and Right
+  Any button for accelerate
+Red car:
+  Second Detected Joystick
+  Any D-PAD or Analog Pad or Stick for Left and Right
+  Any button for accelerate
