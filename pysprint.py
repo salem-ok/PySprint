@@ -1308,9 +1308,9 @@ def game_loop():
                                     axes = car.joystick.get_numaxes()
                                     for i in range(axes):
                                         axis = car.joystick.get_axis(i)
-                                        #Ignoring any axis beyong the first 4 which should be analog sticks X & Y
+                                        #Ignoring any axis beyong the first 2 which should be analog stick X
                                         #Any axis beyong that is probably an analog shoulder button
-                                        if i < 4:
+                                        if i < 2:
                                             if axis < 0 and axis < -0.5:
                                                 left_pressed = True
                                             if axis > 0 and axis > 0.5:
