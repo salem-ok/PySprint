@@ -1,4 +1,5 @@
 import pygame
+from pygame import key
 import pygame.display
 import time
 import numpy as np
@@ -756,8 +757,8 @@ def print_start_race_text(seconds):
             print_press_acceltoplay(car.start_screen_text_position, car.main_color, seconds)
         else:
             print_prepare_to_race(car.start_screen_text_position, car.main_color)
-
-    game_display.blit(small_font.render("PRESS SPACE TO SKIP", False, white_color), (240,384))
+    skip_surf = small_font.render("PRESS SPACE TO SKIP", False, white_color)
+    game_display.blit(skip_surf, ((600 - skip_surf.get_width())/2, 385))
 
 def display_start_race_screen():
     seconds = 5
@@ -928,10 +929,19 @@ def print_car_name_and_control_method(top_left, color, color_text, control_metho
 def print_options_text(conflict):
     game_display.blit(small_font.render("USE FUNCTION KEYS TO SELECT CONTROL FOR CARS", False, grey_color), (50, 345))
     game_display.blit(small_font.render("F2-BLUE CAR  F3-RED CAR  F4-YELLOW CAR  F5-GREEN CAR", False, white_color), (20, 365))
-    exit_surf = small_font.render("F10-EXIT", False, white_color)
+    exit_surf = small_font.render("F6-MAP KEYBOARD 1  F7-MAP KEYBOARD 2  F10-EXIT", False, white_color)
     game_display.blit(exit_surf, ((600 - exit_surf.get_width())/2, 385))
     if conflict:
         game_display.blit(small_font.render("YOU CANNOT HAVE THE SAME CONTROL METHOD FOR 2 CARS", False, white_color), (20, 215))
+
+def print_redefine_keys(redefine_keys, control_name, key_already_used):
+    key_def_surf = small_font.render("{} ACC-{} LEFT-{} RIGHT-{} ".format(control_methods[redefine_keys]['METHOD'], pygame.key.name(control_methods[redefine_keys]['ACCELERATE']), pygame.key.name(control_methods[redefine_keys]['LEFT']), pygame.key.name(control_methods[redefine_keys]['RIGHT'])), False, white_color)
+    game_display.blit(key_def_surf, ((600 - key_def_surf.get_width())/2, 210))
+    instruct_surf = small_font.render("F8-END MAP   PRESS {}".format(control_name), False, grey_color)
+    game_display.blit(instruct_surf, ((600 - instruct_surf.get_width())/2, 225))
+    if key_already_used:
+        already_surf = small_font.render("KEY ALREADY USED", False, white_color)
+        game_display.blit(already_surf, ((600 - already_surf.get_width())/2, 240))
 
 def display_options():
     screen_exit = False
@@ -945,7 +955,9 @@ def display_options():
 
     print_options_text(conflict)
     pygame.display.update()
-
+    redefine_keys = -1
+    key_already_used = False
+    control_name = ''
     while not screen_exit:
         game_display.blit(start_race_screen, (0, 0))
         engine_idle_counter +=1
@@ -960,6 +972,9 @@ def display_options():
                 else:
                     joy_name = "NOT DETECTED"
             print_car_name_and_control_method(car.start_screen_text_position, car.main_color, car.color_text, control_methods[car.control_method_index]['METHOD'], joy_name)
+        if redefine_keys > -1:
+            conflict = False
+            print_redefine_keys(redefine_keys, control_name, key_already_used)
         print_options_text(conflict)
         pygame.display.update()
         for event in pygame.event.get():
@@ -995,19 +1010,41 @@ def display_options():
                     cars[0].control_method_index += 1
                     if cars[0].control_method_index >= len(control_methods):
                         cars[0].control_method_index = 0
-                if event.key == pygame.K_F3:
+                elif event.key == pygame.K_F3:
                     cars[3].control_method_index += 1
                     if cars[3].control_method_index >= len(control_methods):
                         cars[3].control_method_index = 0
-                if event.key == pygame.K_F4:
+                elif event.key == pygame.K_F4:
                     cars[2].control_method_index += 1
                     if cars[2].control_method_index >= len(control_methods):
                         cars[2].control_method_index = 0
-                if event.key == pygame.K_F5:
+                elif event.key == pygame.K_F5:
                     cars[1].control_method_index += 1
                     if cars[1].control_method_index >= len(control_methods):
                         cars[1].control_method_index = 0
-
+                elif event.key == pygame.K_F6:
+                    redefine_keys = 0
+                    control_name = 'ACCELERATE'
+                elif event.key == pygame.K_F7:
+                    redefine_keys = 1
+                    control_name = 'ACCELERATE'
+                elif event.key == pygame.K_F8:
+                    redefine_keys = -1
+                    control_name = ''
+                else:
+                    if redefine_keys>-1 and len(control_name)>0:
+                        key_already_used = False
+                        for i in (0,1):
+                            if control_methods[i]['ACCELERATE'] == event.key or control_methods[i]['LEFT'] == event.key or control_methods[i]['RIGHT'] == event.key:
+                                key_already_used = True
+                        if not key_already_used:
+                            control_methods[redefine_keys][control_name] = event.key
+                            if control_name == 'ACCELERATE':
+                                control_name = 'LEFT'
+                            elif control_name == 'LEFT':
+                                control_name = 'RIGHT'
+                            elif control_name == 'RIGHT':
+                                control_name = 'ACCELERATE'
         clock.tick(15)
     screen_fadeout()
 
