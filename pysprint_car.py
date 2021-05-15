@@ -22,6 +22,7 @@ class Car:
     #Color
     main_color = None
     secondary_color = None
+    color_text = ""
     sprites = None
     first_car = None
     second_car = None
@@ -77,6 +78,7 @@ class Car:
     right_key = None
     joystick = None
     ignore_controls = True
+    control_method_index = None
 
     #30FPS Settings
     rotation_step = .26

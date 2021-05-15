@@ -1,4 +1,5 @@
 import pygame
+import pygame.display
 import time
 import numpy as np
 import pysprint_car
@@ -7,6 +8,7 @@ import pysprint_tracks
 pygame.init()
 pygame.joystick.init()
 
+version = "0.0"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
@@ -17,6 +19,11 @@ race_laps = 2
 pysprint_car.race_laps = race_laps
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
+
+pygame.display.set_caption('PySprint v{}'.format(version))
+icon = pygame.image.load('Assets/SuperSprintIcon.png')
+pygame.display.set_icon(icon)
+
 clock = pygame.time.Clock()
 
 pysprint_car.game_display = game_display
@@ -56,6 +63,7 @@ green_secondary_color = (170, 204, 102)
 blue_secondary_color = (170, 204, 238)
 red_secondary_color = (170, 0, 0)
 yellow_secondary_color = (170, 170, 0)
+grey_color = (170, 170, 170)
 
 blue_engine = (72, 146)
 green_engine = (390, 284)
@@ -500,6 +508,36 @@ green_car_sprites = {
         15:pygame.image.load('Assets/GreenCar15.png').convert_alpha()
 }
 
+
+keyboard_1 = {}
+keyboard_1['ACCELERATE'] = pygame.K_RCTRL
+keyboard_1['LEFT'] = pygame.K_LEFT
+keyboard_1['RIGHT'] = pygame.K_RIGHT
+keyboard_1['METHOD'] = "KEYBOARD 1"
+
+keyboard_2 = {}
+keyboard_2['ACCELERATE'] = pygame.K_LCTRL
+keyboard_2['LEFT'] = pygame.K_x
+keyboard_2['RIGHT'] = pygame.K_c
+keyboard_2['METHOD'] = "KEYBOARD 2"
+
+joystick_1  ={
+    'METHOD':"JOYSTICK 1"
+}
+joystick_2  ={
+    'METHOD':"JOYSTICK 2"
+}
+joystick_3  ={
+    'METHOD':"JOYSTICK 3"
+}
+joystick_4  ={
+    'METHOD':"JOYSTICK 4"
+}
+
+
+control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2, joystick_3, joystick_4]
+
+
 def screen_fadeout():
     for frame in range (0,len(transition_dots)):
         for i in range (0,40):
@@ -698,9 +736,12 @@ def display_lap_records():
 
 
 def print_prepare_to_race(top_left, color):
-    game_display.blit(big_font.render("PREPARE", False, color), top_left)
-    game_display.blit(big_font.render("TO", False, color), (top_left[0] + 40, top_left[1] + 25))
-    game_display.blit(big_font.render("RACE", False, color), (top_left[0] + 25, top_left[1] + 50))
+    prepare_surf = big_font.render("PREPARE", False, color)
+    game_display.blit(prepare_surf, top_left)
+    to_surf = big_font.render("TO", False, color)
+    game_display.blit(to_surf, ((top_left[0] + (prepare_surf.get_width() - to_surf.get_width())/2), top_left[1] + 25))
+    race_surf = big_font.render("RACE", False, color)
+    game_display.blit(race_surf, (top_left[0] + (prepare_surf.get_width() - race_surf.get_width())/2, top_left[1] + 50))
 
 
 def print_press_acceltoplay(top_left, color, seconds):
@@ -872,6 +913,106 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
         wave_count += 1
 
 
+def print_car_name_and_control_method(top_left, color, color_text, control_method, joy_name):
+    color_surf = big_font.render(color_text, False, color)
+    game_display.blit(color_surf, top_left)
+    car_surf = big_font.render("CAR", False, color)
+    game_display.blit(car_surf, (top_left[0] + (color_surf.get_width() - car_surf.get_width())/2, top_left[1] + 25))
+    ctrl_method = small_font.render(control_method, False, white_color)
+    game_display.blit(ctrl_method, (top_left[0] + (color_surf.get_width() - ctrl_method.get_width())/2, top_left[1] + 50))
+    if len(joy_name)>10:
+        joy_name = joy_name[0:10]
+    joy__name_surf = small_font.render(joy_name, False, white_color)
+    game_display.blit(joy__name_surf, (top_left[0] + (color_surf.get_width() - joy__name_surf.get_width())/2, top_left[1] + 65))
+
+def print_options_text(conflict):
+    game_display.blit(small_font.render("USE FUNCTION KEYS TO SELECT CONTROL FOR CARS", False, grey_color), (50, 345))
+    game_display.blit(small_font.render("F2-BLUE CAR  F3-RED CAR  F4-YELLOW CAR  F5-GREEN CAR", False, white_color), (20, 365))
+    exit_surf = small_font.render("F10-EXIT", False, white_color)
+    game_display.blit(exit_surf, ((600 - exit_surf.get_width())/2, 385))
+    if conflict:
+        game_display.blit(small_font.render("YOU CANNOT HAVE THE SAME CONTROL METHOD FOR 2 CARS", False, white_color), (20, 215))
+
+def display_options():
+    screen_exit = False
+    engine_idle_counter = 0
+    conflict = False
+    #Add Green car
+    screen_fadein(start_race_screen)
+    for car in cars:
+        game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
+        print_car_name_and_control_method(car.start_screen_text_position, car.main_color, car.color_text, control_methods[car.control_method_index]['METHOD'], '')
+
+    print_options_text(conflict)
+    pygame.display.update()
+
+    while not screen_exit:
+        game_display.blit(start_race_screen, (0, 0))
+        engine_idle_counter +=1
+        if engine_idle_counter > 2:
+            engine_idle_counter = 0
+        for car in cars:
+            game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
+            joy_name = ''
+            if car.control_method_index > 1:
+                if pygame.joystick.get_count() > car.control_method_index - 2:
+                    joy_name = pygame.joystick.Joystick(car.control_method_index - 2).get_name()
+                else:
+                    joy_name = "NOT DETECTED"
+            print_car_name_and_control_method(car.start_screen_text_position, car.main_color, car.color_text, control_methods[car.control_method_index]['METHOD'], joy_name)
+        print_options_text(conflict)
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                conflict = False
+                if event.key == pygame.K_F10:
+                    for i in range(0,len(cars)):
+                        for j in range(0,len(cars)):
+                            if (not i == j) and (cars[i].control_method_index == cars[j].control_method_index):
+                                conflict = True
+                    if conflict == False:
+                        screen_exit = True
+                        for car in cars:
+                            if car.control_method_index < 2:
+                                #Keyboard 1 or 2
+                                car.accelerate_key = control_methods[car.control_method_index]['ACCELERATE']
+                                car.left_key = control_methods[car.control_method_index]['LEFT']
+                                car.right_key = control_methods[car.control_method_index]['RIGHT']
+                            else:
+                                if pygame.joystick.get_count() > car.control_method_index - 2:
+                                    car.joystick = pygame.joystick.Joystick(car.control_method_index - 2)
+                                    car.joystick.init()
+                                else:
+                                    car.joystick = None
+                                    car.accelerate_key = None
+                                    car.left_key = None
+                                    car.right_key = None
+                                    car.ignore_controls = True
+                                    car.is_drone = True
+
+
+                if event.key == pygame.K_F2:
+                    cars[0].control_method_index += 1
+                    if cars[0].control_method_index >= len(control_methods):
+                        cars[0].control_method_index = 0
+                if event.key == pygame.K_F3:
+                    cars[3].control_method_index += 1
+                    if cars[3].control_method_index >= len(control_methods):
+                        cars[3].control_method_index = 0
+                if event.key == pygame.K_F4:
+                    cars[2].control_method_index += 1
+                    if cars[2].control_method_index >= len(control_methods):
+                        cars[2].control_method_index = 0
+                if event.key == pygame.K_F5:
+                    cars[1].control_method_index += 1
+                    if cars[1].control_method_index >= len(control_methods):
+                        cars[1].control_method_index = 0
+
+        clock.tick(15)
+    screen_fadeout()
+
+
+
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS:
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
@@ -930,6 +1071,12 @@ def initialize_cars():
     cars[2].main_color = yellow_color
     cars[3].main_color = red_color
 
+    cars[0].color_text = "BLUE"
+    cars[1].color_text = "GREEN"
+    cars[2].color_text = "YELLOW"
+    cars[3].color_text = "RED"
+
+
     #Initialize car Specific Event codes
     cars[0].BUMPCLOUD = CHECKEREDFLAG + 1
     cars[0].EXPLOSION = cars[0].BUMPCLOUD + 1
@@ -942,22 +1089,26 @@ def initialize_cars():
 
     #Initialize Default Controls
     #Default for Blue Car is keyboard
-    cars[0].accelerate_key = pygame.K_RCTRL
-    cars[0].left_key = pygame.K_LEFT
-    cars[0].right_key = pygame.K_RIGHT
-
+    cars[0].accelerate_key = keyboard_1['ACCELERATE']
+    cars[0].left_key = keyboard_1['LEFT']
+    cars[0].right_key = keyboard_1['RIGHT']
+    cars[0].control_method_text = keyboard_1['METHOD']
+    cars[0].control_method_index = 0
 
     #Default for Green Car is keyboard
-    cars[1].accelerate_key = pygame.K_LCTRL
-    cars[1].left_key = pygame.K_x
-    cars[1].right_key = pygame.K_c
+    cars[1].accelerate_key = keyboard_2['ACCELERATE']
+    cars[1].left_key = keyboard_2['LEFT']
+    cars[1].right_key = keyboard_2['RIGHT']
+    cars[1].control_method_index = 1
 
     #Default for Yellow Car is Joystick 1 if detected.
+    cars[2].control_method_index = 2
     if pygame.joystick.get_count() > 0:
         cars[2].joystick = pygame.joystick.Joystick(0)
         cars[2].joystick.init()
 
     #Default for Red Car is Joystick 2 if detected
+    cars[3].control_method_index = 3
     if pygame.joystick.get_count() > 1:
         cars[3].joystick = pygame.joystick.Joystick(1)
         cars[3].joystick.init()
@@ -993,26 +1144,26 @@ def activate_cars():
         cars[2].sprites = yellow_drone_sprites
         cars[2].first_car = first_car_yellow_drone
         cars[2].second_car = second_car_yellow_drone
-        cars[2].third_car = third_car_red_drone
+        cars[2].third_car = third_car_yellow_drone
         cars[2].fourth_car = fourth_car_yellow_drone
     else:
         cars[2].sprites = yellow_car_sprites
         cars[2].first_car = first_car_yellow
         cars[2].second_car = second_car_yellow
-        cars[2].third_car = third_car_red
+        cars[2].third_car = third_car_yellow
         cars[2].fourth_car = fourth_car_yellow
 
     if cars[3].is_drone:
         cars[3].sprites = red_drone_sprites
         cars[3].first_car = first_car_red_drone
         cars[3].second_car = second_car_red_drone
-        cars[3].third_car = third_car_yellow_drone
+        cars[3].third_car = third_car_red_drone
         cars[3].fourth_car = fourth_car_red_drone
     else:
         cars[3].sprites = red_car_sprites
         cars[3].first_car = first_car_red
         cars[3].second_car = second_car_red
-        cars[3].third_car = third_car_yellow
+        cars[3].third_car = third_car_red
         cars[3].fourth_car = fourth_car_red
 
 
@@ -1034,12 +1185,21 @@ def game_loop():
         #Attract mode
         while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
             key_pressed = display_splash_screen()
+            if (key_pressed == pygame.K_F1):
+                display_options()
             if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                 key_pressed = display_high_scores()
+            if (key_pressed == pygame.K_F1):
+                display_options()
             if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                 key_pressed = display_lap_records()
+            if (key_pressed == pygame.K_F1):
+                display_options()
             if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                 key_pressed = display_credits_screen()
+            if (key_pressed == pygame.K_F1):
+                display_options()
+
         if accelerate_pressed(key_pressed):
             #Initiate Race
             key_pressed = display_start_race_screen()
@@ -1287,17 +1447,17 @@ def game_loop():
                             #Evaluate progress
                             for i in range(0, len(cars)):
                                 cars[i].progress_gate = track1.find_progress_gate((cars[i].x_position, cars[i].y_position))
-                            #Ranking cars
-                            cars.sort(reverse = True, key=get_progress)
-                            for i in range(0, len(cars)):
                                 ranking[i] = i
-
-                            #Checking for cars in the same gate
+                            #Ranking cars
                             sorted = False
                             while sorted == False:
                                 switched = False
                                 for i in range(0, len(cars)):
                                     if i < len(cars) - 1 :
+                                        swap_needed = False
+                                        if get_progress(cars[ranking[i]]) < get_progress(cars[ranking[i+1]]):
+                                            swap_needed = True
+                                        #Checking for cars in the same gate
                                         if get_progress(cars[ranking[i]]) == get_progress(cars[ranking[i+1]]):
                                             #Check distance to the next gate
                                             #p3 = car position P&1,p2 = gate = line between closest internal and external point
@@ -1321,10 +1481,12 @@ def game_loop():
 
                                             #Switch order if next cars is closer to the next gate
                                             if next_car_dist < current_car_dist:
-                                                swap = ranking[i]
-                                                ranking[i] = ranking[i + 1]
-                                                ranking[i + 1] = swap
-                                                switched = True
+                                                swap_needed = True
+                                        if swap_needed:
+                                            swap = ranking[i]
+                                            ranking[i] = ranking[i + 1]
+                                            ranking[i + 1] = swap
+                                            switched = True
                                 if switched == False:
                                     sorted = True
 
