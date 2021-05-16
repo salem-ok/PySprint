@@ -7,6 +7,13 @@ The idea is to:
 - Add features like custom tracks and cars, custom music, and hopefully remote multiplayer...
 - Learn Python and have fun!
 
+
+Prerequisites:
+
+The game requires the pygame and numpy packages to run.
+
+Control Intructions:
+
 Hit acclerate for any player to start a game.
 
 Controls:
