@@ -81,6 +81,11 @@ press_start_green = (510,6)
 press_start_red = (190,6)
 press_start_yellow = (350,6)
 
+score_top_left_blue = (1,0)
+score_top_left_green = (161,0)
+score_top_left_red = (321,0)
+score_top_left_yellow = (481,0)
+
 
 loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
 credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
@@ -870,9 +875,16 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
             game_display.blit(score_surf, (text_positions[i][1] - score_surf.get_width(), text_positions[i][2]))
             game_display.blit(avg_score_surf, (text_positions[i][1] - avg_score_surf.get_width(), text_positions[i][3]))
             game_display.blit(best_score_surf, (text_positions[i][1] - best_score_surf.get_width(), text_positions[i][4]))
-
+            draw_score(cars[ranking[i]], track)
         pygame.display.update()
         clock.tick(10)
+
+    #Update Score on top screen
+    for i in range(0, len(ranking)):
+        #Pre_calculate and pre-render scores based on lap_times
+        cars[ranking[i]].score += avg_lap_scores[i]
+        cars[ranking[i]].score += best_lap_scores[i]
+        cars[ranking[i]].score += score_positions[i]
 
     #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
     wave_count = 0
@@ -898,7 +910,7 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
                 game_display.blit(score_position_surfs[i], (text_positions[i][1] - score_position_surfs[i].get_width(), text_positions[i][2]))
                 game_display.blit(avg_lap_scores_surfs[i], (text_positions[i][1] - avg_lap_scores_surfs[i].get_width(), text_positions[i][3]))
                 game_display.blit(best_lap_scores_surfs[i], (text_positions[i][1] - best_lap_scores_surfs[i].get_width(), text_positions[i][4]))
-
+                draw_score(cars[ranking[i]], track)
 
             pygame.display.update()
             index += 1
@@ -1048,6 +1060,25 @@ def display_options():
         clock.tick(15)
     screen_fadeout()
 
+def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
+    track.update_score_from_position(car)
+    #Car
+    if car.is_drone:
+        score_surf = small_font.render("DRONE", False, car.main_color)
+    else:
+        score_surf = small_font.render("CAR", False, car.main_color)
+    game_display.blit(score_surf, car.score_top_left)
+    #Lap
+    score_surf = small_font.render("LAP", False, car.main_color)
+    game_display.blit(score_surf, (car.score_top_left[0] + 98, car.score_top_left[1]))
+    #Score
+    score_surf = big_font.render("{}".format(car.score), False, car.main_color)
+    game_display.blit(score_surf, (car.score_top_left[0] , car.score_top_left[1]+15))
+    #Lap_COUNT
+    score_surf = big_font.render("{}".format(car.lap_count), False, car.main_color)
+    game_display.blit(score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
+
+
 
 
 def trace_frame_time(trace_event, frame_start):
@@ -1102,6 +1133,11 @@ def initialize_cars():
     cars[1].start_screen_text_position = press_start_green
     cars[2].start_screen_text_position = press_start_yellow
     cars[3].start_screen_text_position = press_start_red
+
+    cars[0].score_top_left = score_top_left_blue
+    cars[1].score_top_left = score_top_left_green
+    cars[2].score_top_left = score_top_left_yellow
+    cars[3].score_top_left = score_top_left_red
 
     cars[0].main_color = blue_color
     cars[1].main_color = green_color
@@ -1254,7 +1290,8 @@ def game_loop():
                     cars[i].y_position = track1.first_car_start_position[1] + i * 15
                     cars[i].sprite_angle = track1.start_sprite_angle
                     cars[i].angle = track1.start_sprite_angle
-
+                    cars[i].lap_count = 0
+                    cars[i].previous_score_increment = 0
                 race_start = True
                 last_lap = False
                 race_finish = False
@@ -1468,6 +1505,7 @@ def game_loop():
                             game_display.blit(checkered_flag_frames[animation_index],track1.flag_anchor)
                         for car in cars:
                             car.blit(track1)
+                            draw_score(car, track1)
 
                         pygame.display.update()
                         trace_frame_time("Display Updated ", frame_start)

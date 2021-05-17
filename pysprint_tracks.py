@@ -1,5 +1,6 @@
 #pysprint_tracks.py
 import math
+import pysprint_car
 
 def calculate_distance(point1,point2):
     return math.sqrt( ((point1[0]-point2[0])**2)+((point1[1]-point2[1])**2))
@@ -15,8 +16,7 @@ class Track:
 
     start_sprite_angle = 12
     score_time_reference = 6.6
-
-
+    complete_lap_score = 55
 
     external_borders = [
         (101, 52, 0),
@@ -212,9 +212,17 @@ class Track:
         if laptime == 0:
             return 0
         else:
+            #calculate score based on difference between best laptime and reference lap time for the track
             score = math.ceil((500 * (1 + self.score_time_reference/(laptime/1000)) - 600) / 10) * 10
             if score < 0:
                 return 0
             else:
                 return score
 
+    def update_score_from_position(self, car):
+        index = self.find_progress_gate((car.x_position, car.y_position))
+        score_increment = math.ceil((car.lap_count+1) * (index/len(self.internal_borders))) * 10
+        #Increment score if there has been progress wince last score increment
+        if score_increment > car.previous_score_increment:
+            car.score += score_increment
+            car.previous_score_increment = score_increment

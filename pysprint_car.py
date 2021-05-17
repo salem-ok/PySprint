@@ -2,6 +2,7 @@
 import pygame
 import math
 import random
+import pysprint_tracks
 
 game_display = None
 DEBUG_FINISH = False
@@ -31,10 +32,13 @@ class Car:
     start_screen_engine_position = None
     start_screen_thumb_position = None
     start_screen_text_position = None
+    score_top_left = None
     prepare_to_race_counter = -1
 
     #Score
     score = 0
+    #Track the last time score was incremented dur to progress in race (lap_count, gate_number)
+    previous_score_increment = 0
 
     #Position & Vector
     angle_vector_sign = {
