@@ -2,7 +2,6 @@
 import pygame
 import math
 import random
-import pysprint_tracks
 
 game_display = None
 DEBUG_FINISH = False

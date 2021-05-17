@@ -1,10 +1,9 @@
 import pygame
-from pygame import key
 import pygame.display
-import time
 import numpy as np
 import pysprint_car
 import pysprint_tracks
+import random
 
 pygame.init()
 pygame.joystick.init()
@@ -325,13 +324,13 @@ checkered_flag_frames = {
 }
 
 
-pysprint_car.helicopter_frames = {
-    0:pygame.image.load('Assets/Helicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Helicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Helicopter2.png').convert_alpha()
+yellow_helicopter_frames = {
+    0:pygame.image.load('Assets/YellowHelicopter0.png').convert_alpha(),
+    1:pygame.image.load('Assets/YellowHelicopter1.png').convert_alpha(),
+    2:pygame.image.load('Assets/YellowHelicopter2.png').convert_alpha()
 }
 
-pysprint_car.dust_cloud_frames = {
+dust_cloud_frames = {
     0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
     1:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
     2:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
@@ -340,7 +339,7 @@ pysprint_car.dust_cloud_frames = {
 }
 
 
-pysprint_car.explosion_frames = {
+explosion_frames = {
     0:pygame.image.load('Assets/Explosion0.png').convert_alpha(),
     1:pygame.image.load('Assets/Explosion1.png').convert_alpha(),
     2:pygame.image.load('Assets/Explosion2.png').convert_alpha(),
@@ -895,12 +894,11 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
             game_display.blit(crowd_background, (0, 0))
             game_display.blit(race_podium_screen, (0,0))
             game_display.blit(crowd_flags[index], (0,0))
-            game_display.blit(mechanic_frames[mechanic_index], (0,0))
             game_display.blit(cars[ranking[0]].first_car, (0,0))
             game_display.blit(cars[ranking[1]].second_car, (0,0))
             game_display.blit(cars[ranking[2]].third_car, (0,0))
             game_display.blit(cars[ranking[3]].fourth_car, (0,0))
-
+            game_display.blit(mechanic_frames[mechanic_index], (0,0))
 
 
             for i in range (0, len(ranking)):
@@ -1252,6 +1250,9 @@ def game_loop():
 
     initialize_cars()
 
+    mechanic_frames_list = [hammer_frames, saw_frames, head_scratch_frames, blow_frames]
+    mechanic_index = random.randint(0,3)
+
     while not game_exit:
         key_pressed = -1
         key_pressed = display_loading_screen(False)
@@ -1565,10 +1566,11 @@ def game_loop():
                                 if switched == False:
                                     sorted = True
 
-                            #mechanic_frames = hammer_frames
-                            #mechanic_frames = saw_frames
-                            mechanic_frames = head_scratch_frames
-                            #mechanic_frames = blow_frames
+                            mechanic_index += 1
+                            if mechanic_index >= len(mechanic_frames_list):
+                                mechanic_index = 0
+                            mechanic_frames = mechanic_frames_list[mechanic_index]
+
                             crowd_background = pygame.Surface((display_width,120))
 
                             crowd_background.fill(cars[ranking[0]].main_color)
@@ -1577,11 +1579,11 @@ def game_loop():
                             composed_race_podium.blit(crowd_background, (0, 0))
                             composed_race_podium.blit(race_podium_screen, (0,0))
                             composed_race_podium.blit(crowd_flags[0], (0,0))
-                            composed_race_podium.blit(mechanic_frames[0], (0,0))
                             composed_race_podium.blit(cars[ranking[0]].first_car, (0,0))
                             composed_race_podium.blit(cars[ranking[1]].second_car, (0,0))
                             composed_race_podium.blit(cars[ranking[2]].third_car, (0,0))
                             composed_race_podium.blit(cars[ranking[3]].fourth_car, (0,0))
+                            composed_race_podium.blit(mechanic_frames[0], (0,0))
 
                             screen_fadein(composed_race_podium)
                             display_race_podium_screen(track1, mechanic_frames, ranking, composed_race_podium, crowd_background)

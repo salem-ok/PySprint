@@ -13,174 +13,167 @@ yellow_tertiary_color = (238, 204, 102)
 
 #GREEN CARS
 
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
-data = np.array(im)
+for i in range(0,3):
+    im = Image.open('Assets/YellowHelicopter{}.png'.format(i))
+    data = np.array(im)
 
-r1, g1, b1 = 238, 204, 102 # Original value
-r2, g2, b2 = 170, 204, 102 # Value that we want to replace it with
+    r1, g1, b1 = 238, 238, 102 # Original value
+    r2, g2, b2 = 68, 102, 238 # Value that we want to replace it with
 
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
+    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+    mask = (red == r1) & (green == g1) & (blue == b1)
+    data[:,:,:3][mask] = [r2, g2, b2]
 
-im = Image.fromarray(data)
-
-r1, g1, b1 = 170, 136, 0 # Original value
-r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
+    im = Image.fromarray(data)
+    im.save('Assets/BlueHelicopter{}.png'.format(i))
 
 
-im.save('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
-data = np.array(im)
 
-r1, g1, b1 = 238, 238, 0 # Original value
-r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
+# data = np.array(im)
 
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-im = Image.fromarray(data)
-im.save('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
+# r1, g1, b1 = 238, 238, 0 # Original value
+# r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
 
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
-data = np.array(im)
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+# im = Image.fromarray(data)
+# im.save('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
 
-r1, g1, b1 = 136, 136, 136 # Original value
-r2, g2, b2 = 34, 170, 102 # Value that we want to replace it with
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png')
+# data = np.array(im)
 
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
+# r1, g1, b1 = 136, 136, 136 # Original value
+# r2, g2, b2 = 34, 170, 102 # Value that we want to replace it with
 
-im = Image.fromarray(data)
-im.save('Assets/SuperSprintRacePodiumFourthCarGreenCar.png')
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
 
-
-#BLUE CARS
-
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
-data = np.array(im)
-
-r1, g1, b1 = 238, 204, 102 # Original value
-r2, g2, b2 = 170, 204, 238 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
-
-data = np.array(im)
-
-r1, g1, b1 = 238, 238, 0 # Original value
-r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-im = Image.fromarray(data)
-
-r1, g1, b1 = 170, 136, 0 # Original value
-r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
-
-im.save('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png')
-
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png')
-data = np.array(im)
-
-r1, g1, b1 = 136, 136, 136 # Original value
-r2, g2, b2 = 68, 102, 238 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
-im.save('Assets/SuperSprintRacePodiumFourthCarBlueCar.png')
-
-#RED CARS
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
-data = np.array(im)
-
-r1, g1, b1 = 238, 204, 102 # Original value
-r2, g2, b2 = 170, 0, 0 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
-
-data = np.array(im)
-
-r1, g1, b1 = 238, 238, 0 # Original value
-r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-im = Image.fromarray(data)
-
-r1, g1, b1 = 170, 136, 0 # Original value
-r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
-
-im.save('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png')
-
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png')
-data = np.array(im)
-
-r1, g1, b1 = 136, 136, 136 # Original value
-r2, g2, b2 = 238, 0, 34 # Value that we want to replace it with
-
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
-
-im = Image.fromarray(data)
-im.save('Assets/SuperSprintRacePodiumFourthCarRedCar.png')
+# im = Image.fromarray(data)
+# im.save('Assets/SuperSprintRacePodiumFourthCarGreenCar.png')
 
 
-#YELLOW CARS
-im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
-data = np.array(im)
+# #BLUE CARS
 
-r1, g1, b1 = 238, 238, 0 # Original value
-r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
+# data = np.array(im)
 
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
+# r1, g1, b1 = 238, 204, 102 # Original value
+# r2, g2, b2 = 170, 204, 238 # Value that we want to replace it with
 
-im = Image.fromarray(data)
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
 
-r1, g1, b1 = 170, 136, 0 # Original value
-r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
+# im = Image.fromarray(data)
 
-red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-mask = (red == r1) & (green == g1) & (blue == b1)
-data[:,:,:3][mask] = [r2, g2, b2]
+# data = np.array(im)
 
-im = Image.fromarray(data)
+# r1, g1, b1 = 238, 238, 0 # Original value
+# r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
 
-im.save('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png')
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+# im = Image.fromarray(data)
+
+# r1, g1, b1 = 170, 136, 0 # Original value
+# r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+
+# im.save('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png')
+
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png')
+# data = np.array(im)
+
+# r1, g1, b1 = 136, 136, 136 # Original value
+# r2, g2, b2 = 68, 102, 238 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+# im.save('Assets/SuperSprintRacePodiumFourthCarBlueCar.png')
+
+# #RED CARS
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
+# data = np.array(im)
+
+# r1, g1, b1 = 238, 204, 102 # Original value
+# r2, g2, b2 = 170, 0, 0 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+
+# data = np.array(im)
+
+# r1, g1, b1 = 238, 238, 0 # Original value
+# r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+# im = Image.fromarray(data)
+
+# r1, g1, b1 = 170, 136, 0 # Original value
+# r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+
+# im.save('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png')
+
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png')
+# data = np.array(im)
+
+# r1, g1, b1 = 136, 136, 136 # Original value
+# r2, g2, b2 = 238, 0, 34 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+# im.save('Assets/SuperSprintRacePodiumFourthCarRedCar.png')
+
+
+# #YELLOW CARS
+# im = Image.open('Assets/SuperSprintRacePodiumFourthCarYellowCar.png')
+# data = np.array(im)
+
+# r1, g1, b1 = 238, 238, 0 # Original value
+# r2, g2, b2 = 136, 136, 136 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+
+# r1, g1, b1 = 170, 136, 0 # Original value
+# r2, g2, b2 = 102, 102, 102 # Value that we want to replace it with
+
+# red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+# mask = (red == r1) & (green == g1) & (blue == b1)
+# data[:,:,:3][mask] = [r2, g2, b2]
+
+# im = Image.fromarray(data)
+
+# im.save('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png')
 
 # im = Image.open('Assets/SuperSprintRacePodiumSecondCarYellowCarDrone.png')
 # data = np.array(im)
