@@ -1,4 +1,5 @@
 #pysprint_car.py
+from typing import DefaultDict
 import pygame
 import math
 import random
@@ -9,12 +10,11 @@ DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 
-dust_cloud_frames = None
-explosion_frames = None
-helicopter_frames = None
 race_laps = None
 display_width = None
 display_height = None
+dust_cloud_frames = None
+explosion_frames = None
 
 
 class Car:
@@ -33,6 +33,9 @@ class Car:
     start_screen_text_position = None
     score_top_left = None
     prepare_to_race_counter = -1
+
+    helicopter_frames = None
+    vertical_helicopter_frames = None
 
     #Score
     score = 0
@@ -123,6 +126,7 @@ class Car:
     rotating = False
     bumping = False
     crashing = False
+    vertical_helicopter = False
     bumping_vector_initialized = False
     bumping_vertical = False
     bumping_horizontal = False
@@ -481,8 +485,17 @@ class Car:
         self.speed = 0
         self.x_intersect = intersect_point[0]
         self.y_intersect = intersect_point[1]
-        self.helicopter_x = - helicopter_frames[0].get_width()
-        self.helicopter_y = self.y_intersect - helicopter_frames[0].get_height()
+        vertical = random.randint(0,1)
+        if vertical == 1:
+            self.vertical_helicopter = True
+            self.helicopter_x = self.x_intersect - self.vertical_helicopter_frames[0].get_width()
+            self.helicopter_y = display_height + self.vertical_helicopter_frames[0].get_height()
+        else:
+            self.vertical_helicopter = False
+            self.helicopter_x = - self.helicopter_frames[0].get_width()
+            self.helicopter_y = self.y_intersect - self.helicopter_frames[0].get_height()
+
+
         self.collision_time = pygame.time.get_ticks()
         if DEBUG_CRASH:
             print('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
@@ -613,9 +626,14 @@ class Car:
         if self.crashing:
             if self.animation_index <= 4:
                 game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
-            if self.helicopter_x >= self.x_position:
-                game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-            game_display.blit(helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
+            if self.vertical_helicopter:
+                if self.helicopter_y <= self.y_position:
+                    game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+                game_display.blit(self.vertical_helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
+            else:
+                if self.helicopter_x >= self.x_position:
+                    game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+                game_display.blit(self.helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
 
 
     def display_bump_cloud(self):
@@ -624,14 +642,35 @@ class Car:
         if self.animation_index < len(dust_cloud_frames):
             self.animation_index += 1
 
+
     def display_explosion(self):
+        if self.vertical_helicopter:
+            self.display_explosion_vertical()
+        else:
+            self.display_explosion_horizontal()
+
+    def display_explosion_horizontal(self):
         if DEBUG_CRASH:
             print('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
         if self.animation_index < len(explosion_frames):
             self.animation_index += 1
         if self.helicopter_x < display_width:
             self.helicopter_x += self.helicopter_step
-            if self.helicopter_index == len(helicopter_frames)-1:
+            if self.helicopter_index == len(self.helicopter_frames)-1:
+                self.helicopter_index = 0
+            else:
+                self.helicopter_index += 1
+        else:
+            self.crash_finished = True
+
+    def display_explosion_vertical(self):
+        if DEBUG_CRASH:
+            print('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
+        if self.animation_index < len(explosion_frames):
+            self.animation_index += 1
+        if self.helicopter_y > 0 - self.vertical_helicopter_frames[0].get_height():
+            self.helicopter_y -= self.helicopter_step
+            if self.helicopter_index == len(self.vertical_helicopter_frames)-1:
                 self.helicopter_index = 0
             else:
                 self.helicopter_index += 1

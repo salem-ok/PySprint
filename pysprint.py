@@ -327,8 +327,60 @@ checkered_flag_frames = {
 yellow_helicopter_frames = {
     0:pygame.image.load('Assets/YellowHelicopter0.png').convert_alpha(),
     1:pygame.image.load('Assets/YellowHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/YellowHelicopter2.png').convert_alpha()
+    2:pygame.image.load('Assets/YellowHelicopter2.png').convert_alpha(),
+    3:pygame.image.load('Assets/YellowHelicopter3.png').convert_alpha()
 }
+
+blue_helicopter_frames = {
+    0:pygame.image.load('Assets/BlueHelicopter0.png').convert_alpha(),
+    1:pygame.image.load('Assets/BlueHelicopter1.png').convert_alpha(),
+    2:pygame.image.load('Assets/BlueHelicopter2.png').convert_alpha(),
+    3:pygame.image.load('Assets/BlueHelicopter3.png').convert_alpha()
+}
+
+green_helicopter_frames = {
+    0:pygame.image.load('Assets/GreenHelicopter0.png').convert_alpha(),
+    1:pygame.image.load('Assets/GreenHelicopter1.png').convert_alpha(),
+    2:pygame.image.load('Assets/GreenHelicopter2.png').convert_alpha(),
+    3:pygame.image.load('Assets/GreenHelicopter3.png').convert_alpha()
+}
+
+red_helicopter_frames = {
+    0:pygame.image.load('Assets/RedHelicopter0.png').convert_alpha(),
+    1:pygame.image.load('Assets/RedHelicopter1.png').convert_alpha(),
+    2:pygame.image.load('Assets/RedHelicopter2.png').convert_alpha(),
+    3:pygame.image.load('Assets/RedHelicopter3.png').convert_alpha()
+}
+
+yellow_vertical_helicopter_frames = {
+    0:pygame.image.load('Assets/YellowHelicopterV0.png').convert_alpha(),
+    1:pygame.image.load('Assets/YellowHelicopterV1.png').convert_alpha(),
+    2:pygame.image.load('Assets/YellowHelicopterV2.png').convert_alpha(),
+    3:pygame.image.load('Assets/YellowHelicopterV3.png').convert_alpha()
+}
+
+blue_vertical_helicopter_frames = {
+    0:pygame.image.load('Assets/BlueHelicopterV0.png').convert_alpha(),
+    1:pygame.image.load('Assets/BlueHelicopterV1.png').convert_alpha(),
+    2:pygame.image.load('Assets/BlueHelicopterV2.png').convert_alpha(),
+    3:pygame.image.load('Assets/BlueHelicopterV3.png').convert_alpha()
+}
+
+green_vertical_helicopter_frames = {
+    0:pygame.image.load('Assets/GreenHelicopterV0.png').convert_alpha(),
+    1:pygame.image.load('Assets/GreenHelicopterV1.png').convert_alpha(),
+    2:pygame.image.load('Assets/GreenHelicopterV2.png').convert_alpha(),
+    3:pygame.image.load('Assets/GreenHelicopterV3.png').convert_alpha()
+}
+
+red_vertical_helicopter_frames = {
+    0:pygame.image.load('Assets/RedHelicopterV0.png').convert_alpha(),
+    1:pygame.image.load('Assets/RedHelicopterV1.png').convert_alpha(),
+    2:pygame.image.load('Assets/RedHelicopterV2.png').convert_alpha(),
+    3:pygame.image.load('Assets/RedHelicopterV3.png').convert_alpha()
+}
+
+
 
 dust_cloud_frames = {
     0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
@@ -1112,10 +1164,23 @@ def get_progress(car):
 
 def initialize_cars():
     #Initiate Cars as Drones.
+    pysprint_car.dust_cloud_frames = dust_cloud_frames
+    pysprint_car.explosion_frames = explosion_frames
+
     for car in cars:
         car.lap_times.clear()
         for i in range(0, race_laps):
             car.lap_times.append(0)
+
+    cars[0].helicopter_frames = blue_helicopter_frames
+    cars[1].helicopter_frames = green_helicopter_frames
+    cars[2].helicopter_frames = yellow_helicopter_frames
+    cars[3].helicopter_frames = red_helicopter_frames
+
+    cars[0].vertical_helicopter_frames = blue_vertical_helicopter_frames
+    cars[1].vertical_helicopter_frames = green_vertical_helicopter_frames
+    cars[2].vertical_helicopter_frames = yellow_vertical_helicopter_frames
+    cars[3].vertical_helicopter_frames = red_vertical_helicopter_frames
 
     cars[0].start_screen_engine_position = blue_engine
     cars[1].start_screen_engine_position = green_engine
