@@ -31,8 +31,8 @@ pysprint_car.game_display = game_display
 cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car()]
 
 #Scale screen
+flags = pygame.SCALED
 
-#flags = pygame.SCALED
 FPS = 30
 DEBUG_BUMP = False
 DEBUG_CRASH = False
@@ -51,7 +51,9 @@ JOYSTICK_BUTTON_PRESSED = -2
 #Load Assets
 
 small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
 big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
+big_shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
 
 black_color = (0, 0, 0)
 white_color = (255, 255, 255)
@@ -794,10 +796,16 @@ def display_lap_records():
 
 def print_prepare_to_race(top_left, color):
     prepare_surf = big_font.render("PREPARE", False, color)
+    shadow_prepare_surf = big_shadow_font.render("PREPARE", False, black_color)
+    game_display.blit(shadow_prepare_surf, top_left)
     game_display.blit(prepare_surf, top_left)
     to_surf = big_font.render("TO", False, color)
+    shadow_to_surf = big_shadow_font.render("TO", False, black_color)
+    game_display.blit(shadow_to_surf, ((top_left[0] + (prepare_surf.get_width() - to_surf.get_width())/2), top_left[1] + 25))
     game_display.blit(to_surf, ((top_left[0] + (prepare_surf.get_width() - to_surf.get_width())/2), top_left[1] + 25))
     race_surf = big_font.render("RACE", False, color)
+    shadow_race_surf = big_shadow_font.render("RACE", False, black_color)
+    game_display.blit(shadow_race_surf, (top_left[0] + (prepare_surf.get_width() - race_surf.get_width())/2, top_left[1] + 50))
     game_display.blit(race_surf, (top_left[0] + (prepare_surf.get_width() - race_surf.get_width())/2, top_left[1] + 50))
 
 
@@ -1115,17 +1123,26 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
     #Car
     if car.is_drone:
         score_surf = small_font.render("DRONE", False, car.main_color)
+        shadow_score_surf = shadow_font.render("DRONE", False, black_color)
     else:
         score_surf = small_font.render("CAR", False, car.main_color)
+        shadow_score_surf = shadow_font.render("CAR", False, black_color)
+    game_display.blit(shadow_score_surf, car.score_top_left)
     game_display.blit(score_surf, car.score_top_left)
     #Lap
     score_surf = small_font.render("LAP", False, car.main_color)
+    shadow_score_surf = shadow_font.render("LAP", False, black_color)
+    game_display.blit(shadow_score_surf, (car.score_top_left[0] + 98, car.score_top_left[1]))
     game_display.blit(score_surf, (car.score_top_left[0] + 98, car.score_top_left[1]))
     #Score
     score_surf = big_font.render("{}".format(car.score), False, car.main_color)
+    shadow_score_surf = big_shadow_font.render("{}".format(car.score), False, black_color)
+    game_display.blit(shadow_score_surf, (car.score_top_left[0] , car.score_top_left[1]+15))
     game_display.blit(score_surf, (car.score_top_left[0] , car.score_top_left[1]+15))
     #Lap_COUNT
     score_surf = big_font.render("{}".format(car.lap_count), False, car.main_color)
+    shadow_score_surf = big_shadow_font.render("{}".format(car.lap_count), False, black_color)
+    game_display.blit(shadow_score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
     game_display.blit(score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
 
 
