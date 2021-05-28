@@ -3,6 +3,7 @@ from typing import DefaultDict
 import pygame
 import math
 import random
+import pysprint_tracks
 
 game_display = None
 DEBUG_FINISH = False
@@ -677,3 +678,11 @@ class Car:
         else:
             self.crash_finished = True
 
+    def ai_drive(self, track: pysprint_tracks.Track):
+        next_gate = track.find_progress_gate((self.x_position, self.y_position))
+        if next_gate > len(track.external_gate_points):
+            next_gate = 0
+
+        next_gate += 1
+
+        self.accelerate()

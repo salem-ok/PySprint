@@ -1451,7 +1451,10 @@ def game_loop():
                                         if right_pressed:
                                             car.rotate(False)
                             else:
-                                car.decelerate()
+                                if car.is_drone:
+                                    car.ai_drive(track1)
+                                else:
+                                    car.decelerate()
                         trace_frame_time("Checked Key input", frame_start)
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT: # If user clicked close.
