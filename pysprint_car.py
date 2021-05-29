@@ -1,6 +1,7 @@
 #pysprint_car.py
 from typing import DefaultDict
 import pygame
+from pygame import Surface, gfxdraw
 import math
 import random
 import pysprint_tracks
@@ -10,6 +11,7 @@ DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
+DEBUG_AI = True
 
 race_laps = None
 display_width = None
@@ -77,6 +79,8 @@ class Car:
     y_vector = 0
     sin_angle = 0
     progress_gate = -1
+    ideal_vector = None
+    next_mid_point = None
 
     #Mechanics
     #Car Controls
@@ -84,7 +88,7 @@ class Car:
     left_key = None
     right_key = None
     joystick = None
-    ignore_controls = True
+    ignore_controls = False
     control_method_index = None
 
     #30FPS Settings
@@ -92,8 +96,12 @@ class Car:
     acceleration_step = 0.13
     deceleration_step = 0.2
     bump_decelaration_step = 0.3
-    speed_max = 8
-    bump_speed = 6.5
+    drone_speed = 3
+    player_speed = 8
+    speed_max = 3
+    bump_speed = 2
+    drone_bump_speed = 2
+    player__bump_speed = 6.5
 
     #60FPS Settings - Calibrated to an unmodified car
     # rotation_step = .13
@@ -155,6 +163,8 @@ class Car:
     def start_game(self):
         self.is_drone = False
         self.ignore_controls = False
+        self.speed_max = self.player_speed
+        self.bump_speed = self.player__bump_speed
 
     def rotate(self, left):
         self.rotating = True
@@ -437,12 +447,16 @@ class Car:
 
     def detect_crash(self, track):
         if self.max_speed_reached > 0:
-            maxspeed_duration = pygame.time.get_ticks() - self.max_speed_reached
-            #More than xxx ms at max_speed when coliding is a certain crash
-            if maxspeed_duration <= self.max_speed_crash_threshold:
-                return False
+            #Only for player cars
+            if not self.is_drone:
+                maxspeed_duration = pygame.time.get_ticks() - self.max_speed_reached
+                #More than xxx ms at max_speed when coliding is a certain crash
+                if maxspeed_duration <= self.max_speed_crash_threshold:
+                    return False
+                else:
+                    return True
             else:
-                return True
+                return False
         else:
             #There is a random chance to Crash, increased:
             crash_probability = random.randint(1,self.crash_random_max)
@@ -605,8 +619,7 @@ class Car:
         #Draw Car
         if not self.bumping:
             self.update_position(track)
-            if not self.is_drone:
-                self.ignore_controls = False
+            self.ignore_controls = False
         if self.bumping:
             #Ignore controls until Buming routine is finished - Force Skidding & Decelaration
             self.decelerating = True
@@ -617,6 +630,12 @@ class Car:
         #Car is not visible durign explosion
         if not self.crashing:
             game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+
+        if DEBUG_AI:
+            if self.is_drone:
+                gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.x_position) + round(self.x_vector)*10, round(self.y_position) + round(self.y_vector)*10, self.main_color)
+                gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.ideal_vector[0] + self.x_position), round(self.y_position + self.ideal_vector[1]), (255,255,255))
+                gfxdraw.circle(game_display, round(self.next_mid_point[0]), round(self.next_mid_point[1]), 5, self.main_color)
         #Blit Dust Cloud if Bumping
         if self.bumping:
             if DEBUG_BUMP:
@@ -680,9 +699,39 @@ class Car:
 
     def ai_drive(self, track: pysprint_tracks.Track):
         next_gate = track.find_progress_gate((self.x_position, self.y_position))
-        if next_gate > len(track.external_gate_points):
-            next_gate = 0
+        next_gate += 2
+        if next_gate >= len(track.external_gate_points):
+            next_gate -= len(track.external_gate_points)
+        self.next_mid_point = ((track.external_gate_points[next_gate][0] + track.internal_gate_points[next_gate][0]) / 2, (track.external_gate_points[next_gate][1] + track.internal_gate_points[next_gate][1]) / 2)
+        self.ideal_vector = (self.next_mid_point[0] - self.x_position, self.next_mid_point[1] - self.y_position)
 
-        next_gate += 1
+        #cosine method
+        # dotProduct = self.ideal_vector[0] * self.x_vector + self.ideal_vector[1] * self.y_vector
+        # modOfVector1 = math.sqrt( self.ideal_vector[0] * self.ideal_vector[0] + self.ideal_vector[1]*self.ideal_vector[1])*math.sqrt(self.x_vector*self.x_vector + self.y_vector*self.y_vector)
+        # if modOfVector1 ==0:
+        #     angle = 0
+        # else:
+        #     angle = math.degrees(math.acos(dotProduct/modOfVector1))
 
+
+        #sine method
+        car_vector_length = math.sqrt(self.x_vector**2 + self.y_vector**2)
+        cross_product = car_vector_length * math.sqrt(self.ideal_vector[0]**2 + self.ideal_vector[1]**2)
+        # using cross-product formula
+        if cross_product ==0:
+            angle = 0
+        else:
+            angle = -math.degrees(math.asin((self.x_vector * self.ideal_vector[1] - self.y_vector * self.ideal_vector[0])/(cross_product)))
+
+        if DEBUG_AI:
+            print('{} - Next Gate:{} - Current Vector: ({:.2f},{:.2f}) - Ideal Vector: ({:.2f},{:.2f}) - Angle: {:.2f}°'.format(self.color_text, next_gate, self.x_vector, self.y_vector, self.ideal_vector[0], self.ideal_vector[1],angle))
+
+        if (angle > 20) or ( angle < -20):
+            if angle > 0:
+                self.rotate(True)
+                print ('Turning Left')
+            else:
+                self.rotate(False)
+                print ('Turning Right')
         self.accelerate()
+

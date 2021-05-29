@@ -1072,8 +1072,9 @@ def display_options():
                                     car.accelerate_key = None
                                     car.left_key = None
                                     car.right_key = None
-                                    car.ignore_controls = True
                                     car.is_drone = True
+                                    car.speed_max = car.drone_speed
+                                    car.bump_speed = car.drone_bump_speed
 
 
                 if event.key == pygame.K_F2:
@@ -1398,63 +1399,63 @@ def game_loop():
                             if car.bumping or race_finish:
                                 car.ignore_controls = True
                             if not car.ignore_controls:
-                                #If car if keyboard controlled
-                                if car.joystick is None:
-                                    if pygame.key.get_pressed()[car.accelerate_key]:
-                                        car.accelerate()
-                                    else:
-                                        car.decelerate()
-
-                                    if pygame.key.get_pressed()[car.left_key]:
-                                        car.rotate(True)
-
-                                    if pygame.key.get_pressed()[car.right_key]:
-                                        car.rotate(False)
-                                else:
-                                    buttons = car.joystick.get_numbuttons()
-                                    button_pressed = False
-                                    for i in range(buttons):
-                                        button = car.joystick.get_button(i)
-                                        if button == 1:
-                                            button_pressed = True
-
-                                    if button_pressed:
-                                        car.accelerate()
-                                    else:
-                                        car.decelerate()
-
-                                    left_pressed = False
-                                    right_pressed = False
-                                    axes = car.joystick.get_numaxes()
-                                    for i in range(axes):
-                                        axis = car.joystick.get_axis(i)
-                                        #Ignoring any axis beyong the first 2 which should be analog stick X
-                                        #Any axis beyong that is probably an analog shoulder button
-                                        if i < 2:
-                                            if axis < 0 and axis < -0.5:
-                                                left_pressed = True
-                                            if axis > 0 and axis > 0.5:
-                                                right_pressed = True
-
-                                    hats = car.joystick.get_numhats()
-                                    for i in range(hats):
-                                        hat = car.joystick.get_hat(i)
-                                        if hat[0] == -1:
-                                            left_pressed = True
-
-                                        if hat[0] == 1:
-                                            right_pressed = True
-
-                                    if left_pressed:
-                                        car.rotate(True)
-                                    else:
-                                        if right_pressed:
-                                            car.rotate(False)
-                            else:
                                 if car.is_drone:
                                     car.ai_drive(track1)
                                 else:
-                                    car.decelerate()
+                                    #If car if keyboard controlled
+                                    if car.joystick is None:
+                                        if pygame.key.get_pressed()[car.accelerate_key]:
+                                            car.accelerate()
+                                        else:
+                                            car.decelerate()
+
+                                        if pygame.key.get_pressed()[car.left_key]:
+                                            car.rotate(True)
+
+                                        if pygame.key.get_pressed()[car.right_key]:
+                                            car.rotate(False)
+                                    else:
+                                        buttons = car.joystick.get_numbuttons()
+                                        button_pressed = False
+                                        for i in range(buttons):
+                                            button = car.joystick.get_button(i)
+                                            if button == 1:
+                                                button_pressed = True
+
+                                        if button_pressed:
+                                            car.accelerate()
+                                        else:
+                                            car.decelerate()
+
+                                        left_pressed = False
+                                        right_pressed = False
+                                        axes = car.joystick.get_numaxes()
+                                        for i in range(axes):
+                                            axis = car.joystick.get_axis(i)
+                                            #Ignoring any axis beyong the first 2 which should be analog stick X
+                                            #Any axis beyong that is probably an analog shoulder button
+                                            if i < 2:
+                                                if axis < 0 and axis < -0.5:
+                                                    left_pressed = True
+                                                if axis > 0 and axis > 0.5:
+                                                    right_pressed = True
+
+                                        hats = car.joystick.get_numhats()
+                                        for i in range(hats):
+                                            hat = car.joystick.get_hat(i)
+                                            if hat[0] == -1:
+                                                left_pressed = True
+
+                                            if hat[0] == 1:
+                                                right_pressed = True
+
+                                        if left_pressed:
+                                            car.rotate(True)
+                                        else:
+                                            if right_pressed:
+                                                car.rotate(False)
+                            else:
+                                car.decelerate()
                         trace_frame_time("Checked Key input", frame_start)
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT: # If user clicked close.
@@ -1462,15 +1463,18 @@ def game_loop():
                                 podium_displayed = True
                             for car in cars:
                                 if not car.ignore_controls:
-                                    if event.type == pygame.KEYDOWN:
-                                        #If car if keyboard controlled
-                                        if car.joystick is None:
-                                            if event.key == car.accelerate_key:
-                                                car.accelerate()
-                                            if event.key == car.left_key:
-                                                car.rotate(True)
-                                            if event.key == car.right_key:
-                                                car.rotate(False)
+                                    if car.is_drone:
+                                        car.ai_drive(track1)
+                                    else:
+                                        if event.type == pygame.KEYDOWN:
+                                            #If car if keyboard controlled
+                                            if car.joystick is None:
+                                                if event.key == car.accelerate_key:
+                                                    car.accelerate()
+                                                if event.key == car.left_key:
+                                                    car.rotate(True)
+                                                if event.key == car.right_key:
+                                                    car.rotate(False)
                                 else:
                                     car.decelerate()
                                 #Draw Dust Cloud
