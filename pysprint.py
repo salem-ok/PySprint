@@ -34,7 +34,7 @@ cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car
 #flags = pygame.SCALED
 
 FPS = 30
-BITS_64 = True
+BITS_64 = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 pysprint_car.DEBUG_BUMP = DEBUG_BUMP
