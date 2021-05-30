@@ -705,15 +705,6 @@ class Car:
         self.next_mid_point = ((track.external_gate_points[next_gate][0] + track.internal_gate_points[next_gate][0]) / 2, (track.external_gate_points[next_gate][1] + track.internal_gate_points[next_gate][1]) / 2)
         self.ideal_vector = (self.next_mid_point[0] - self.x_position, self.next_mid_point[1] - self.y_position)
 
-        #cosine method
-        # dotProduct = self.ideal_vector[0] * self.x_vector + self.ideal_vector[1] * self.y_vector
-        # modOfVector1 = math.sqrt( self.ideal_vector[0] * self.ideal_vector[0] + self.ideal_vector[1]*self.ideal_vector[1])*math.sqrt(self.x_vector*self.x_vector + self.y_vector*self.y_vector)
-        # if modOfVector1 ==0:
-        #     angle = 0
-        # else:
-        #     angle = math.degrees(math.acos(dotProduct/modOfVector1))
-
-
         #sine method
         car_vector_length = math.sqrt(self.x_vector**2 + self.y_vector**2)
         cross_product = car_vector_length * math.sqrt(self.ideal_vector[0]**2 + self.ideal_vector[1]**2)
