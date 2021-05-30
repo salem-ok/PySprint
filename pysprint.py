@@ -34,7 +34,6 @@ cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car
 #flags = pygame.SCALED
 
 FPS = 30
-BITS_64 = True
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 pysprint_car.DEBUG_BUMP = DEBUG_BUMP
@@ -1226,27 +1225,6 @@ def initialize_cars():
     cars[2].color_text = "YELLOW"
     cars[3].color_text = "RED"
 
-
-    #Initialize car Specific Event codes
-    cars[0].BUMPCLOUD = CHECKEREDFLAG + 1
-    cars[0].EXPLOSION = cars[0].BUMPCLOUD + 1
-    #64 Bit version
-    if BITS_64:
-        cars[1].BUMPCLOUD = cars[0].EXPLOSION + 1
-        cars[1].EXPLOSION = cars[1].BUMPCLOUD + 1
-        cars[2].BUMPCLOUD = cars[1].EXPLOSION + 1
-        cars[2].EXPLOSION = cars[2].BUMPCLOUD + 1
-        cars[3].BUMPCLOUD = cars[2].EXPLOSION + 1
-        cars[3].EXPLOSION = cars[3].BUMPCLOUD + 1
-    else:
-        cars[1].BUMPCLOUD = cars[0].BUMPCLOUD
-        cars[1].EXPLOSION = cars[0].EXPLOSION
-        cars[2].BUMPCLOUD = cars[1].BUMPCLOUD
-        cars[2].EXPLOSION = cars[1].EXPLOSION
-        cars[3].BUMPCLOUD = cars[2].BUMPCLOUD
-        cars[3].EXPLOSION = cars[3].EXPLOSION
-
-
     #Initialize Default Controls
     #Default for Blue Car is keyboard
     cars[0].accelerate_key = keyboard_1['ACCELERATE']
@@ -1505,18 +1483,6 @@ def game_loop():
                                                     car.rotate(False)
                                 else:
                                     car.decelerate()
-                                #Draw Dust Cloud
-                                if event.type == car.BUMPCLOUD:
-                                    if DEBUG_BUMP:
-                                        print('{} - Bump Timer triggerred'.format(pygame.time.get_ticks()))
-                                    if car.bumping:
-                                        car.display_bump_cloud()
-                                #Draw Explosion
-                                if event.type == car.EXPLOSION:
-                                    if DEBUG_CRASH:
-                                        print('{} - Crash Timer triggerred'.format(pygame.time.get_ticks()))
-                                    if car.crashing:
-                                        car.display_explosion()
                             #Draw Green Flag at Race Start
                             if event.type == GREENFLAG:
                                 if DEBUG_FLAG:
@@ -1580,7 +1546,23 @@ def game_loop():
                                     flag_waved = True
                                     pygame.time.set_timer(CHECKEREDFLAG, 00)
 
-                        trace_frame_time("Managed all Events", frame_start)
+                        #Check animation timers for crashes and bumps
+                        current_ticks = pygame.time.get_ticks()
+                        for car in cars:
+                            #Draw Dust Cloud
+                            if car.bumping and (current_ticks - car.collision_time) >= car.bump_animation_timer:
+                                if DEBUG_BUMP:
+                                    print('{} - Bump Timer triggerred'.format(current_ticks))
+                                car.display_bump_cloud()
+                                car.collision_time = current_ticks
+                            #Draw Explosion
+                            if car.crashing and (current_ticks - car.collision_time) >= car.crash_animation_timer:
+                                if DEBUG_CRASH:
+                                    print('{} - Crash Timer triggerred'.format(current_ticks))
+                                car.display_explosion()
+                                car.collision_time = current_ticks
+
+                        trace_frame_time("Managed all Events & Timers", frame_start)
 
                         for car in cars:
                             car.draw(track1)

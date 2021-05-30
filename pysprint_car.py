@@ -112,8 +112,8 @@ class Car:
     # speed_max = 4
     # bump_speed = 3.25
 
-    bump_animation_timer = 30
-    crash_animation_timer = 30
+    bump_animation_timer = 33
+    crash_animation_timer = 33
     helicopter_step = 10
 
     #Collision Settings
@@ -156,10 +156,6 @@ class Car:
 
     best_lap = 0
     average_lap = 0
-
-    #Car Events
-    BUMPCLOUD = 0
-    EXPLOSION = 0
 
     def start_game(self):
         self.is_drone = False
@@ -499,7 +495,6 @@ class Car:
         if DEBUG_BUMP:
             print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
-        pygame.time.set_timer(self.BUMPCLOUD, self.bump_animation_timer)
 
     def init_crash_loop(self, track, intersect_point):
         self.crashing = True
@@ -523,7 +518,6 @@ class Car:
             print('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
         self.helicopter_index = 0
-        pygame.time.set_timer(self.EXPLOSION, self.crash_animation_timer)
 
     def end_bump_loop(self):
         self.bumping_diagonal = False
@@ -534,7 +528,6 @@ class Car:
         end_time = pygame.time.get_ticks()
         if DEBUG_BUMP:
             print('{} - Bump Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
-        pygame.time.set_timer(self.BUMPCLOUD,0)
 
     def end_crash_loop(self):
         self.crashing = False
@@ -542,7 +535,6 @@ class Car:
         end_time = pygame.time.get_ticks()
         if DEBUG_CRASH:
             print('{} - Crash Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
-        pygame.time.set_timer(self.EXPLOSION,0)
 
 
     def update_position(self, track):
@@ -610,7 +602,7 @@ class Car:
                         if self.lap_count == race_laps:
                             #Race finished
                             if DEBUG_FINISH:
-                                print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_Lap, self.best_lap))
+                                print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_lap, self.best_lap))
                             return True
                         self.current_lap_start = finish_time
                         return False
