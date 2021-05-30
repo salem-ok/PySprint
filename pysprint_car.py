@@ -97,7 +97,7 @@ class Car:
     acceleration_step = 0.13
     deceleration_step = 0.2
     bump_decelaration_step = 0.3
-    drone_speed = 3
+    drone_speed = 8
     player_speed = 8
     speed_max = 3
     bump_speed = 2
@@ -752,6 +752,10 @@ class Car:
                 self.rotate(False)
                 if DEBUG_AI:
                     print ('Turning Right')
+            if self.speed < self.speed_max:
+                self.accelerate()
+            else:
+                self.decelerate()
         else:
             if cosine_angle > 160:
                 #Pick a side to turn at random
@@ -759,6 +763,7 @@ class Car:
                 self.rotate(left==1)
                 if DEBUG_AI:
                     print ('180° - Turning Left')
-
-        self.accelerate()
+                self.decelerate()
+            else:
+                self.accelerate()
 

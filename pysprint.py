@@ -8,14 +8,14 @@ import random
 pygame.init()
 pygame.joystick.init()
 
-version = "0.0"
+version = "0.1"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
 pysprint_car.display_height = 400
 
 flags = 0
-race_laps = 2
+race_laps = 4
 pysprint_car.race_laps = race_laps
 
 game_display = pygame.display.set_mode((display_width, display_height), flags)
@@ -34,7 +34,7 @@ cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car
 #flags = pygame.SCALED
 
 FPS = 30
-BITS_64 = False
+BITS_64 = True
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 pysprint_car.DEBUG_BUMP = DEBUG_BUMP
@@ -1274,11 +1274,27 @@ def initialize_cars():
         cars[3].joystick.init()
 
 def activate_cars():
+    nb_drones = []
+
     for car in cars:
         car.lap_count = 0
+        if car.is_drone:
+            nb_drones.append(0)
         car.lap_times.clear()
         for i in range(0, race_laps):
             car.lap_times.append(0)
+    #Assign slightly different speeds to each drone when more than 1 is in play
+    variable_speeds = [1,1.1,0.9]
+    if len(nb_drones)>1:
+        for car in cars:
+            if car.is_drone:
+                unmodified = True
+                while unmodified:
+                    i = random.randint(0,len(variable_speeds)-1)
+                    if variable_speeds[i]>0:
+                        car.speed_max = car.drone_speed * variable_speeds[i]
+                        variable_speeds[i]=0
+                        unmodified = False
 
     if cars[0].is_drone:
         cars[0].sprites = blue_drone_sprites
@@ -1569,7 +1585,7 @@ def game_loop():
                         for car in cars:
                             car.draw(track1)
                             trace_frame_time("Drawn car", frame_start)
-                        if not race_finish:
+                        if not race_finish and not race_start:
                             for car in cars:
                                 race_finish = car.test_finish_line(track1)
                                 if race_finish == True:
