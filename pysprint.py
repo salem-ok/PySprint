@@ -31,7 +31,7 @@ pysprint_car.game_display = game_display
 cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car()]
 
 #Scale screen
-flags = pygame.SCALED
+#flags = pygame.SCALED
 
 FPS = 30
 DEBUG_BUMP = False
