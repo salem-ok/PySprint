@@ -34,6 +34,7 @@ cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car
 #flags = pygame.SCALED
 
 FPS = 30
+BITS_64 = True
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 pysprint_car.DEBUG_BUMP = DEBUG_BUMP
@@ -1229,12 +1230,22 @@ def initialize_cars():
     #Initialize car Specific Event codes
     cars[0].BUMPCLOUD = CHECKEREDFLAG + 1
     cars[0].EXPLOSION = cars[0].BUMPCLOUD + 1
-    cars[1].BUMPCLOUD = cars[0].EXPLOSION + 1
-    cars[1].EXPLOSION = cars[1].BUMPCLOUD + 1
-    cars[2].BUMPCLOUD = cars[1].EXPLOSION + 1
-    cars[2].EXPLOSION = cars[2].BUMPCLOUD + 1
-    cars[3].BUMPCLOUD = cars[2].EXPLOSION + 1
-    cars[3].EXPLOSION = cars[3].BUMPCLOUD + 1
+    #64 Bit version
+    if BITS_64:
+        cars[1].BUMPCLOUD = cars[0].EXPLOSION + 1
+        cars[1].EXPLOSION = cars[1].BUMPCLOUD + 1
+        cars[2].BUMPCLOUD = cars[1].EXPLOSION + 1
+        cars[2].EXPLOSION = cars[2].BUMPCLOUD + 1
+        cars[3].BUMPCLOUD = cars[2].EXPLOSION + 1
+        cars[3].EXPLOSION = cars[3].BUMPCLOUD + 1
+    else:
+        cars[1].BUMPCLOUD = cars[0].BUMPCLOUD
+        cars[1].EXPLOSION = cars[0].EXPLOSION
+        cars[2].BUMPCLOUD = cars[1].BUMPCLOUD
+        cars[2].EXPLOSION = cars[1].EXPLOSION
+        cars[3].BUMPCLOUD = cars[2].BUMPCLOUD
+        cars[3].EXPLOSION = cars[3].EXPLOSION
+
 
     #Initialize Default Controls
     #Default for Blue Car is keyboard
