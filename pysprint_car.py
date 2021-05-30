@@ -11,7 +11,7 @@ DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-DEBUG_AI = True
+DEBUG_AI = False
 
 race_laps = None
 display_width = None
@@ -81,6 +81,7 @@ class Car:
     progress_gate = -1
     ideal_vector = None
     next_mid_point = None
+    next_gate = None
 
     #Mechanics
     #Car Controls
@@ -165,6 +166,12 @@ class Car:
         self.ignore_controls = False
         self.speed_max = self.player_speed
         self.bump_speed = self.player__bump_speed
+
+    def end_game(self):
+        self.is_drone = True
+        self.ignore_controls = False
+        self.speed_max = self.drone_speed
+        self.bump_speed = self.drone_bump_speed
 
     def rotate(self, left):
         self.rotating = True
@@ -698,12 +705,31 @@ class Car:
             self.crash_finished = True
 
     def ai_drive(self, track: pysprint_tracks.Track):
-        next_gate = track.find_progress_gate((self.x_position, self.y_position))
-        next_gate += 2
-        if next_gate >= len(track.external_gate_points):
-            next_gate -= len(track.external_gate_points)
-        self.next_mid_point = ((track.external_gate_points[next_gate][0] + track.internal_gate_points[next_gate][0]) / 2, (track.external_gate_points[next_gate][1] + track.internal_gate_points[next_gate][1]) / 2)
+        new_next_gate = track.find_progress_gate((self.x_position, self.y_position))
+        new_next_gate += 2
+        if self.next_gate is None:
+            self.next_gate = new_next_gate
+        else:
+            #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
+            if abs(new_next_gate - self.next_gate) > 3 and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - 3:
+                self.next_gate+=2
+            else:
+                self.next_gate = new_next_gate
+
+        if self.next_gate >= len(track.external_gate_points):
+            self.next_gate -= len(track.external_gate_points)
+
+        self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / 2, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / 2)
         self.ideal_vector = (self.next_mid_point[0] - self.x_position, self.next_mid_point[1] - self.y_position)
+
+
+        #cosine method
+        dotProduct = self.ideal_vector[0] * self.x_vector + self.ideal_vector[1] * self.y_vector
+        modOfVector1 = math.sqrt( self.ideal_vector[0] * self.ideal_vector[0] + self.ideal_vector[1]*self.ideal_vector[1])*math.sqrt(self.x_vector*self.x_vector + self.y_vector*self.y_vector)
+        if modOfVector1 ==0:
+            cosine_angle = 0
+        else:
+            cosine_angle = math.degrees(math.acos(dotProduct/modOfVector1))
 
         #sine method
         car_vector_length = math.sqrt(self.x_vector**2 + self.y_vector**2)
@@ -715,14 +741,24 @@ class Car:
             angle = -math.degrees(math.asin((self.x_vector * self.ideal_vector[1] - self.y_vector * self.ideal_vector[0])/(cross_product)))
 
         if DEBUG_AI:
-            print('{} - Next Gate:{} - Current Vector: ({:.2f},{:.2f}) - Ideal Vector: ({:.2f},{:.2f}) - Angle: {:.2f}°'.format(self.color_text, next_gate, self.x_vector, self.y_vector, self.ideal_vector[0], self.ideal_vector[1],angle))
+            print('{} - Next Gate:{} - Current Vector: ({:.2f},{:.2f}) - Ideal Vector: ({:.2f},{:.2f}) - Angle: {:.2f}° - Cosine Angle: {:.2f}°'.format(self.color_text, self.next_gate, self.x_vector, self.y_vector, self.ideal_vector[0], self.ideal_vector[1],angle, cosine_angle))
 
         if (angle > 20) or ( angle < -20):
             if angle > 0:
                 self.rotate(True)
-                print ('Turning Left')
+                if DEBUG_AI:
+                    print ('Turning Left')
             else:
                 self.rotate(False)
-                print ('Turning Right')
+                if DEBUG_AI:
+                    print ('Turning Right')
+        else:
+            if cosine_angle > 160:
+                #Pick a side to turn at random
+                left = random.randint(0,1)
+                self.rotate(left==1)
+                if DEBUG_AI:
+                    print ('180° - Turning Left')
+
         self.accelerate()
 

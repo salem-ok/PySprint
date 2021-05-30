@@ -1185,11 +1185,6 @@ def initialize_cars():
     pysprint_car.dust_cloud_frames = dust_cloud_frames
     pysprint_car.explosion_frames = explosion_frames
 
-    for car in cars:
-        car.lap_times.clear()
-        for i in range(0, race_laps):
-            car.lap_times.append(0)
-
     cars[0].helicopter_frames = blue_helicopter_frames
     cars[1].helicopter_frames = green_helicopter_frames
     cars[2].helicopter_frames = yellow_helicopter_frames
@@ -1268,6 +1263,12 @@ def initialize_cars():
         cars[3].joystick.init()
 
 def activate_cars():
+    for car in cars:
+        car.lap_count = 0
+        car.lap_times.clear()
+        for i in range(0, race_laps):
+            car.lap_times.append(0)
+
     if cars[0].is_drone:
         cars[0].sprites = blue_drone_sprites
         cars[0].first_car = first_car_blue_drone
@@ -1677,6 +1678,11 @@ def game_loop():
                             screen_fadein(composed_race_podium)
                             display_race_podium_screen(track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
                             podium_displayed = True
+                            #Game Over if behind a Drone
+                            for i in range(0, len(cars)-1):
+                                if cars[ranking[i]].is_drone:
+                                    for j in range(i+1, len(cars)):
+                                        cars[ranking[j]].end_game()
                             screen_fadeout()
             else:
                 game_exit = True
