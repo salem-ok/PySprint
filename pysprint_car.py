@@ -1,5 +1,6 @@
 #pysprint_car.py
 from typing import DefaultDict
+from numpy import angle
 import pygame
 from pygame import Surface, gfxdraw
 import math
@@ -82,6 +83,7 @@ class Car:
     ideal_vector = None
     next_mid_point = None
     next_gate = None
+    u_turning = False
 
     #Mechanics
     #Car Controls
@@ -92,17 +94,40 @@ class Car:
     ignore_controls = False
     control_method_index = None
 
-    #30FPS Settings
+    #30FPS Default Settings
+    player_rotation_step = .26
+    player_acceleration_step = 0.13
+    player_deceleration_step = 0.2
+    player_bump_decelaration_step = 0.3
+    player__bump_speed = 4
+    player_speed = 8
+
+
+    speed_max = 3
+    bump_speed = 2
     rotation_step = .26
     acceleration_step = 0.13
     deceleration_step = 0.2
     bump_decelaration_step = 0.3
-    drone_speed = 8
-    player_speed = 8
-    speed_max = 3
-    bump_speed = 2
+
+    #AI Default Characteristics
+    drone_personalities = [
+        ("Prudent",0),
+        ("Normal",1),
+        ("Aggressive",2)
+    ]
+    drone_personality_modifiers = [0.9,1,1.1]
+    drone__invert_personality_modifiers = [1.1,1,0.9]
+    drone_personality = 1
+    drone_rotation_step = 0.4#.26
+    drone_acceleration_step = 0.18#0.13
+    drone_deceleration_step = 0.4#0.2
+    drone_bump_decelaration_step = 0.3
     drone_bump_speed = 2
-    player__bump_speed = 6.5
+    drone_speed = 8#6
+    turning_angle_threshold = 20
+    gate_step = 2
+
 
     #60FPS Settings - Calibrated to an unmodified car
     # rotation_step = .13
@@ -128,7 +153,7 @@ class Car:
     sensitive_border_crash_probability_penalty = 1.4
     #Max Random number drawn to calculate Crash probability
     crash_random_max = 60
-    crash_certainty_treshold = 80
+    crash_certainty_treshold = 85#80
 
     #Car State
     is_drone = True
@@ -162,12 +187,20 @@ class Car:
         self.ignore_controls = False
         self.speed_max = self.player_speed
         self.bump_speed = self.player__bump_speed
+        self.rotation_step = self.player_rotation_step
+        self.acceleration_step = self.player_acceleration_step
+        self.deceleration_step = self.player_deceleration_step
+        self.bump_decelaration_step = self.player_bump_decelaration_step
 
     def end_game(self):
         self.is_drone = True
         self.ignore_controls = False
         self.speed_max = self.drone_speed
         self.bump_speed = self.drone_bump_speed
+        self.rotation_step = self.drone_rotation_step
+        self.acceleration_step = self.drone_acceleration_step
+        self.deceleration_step = self.drone_deceleration_step
+        self.bump_decelaration_step = self.drone_bump_decelaration_step
 
     def rotate(self, left):
         self.rotating = True
@@ -696,46 +729,57 @@ class Car:
         else:
             self.crash_finished = True
 
-    def ai_drive(self, track: pysprint_tracks.Track):
+    def calculate_ideal_vector(self, track, actual_gate_step):
         new_next_gate = track.find_progress_gate((self.x_position, self.y_position))
-        new_next_gate += 2
+        new_next_gate += actual_gate_step
         if self.next_gate is None:
             self.next_gate = new_next_gate
         else:
             #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
-            if abs(new_next_gate - self.next_gate) > 3 and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - 3:
-                self.next_gate+=2
+            if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - (actual_gate_step+1):
+                self.next_gate+=actual_gate_step
             else:
                 self.next_gate = new_next_gate
 
         if self.next_gate >= len(track.external_gate_points):
             self.next_gate -= len(track.external_gate_points)
 
-        self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / 2, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / 2)
+        #Midpoint modifier: Normal personality aime for the exact middle of the gate, prudent and aggressive symetrically outcentered
+        midppint_modifier = 2 * (1 + (self.drone_personality_modifiers[self.drone_personality]-1) / 4)
+
+        self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / midppint_modifier, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / midppint_modifier)
         self.ideal_vector = (self.next_mid_point[0] - self.x_position, self.next_mid_point[1] - self.y_position)
-
-
+    def get_cosine(self):
         #cosine method
         dotProduct = self.ideal_vector[0] * self.x_vector + self.ideal_vector[1] * self.y_vector
         modOfVector1 = math.sqrt( self.ideal_vector[0] * self.ideal_vector[0] + self.ideal_vector[1]*self.ideal_vector[1])*math.sqrt(self.x_vector*self.x_vector + self.y_vector*self.y_vector)
         if modOfVector1 ==0:
-            cosine_angle = 0
+            return 0
         else:
-            cosine_angle = math.degrees(math.acos(dotProduct/modOfVector1))
+            return math.degrees(math.acos(dotProduct/modOfVector1))
 
+    def get_sine(self):
         #sine method
         car_vector_length = math.sqrt(self.x_vector**2 + self.y_vector**2)
         cross_product = car_vector_length * math.sqrt(self.ideal_vector[0]**2 + self.ideal_vector[1]**2)
         # using cross-product formula
         if cross_product ==0:
-            angle = 0
+            return 0
         else:
-            angle = -math.degrees(math.asin((self.x_vector * self.ideal_vector[1] - self.y_vector * self.ideal_vector[0])/(cross_product)))
+            return -math.degrees(math.asin((self.x_vector * self.ideal_vector[1] - self.y_vector * self.ideal_vector[0])/(cross_product)))
+
+
+    def ai_drive(self, track: pysprint_tracks.Track):
+
+        self.calculate_ideal_vector(track, self.gate_step)
+
+        cosine_angle =self.get_cosine()
+        angle = self.get_sine()
 
         if DEBUG_AI:
             print('{} - Next Gate:{} - Current Vector: ({:.2f},{:.2f}) - Ideal Vector: ({:.2f},{:.2f}) - Angle: {:.2f}° - Cosine Angle: {:.2f}°'.format(self.color_text, self.next_gate, self.x_vector, self.y_vector, self.ideal_vector[0], self.ideal_vector[1],angle, cosine_angle))
 
-        if (angle > 20) or ( angle < -20):
+        if (angle > self.turning_angle_threshold) or ( angle < -self.turning_angle_threshold):
             if angle > 0:
                 self.rotate(True)
                 if DEBUG_AI:
@@ -744,17 +788,26 @@ class Car:
                 self.rotate(False)
                 if DEBUG_AI:
                     print ('Turning Right')
-            if self.speed < self.speed_max:
-                self.accelerate()
+            if self.drone_personality >= self.drone_personalities[0][1]:
+                #Accelerate when Speed < Speed Max and decelerate if not when turning if Normal & Aggressive
+                if self.speed < self.speed_max:
+                    self.accelerate()
+                else:
+                    self.decelerate()
             else:
                 self.decelerate()
         else:
-            if cosine_angle > 160:
-                #Pick a side to turn at random
-                left = random.randint(0,1)
-                self.rotate(left==1)
-                if DEBUG_AI:
-                    print ('180° - Turning Left')
+            if cosine_angle > (180-self.turning_angle_threshold):
+                i = 1
+                while abs(angle) < self.turning_angle_threshold*1.5:
+                    #Check direction for Next Gate until we get a clear direction to turn to
+                    if DEBUG_AI:
+                        print ('{} - 180° - Checking {} Gate(s) further'.format(self.color_text, i))
+                    self.calculate_ideal_vector(track, self.gate_step + i)
+                    angle = self.get_sine()
+                    cosine_angle =self.get_cosine()
+                    i+=1
+                    self.rotate(angle > 0)
                 self.decelerate()
             else:
                 self.accelerate()

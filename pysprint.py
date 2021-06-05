@@ -40,6 +40,7 @@ pysprint_car.DEBUG_BUMP = DEBUG_BUMP
 pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
+DEBUG_AI = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1261,17 +1262,27 @@ def activate_cars():
         car.lap_times.clear()
         for i in range(0, race_laps):
             car.lap_times.append(0)
-    #Assign slightly different speeds to each drone when more than 1 is in play
-    variable_speeds = [1,1.1,0.9]
+    #Assign slightly different AI characteristics to each drone when more than 1 is in play
+    personalities = [0,1,2]
     if len(nb_drones)>1:
         for car in cars:
             if car.is_drone:
                 unmodified = True
                 while unmodified:
-                    i = random.randint(0,len(variable_speeds)-1)
-                    if variable_speeds[i]>0:
-                        car.speed_max = car.drone_speed * variable_speeds[i]
-                        variable_speeds[i]=0
+                    i = random.randint(0,len(car.drone_personalities)-1)
+                    if personalities[i]>=0:
+                        car.drone_personality = i
+                        if DEBUG_AI:
+                             print('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
+                        car.speed_max = car.drone_speed * car.drone_personality_modifiers[i]
+                        car.bump_speed = car.drone_bump_speed * car.drone_personality_modifiers[i]
+                        car.rotation_step = car.drone_rotation_step * car.drone__invert_personality_modifiers[i]
+                        car.acceleration_step = car.drone_acceleration_step * car.drone_personality_modifiers[i]
+                        car.deceleration_step = car.drone_deceleration_step * car.drone__invert_personality_modifiers[i]
+                        car.bump_decelaration_step = car.drone_bump_speed * car.drone__invert_personality_modifiers[i]
+                        car.turning_angle_threshold = car.turning_angle_threshold * car.drone_personality_modifiers[i]
+                        car.crash_certainty_treshold += 5
+                        personalities[i]=-1
                         unmodified = False
 
     if cars[0].is_drone:
