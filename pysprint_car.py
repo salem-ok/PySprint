@@ -125,7 +125,7 @@ class Car:
     drone_deceleration_step = 0.4#0.2
     drone_bump_decelaration_step = 0.3
     drone_bump_speed = 2
-    drone_speed = 8#6
+    drone_speed = 4#6
     turning_angle_threshold = 20
     gate_step = 2
 
