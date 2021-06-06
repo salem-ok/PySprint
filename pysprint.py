@@ -810,16 +810,19 @@ def print_prepare_to_race(top_left, color):
     game_display.blit(race_surf, (top_left[0] + (prepare_surf.get_width() - race_surf.get_width())/2, top_left[1] + 50))
 
 
-def print_press_acceltoplay(top_left, color, seconds):
+def print_press_acceltoplay(top_left, color, seconds, game_over):
     game_display.blit(small_font.render("PRESS", False, color), top_left)
     game_display.blit(small_font.render("ACCELERATE", False, color), (top_left[0] - 28, top_left[1] + 20))
-    game_display.blit(small_font.render("TO PLAY".format(seconds), False, color), (top_left[0] - 10, top_left[1] + 40))
+    if game_over:
+        game_display.blit(small_font.render("TO CONTINUE".format(seconds), False, color), (top_left[0] - 32, top_left[1] + 40))
+    else:
+        game_display.blit(small_font.render("TO PLAY".format(seconds), False, color), (top_left[0] - 10, top_left[1] + 40))
     game_display.blit(small_font.render("{}".format(seconds), False, color), (top_left[0] + 24, top_left[1] + 60))
 
 def print_start_race_text(seconds):
     for car in cars:
         if car.is_drone:
-            print_press_acceltoplay(car.start_screen_text_position, car.main_color, seconds)
+            print_press_acceltoplay(car.start_screen_text_position, car.main_color, seconds, car.game_over)
         else:
             print_prepare_to_race(car.start_screen_text_position, car.main_color)
     skip_surf = small_font.render("PRESS SPACE TO SKIP", False, white_color)
@@ -1262,86 +1265,88 @@ def activate_cars():
         car.lap_times.clear()
         for i in range(0, race_laps):
             car.lap_times.append(0)
-    #Assign slightly different AI characteristics to each drone when more than 1 is in play
-    personalities = [0,1,2]
-    if len(nb_drones)>1:
-        for car in cars:
-            if car.is_drone:
-                unmodified = True
-                while unmodified:
-                    i = random.randint(0,len(car.drone_personalities)-1)
-                    if personalities[i]>=0:
-                        car.drone_personality = i
-                        if DEBUG_AI:
-                             print('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
-                        car.speed_max = car.drone_speed * car.drone_personality_modifiers[i]
-                        car.bump_speed = car.drone_bump_speed * car.drone_personality_modifiers[i]
-                        car.rotation_step = car.drone_rotation_step * car.drone__invert_personality_modifiers[i]
-                        car.acceleration_step = car.drone_acceleration_step * car.drone_personality_modifiers[i]
-                        car.deceleration_step = car.drone_deceleration_step * car.drone__invert_personality_modifiers[i]
-                        car.bump_decelaration_step = car.drone_bump_speed * car.drone__invert_personality_modifiers[i]
-                        car.turning_angle_threshold = car.turning_angle_threshold * car.drone_personality_modifiers[i]
-                        car.crash_certainty_treshold += 5
-                        personalities[i]=-1
-                        unmodified = False
+    if len(nb_drones)>=1:
+        #Assign slightly different AI characteristics to each drone when more than 1 is in play
+        personalities = [0,1,2]
+        if len(nb_drones)<4:
+            for car in cars:
+                if car.is_drone:
+                    unmodified = True
+                    while unmodified:
+                        i = random.randint(0,len(car.drone_personalities)-1)
+                        if personalities[i]>=0:
+                            car.drone_personality = i
+                            if DEBUG_AI:
+                                print('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
+                            car.speed_max = car.drone_speed * car.drone_personality_modifiers[i]
+                            car.bump_speed = car.drone_bump_speed * car.drone_personality_modifiers[i]
+                            car.rotation_step = car.drone_rotation_step * car.drone__invert_personality_modifiers[i]
+                            car.acceleration_step = car.drone_acceleration_step * car.drone_personality_modifiers[i]
+                            car.deceleration_step = car.drone_deceleration_step * car.drone__invert_personality_modifiers[i]
+                            car.bump_decelaration_step = car.drone_bump_speed * car.drone__invert_personality_modifiers[i]
+                            car.turning_angle_threshold = car.turning_angle_threshold * car.drone_personality_modifiers[i]
+                            car.crash_certainty_treshold += 5
+                            personalities[i]=-1
+                            unmodified = False
 
-    if cars[0].is_drone:
-        cars[0].sprites = blue_drone_sprites
-        cars[0].first_car = first_car_blue_drone
-        cars[0].second_car = second_car_blue_drone
-        cars[0].third_car = third_car_blue_drone
-        cars[0].fourth_car = fourth_car_blue_drone
-    else:
-        cars[0].sprites = blue_car_sprites
-        cars[0].first_car = first_car_blue
-        cars[0].second_car = second_car_blue
-        cars[0].third_car = third_car_blue
-        cars[0].fourth_car = fourth_car_blue
+        if cars[0].is_drone:
+            cars[0].sprites = blue_drone_sprites
+            cars[0].first_car = first_car_blue_drone
+            cars[0].second_car = second_car_blue_drone
+            cars[0].third_car = third_car_blue_drone
+            cars[0].fourth_car = fourth_car_blue_drone
+        else:
+            cars[0].sprites = blue_car_sprites
+            cars[0].first_car = first_car_blue
+            cars[0].second_car = second_car_blue
+            cars[0].third_car = third_car_blue
+            cars[0].fourth_car = fourth_car_blue
 
-    if cars[1].is_drone:
-        cars[1].sprites = green_drone_sprites
-        cars[1].first_car = first_car_green_drone
-        cars[1].second_car = second_car_green_drone
-        cars[1].third_car = third_car_green_drone
-        cars[1].fourth_car = fourth_car_green_drone
-    else:
-        cars[1].sprites = green_car_sprites
-        cars[1].first_car = first_car_green
-        cars[1].second_car = second_car_green
-        cars[1].third_car = third_car_green
-        cars[1].fourth_car = fourth_car_green
+        if cars[1].is_drone:
+            cars[1].sprites = green_drone_sprites
+            cars[1].first_car = first_car_green_drone
+            cars[1].second_car = second_car_green_drone
+            cars[1].third_car = third_car_green_drone
+            cars[1].fourth_car = fourth_car_green_drone
+        else:
+            cars[1].sprites = green_car_sprites
+            cars[1].first_car = first_car_green
+            cars[1].second_car = second_car_green
+            cars[1].third_car = third_car_green
+            cars[1].fourth_car = fourth_car_green
 
-    if cars[2].is_drone:
-        cars[2].sprites = yellow_drone_sprites
-        cars[2].first_car = first_car_yellow_drone
-        cars[2].second_car = second_car_yellow_drone
-        cars[2].third_car = third_car_yellow_drone
-        cars[2].fourth_car = fourth_car_yellow_drone
-    else:
-        cars[2].sprites = yellow_car_sprites
-        cars[2].first_car = first_car_yellow
-        cars[2].second_car = second_car_yellow
-        cars[2].third_car = third_car_yellow
-        cars[2].fourth_car = fourth_car_yellow
+        if cars[2].is_drone:
+            cars[2].sprites = yellow_drone_sprites
+            cars[2].first_car = first_car_yellow_drone
+            cars[2].second_car = second_car_yellow_drone
+            cars[2].third_car = third_car_yellow_drone
+            cars[2].fourth_car = fourth_car_yellow_drone
+        else:
+            cars[2].sprites = yellow_car_sprites
+            cars[2].first_car = first_car_yellow
+            cars[2].second_car = second_car_yellow
+            cars[2].third_car = third_car_yellow
+            cars[2].fourth_car = fourth_car_yellow
 
-    if cars[3].is_drone:
-        cars[3].sprites = red_drone_sprites
-        cars[3].first_car = first_car_red_drone
-        cars[3].second_car = second_car_red_drone
-        cars[3].third_car = third_car_red_drone
-        cars[3].fourth_car = fourth_car_red_drone
-    else:
-        cars[3].sprites = red_car_sprites
-        cars[3].first_car = first_car_red
-        cars[3].second_car = second_car_red
-        cars[3].third_car = third_car_red
-        cars[3].fourth_car = fourth_car_red
-
+        if cars[3].is_drone:
+            cars[3].sprites = red_drone_sprites
+            cars[3].first_car = first_car_red_drone
+            cars[3].second_car = second_car_red_drone
+            cars[3].third_car = third_car_red_drone
+            cars[3].fourth_car = fourth_car_red_drone
+        else:
+            cars[3].sprites = red_car_sprites
+            cars[3].first_car = first_car_red
+            cars[3].second_car = second_car_red
+            cars[3].third_car = third_car_red
+            cars[3].fourth_car = fourth_car_red
+    return len(nb_drones)
 
 
 def game_loop():
 
     game_exit = False
+    race_finished = False
     print('{} - Joystick(s) detected'.format(pygame.joystick.get_count()))
 
     for i in range (pygame.joystick.get_count()):
@@ -1355,355 +1360,360 @@ def game_loop():
 
     while not game_exit:
         key_pressed = -1
-        key_pressed = display_loading_screen(False)
-        #Attract mode
-        while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
-            key_pressed = display_splash_screen()
-            if (key_pressed == pygame.K_F1):
-                display_options()
-            if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
-                key_pressed = display_high_scores()
-            if (key_pressed == pygame.K_F1):
-                display_options()
-            if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
-                key_pressed = display_lap_records()
-            if (key_pressed == pygame.K_F1):
-                display_options()
-            if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
-                key_pressed = display_credits_screen()
-            if (key_pressed == pygame.K_F1):
-                display_options()
+        if not race_finished:
+            key_pressed = display_loading_screen(False)
+            #Attract mode
+            while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
+                key_pressed = display_splash_screen()
+                if (key_pressed == pygame.K_F1):
+                    display_options()
+                if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
+                    key_pressed = display_high_scores()
+                if (key_pressed == pygame.K_F1):
+                    display_options()
+                if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
+                    key_pressed = display_lap_records()
+                if (key_pressed == pygame.K_F1):
+                    display_options()
+                if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
+                    key_pressed = display_credits_screen()
+                if (key_pressed == pygame.K_F1):
+                    display_options()
 
-        if accelerate_pressed(key_pressed):
+        if accelerate_pressed(key_pressed) or race_finished:
             #Initiate Race
             key_pressed = display_start_race_screen()
             if not key_pressed == pygame.K_ESCAPE:
-                activate_cars()
-                track1 = pysprint_tracks.Track()
-                track1.background = pygame.image.load(track1.background_filename)
-                track1.track_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
-                track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
-                screen_fadein(track1.background)
+                race_finished = False
+                nb_drones = activate_cars()
+                if nb_drones < 4:
+                    track1 = pysprint_tracks.Track()
+                    track1.background = pygame.image.load(track1.background_filename)
+                    track1.track_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
+                    track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
+                    screen_fadein(track1.background)
 
-                #Align Cars on Start Line
-                for i in range (0,4):
-                    cars[i].x_position = track1.first_car_start_position[0]
-                    cars[i].y_position = track1.first_car_start_position[1] + i * 15
-                    cars[i].sprite_angle = track1.start_sprite_angle
-                    cars[i].angle = track1.start_sprite_angle
-                    cars[i].lap_count = 0
-                    cars[i].previous_score_increment = 0
-                race_start = True
-                last_lap = False
-                race_finish = False
-                animation_index = 0
-                flag_waves = 0
-                wave_up = True
-                flag_waved = False
-                podium_displayed = False
-                race_start_time = pygame.time.get_ticks()
-                for car in cars:
-                    car.current_lap_start = race_start_time
-                pygame.time.set_timer(GREENFLAG, 40)
-                while not podium_displayed:
-                    frame_start = pygame.time.get_ticks()
-                    trace_frame_time("Frame start", frame_start)
-                    if pygame.key.get_pressed()[pygame.K_ESCAPE]:
-                        game_exit = True
-                        podium_displayed = True
-                    else:
-                        for car in cars:
-                            if car.bumping or race_finish:
-                                car.ignore_controls = True
-                            if not car.ignore_controls:
-                                if car.is_drone:
-                                    car.ai_drive(track1)
-                                else:
-                                    #If car if keyboard controlled
-                                    if car.joystick is None:
-                                        if pygame.key.get_pressed()[car.accelerate_key]:
-                                            car.accelerate()
-                                        else:
-                                            car.decelerate()
-
-                                        if pygame.key.get_pressed()[car.left_key]:
-                                            car.rotate(True)
-
-                                        if pygame.key.get_pressed()[car.right_key]:
-                                            car.rotate(False)
-                                    else:
-                                        buttons = car.joystick.get_numbuttons()
-                                        button_pressed = False
-                                        for i in range(buttons):
-                                            button = car.joystick.get_button(i)
-                                            if button == 1:
-                                                button_pressed = True
-
-                                        if button_pressed:
-                                            car.accelerate()
-                                        else:
-                                            car.decelerate()
-
-                                        left_pressed = False
-                                        right_pressed = False
-                                        axes = car.joystick.get_numaxes()
-                                        for i in range(axes):
-                                            axis = car.joystick.get_axis(i)
-                                            #Ignoring any axis beyong the first 2 which should be analog stick X
-                                            #Any axis beyong that is probably an analog shoulder button
-                                            if i < 2:
-                                                if axis < 0 and axis < -0.5:
-                                                    left_pressed = True
-                                                if axis > 0 and axis > 0.5:
-                                                    right_pressed = True
-
-                                        hats = car.joystick.get_numhats()
-                                        for i in range(hats):
-                                            hat = car.joystick.get_hat(i)
-                                            if hat[0] == -1:
-                                                left_pressed = True
-
-                                            if hat[0] == 1:
-                                                right_pressed = True
-
-                                        if left_pressed:
-                                            car.rotate(True)
-                                        else:
-                                            if right_pressed:
-                                                car.rotate(False)
-                            else:
-                                car.decelerate()
-                        trace_frame_time("Checked Key input", frame_start)
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT: # If user clicked close.
-                                game_exit = True
-                                podium_displayed = True
+                    #Align Cars on Start Line
+                    for i in range (0,4):
+                        cars[i].x_position = track1.first_car_start_position[0]
+                        cars[i].y_position = track1.first_car_start_position[1] + i * 15
+                        cars[i].sprite_angle = track1.start_sprite_angle
+                        cars[i].angle = track1.start_sprite_angle
+                        cars[i].lap_count = 0
+                        cars[i].previous_score_increment = 0
+                    race_start = True
+                    last_lap = False
+                    race_finish = False
+                    animation_index = 0
+                    flag_waves = 0
+                    wave_up = True
+                    flag_waved = False
+                    podium_displayed = False
+                    race_start_time = pygame.time.get_ticks()
+                    for car in cars:
+                        car.current_lap_start = race_start_time
+                    pygame.time.set_timer(GREENFLAG, 40)
+                    while not podium_displayed:
+                        frame_start = pygame.time.get_ticks()
+                        trace_frame_time("Frame start", frame_start)
+                        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+                            game_exit = True
+                            podium_displayed = True
+                        else:
                             for car in cars:
+                                if car.bumping or race_finish:
+                                    car.ignore_controls = True
                                 if not car.ignore_controls:
                                     if car.is_drone:
                                         car.ai_drive(track1)
                                     else:
-                                        if event.type == pygame.KEYDOWN:
-                                            #If car if keyboard controlled
-                                            if car.joystick is None:
-                                                if event.key == car.accelerate_key:
-                                                    car.accelerate()
-                                                if event.key == car.left_key:
-                                                    car.rotate(True)
-                                                if event.key == car.right_key:
+                                        #If car if keyboard controlled
+                                        if car.joystick is None:
+                                            if pygame.key.get_pressed()[car.accelerate_key]:
+                                                car.accelerate()
+                                            else:
+                                                car.decelerate()
+
+                                            if pygame.key.get_pressed()[car.left_key]:
+                                                car.rotate(True)
+
+                                            if pygame.key.get_pressed()[car.right_key]:
+                                                car.rotate(False)
+                                        else:
+                                            buttons = car.joystick.get_numbuttons()
+                                            button_pressed = False
+                                            for i in range(buttons):
+                                                button = car.joystick.get_button(i)
+                                                if button == 1:
+                                                    button_pressed = True
+
+                                            if button_pressed:
+                                                car.accelerate()
+                                            else:
+                                                car.decelerate()
+
+                                            left_pressed = False
+                                            right_pressed = False
+                                            axes = car.joystick.get_numaxes()
+                                            for i in range(axes):
+                                                axis = car.joystick.get_axis(i)
+                                                #Ignoring any axis beyong the first 2 which should be analog stick X
+                                                #Any axis beyong that is probably an analog shoulder button
+                                                if i < 2:
+                                                    if axis < 0 and axis < -0.5:
+                                                        left_pressed = True
+                                                    if axis > 0 and axis > 0.5:
+                                                        right_pressed = True
+
+                                            hats = car.joystick.get_numhats()
+                                            for i in range(hats):
+                                                hat = car.joystick.get_hat(i)
+                                                if hat[0] == -1:
+                                                    left_pressed = True
+
+                                                if hat[0] == 1:
+                                                    right_pressed = True
+
+                                            if left_pressed:
+                                                car.rotate(True)
+                                            else:
+                                                if right_pressed:
                                                     car.rotate(False)
                                 else:
                                     car.decelerate()
-                            #Draw Green Flag at Race Start
-                            if event.type == GREENFLAG:
-                                if DEBUG_FLAG:
-                                    print('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
-                                if wave_up:
-                                    animation_index += 1
-                                else:
-                                    animation_index -= 1
-                                if animation_index >= len(green_flag_frames):
-                                    animation_index -= 1
-                                    flag_waves += 1
-                                    wave_up = False
-
-                                if animation_index < 0:
-                                    animation_index += 1
-                                    wave_up = True
-
-                                if flag_waves > 5:
-                                    race_start = False
-                                    pygame.time.set_timer(GREENFLAG, 00)
-
-                            #Draw White Flag for Last lap
-                            if event.type == WHITEFLAG:
-                                if DEBUG_FLAG:
-                                    print('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
-                                if wave_up:
-                                    animation_index += 1
-                                else:
-                                    animation_index -= 1
-                                if animation_index >= len(white_flag_frames):
-                                    animation_index -= 1
-                                    flag_waves += 1
-                                    wave_up = False
-
-                                if animation_index < 0:
-                                    animation_index += 1
-                                    wave_up = True
-
-                                if flag_waves > 5:
-                                    flag_waved = True
-                                    pygame.time.set_timer(WHITEFLAG, 00)
-
-                            #Draw Checkered Flag
-                            if event.type == CHECKEREDFLAG:
-                                if DEBUG_FLAG:
-                                    print('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
-                                if wave_up:
-                                    animation_index += 1
-                                else:
-                                    animation_index -= 1
-                                if animation_index >= len(checkered_flag_frames):
-                                    animation_index -= 1
-                                    flag_waves += 1
-                                    wave_up = False
-
-                                if animation_index < 0:
-                                    animation_index += 1
-                                    wave_up = True
-
-                                if flag_waves > 5:
-                                    flag_waved = True
-                                    pygame.time.set_timer(CHECKEREDFLAG, 00)
-
-                        #Check animation timers for crashes and bumps
-                        current_ticks = pygame.time.get_ticks()
-                        for car in cars:
-                            #Draw Dust Cloud
-                            if car.bumping and (current_ticks - car.collision_time) >= car.bump_animation_timer:
-                                if DEBUG_BUMP:
-                                    print('{} - Bump Timer triggerred'.format(current_ticks))
-                                car.display_bump_cloud()
-                                car.collision_time = current_ticks
-                            #Draw Explosion
-                            if car.crashing and (current_ticks - car.collision_time) >= car.crash_animation_timer:
-                                if DEBUG_CRASH:
-                                    print('{} - Crash Timer triggerred'.format(current_ticks))
-                                car.display_explosion()
-                                car.collision_time = current_ticks
-
-                        trace_frame_time("Managed all Events & Timers", frame_start)
-
-                        for car in cars:
-                            car.draw(track1)
-                            trace_frame_time("Drawn car", frame_start)
-                        if not race_finish and not race_start:
-                            for car in cars:
-                                race_finish = car.test_finish_line(track1)
-                                if race_finish == True:
-                                    break
-                            #Draw Checkered Flag and finish race
-                            if race_finish:
-                                animation_index = 0
-                                flag_waves = 0
-                                flag_waved = False
-                                wave_up = True
+                            trace_frame_time("Checked Key input", frame_start)
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT: # If user clicked close.
+                                    game_exit = True
+                                    podium_displayed = True
                                 for car in cars:
-                                    car.speed = 0
-                                pygame.time.set_timer(CHECKEREDFLAG, 40)
+                                    if not car.ignore_controls:
+                                        if car.is_drone:
+                                            car.ai_drive(track1)
+                                        else:
+                                            if event.type == pygame.KEYDOWN:
+                                                #If car if keyboard controlled
+                                                if car.joystick is None:
+                                                    if event.key == car.accelerate_key:
+                                                        car.accelerate()
+                                                    if event.key == car.left_key:
+                                                        car.rotate(True)
+                                                    if event.key == car.right_key:
+                                                        car.rotate(False)
+                                    else:
+                                        car.decelerate()
+                                #Draw Green Flag at Race Start
+                                if event.type == GREENFLAG:
+                                    if DEBUG_FLAG:
+                                        print('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                    if wave_up:
+                                        animation_index += 1
+                                    else:
+                                        animation_index -= 1
+                                    if animation_index >= len(green_flag_frames):
+                                        animation_index -= 1
+                                        flag_waves += 1
+                                        wave_up = False
+
+                                    if animation_index < 0:
+                                        animation_index += 1
+                                        wave_up = True
+
+                                    if flag_waves > 5:
+                                        race_start = False
+                                        pygame.time.set_timer(GREENFLAG, 00)
+
+                                #Draw White Flag for Last lap
+                                if event.type == WHITEFLAG:
+                                    if DEBUG_FLAG:
+                                        print('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                    if wave_up:
+                                        animation_index += 1
+                                    else:
+                                        animation_index -= 1
+                                    if animation_index >= len(white_flag_frames):
+                                        animation_index -= 1
+                                        flag_waves += 1
+                                        wave_up = False
+
+                                    if animation_index < 0:
+                                        animation_index += 1
+                                        wave_up = True
+
+                                    if flag_waves > 5:
+                                        flag_waved = True
+                                        pygame.time.set_timer(WHITEFLAG, 00)
+
+                                #Draw Checkered Flag
+                                if event.type == CHECKEREDFLAG:
+                                    if DEBUG_FLAG:
+                                        print('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                    if wave_up:
+                                        animation_index += 1
+                                    else:
+                                        animation_index -= 1
+                                    if animation_index >= len(checkered_flag_frames):
+                                        animation_index -= 1
+                                        flag_waves += 1
+                                        wave_up = False
+
+                                    if animation_index < 0:
+                                        animation_index += 1
+                                        wave_up = True
+
+                                    if flag_waves > 5:
+                                        flag_waved = True
+                                        pygame.time.set_timer(CHECKEREDFLAG, 00)
+
+                            #Check animation timers for crashes and bumps
+                            current_ticks = pygame.time.get_ticks()
+                            for car in cars:
+                                #Draw Dust Cloud
+                                if car.bumping and (current_ticks - car.collision_time) >= car.bump_animation_timer:
+                                    if DEBUG_BUMP:
+                                        print('{} - Bump Timer triggerred'.format(current_ticks))
+                                    car.display_bump_cloud()
+                                    car.collision_time = current_ticks
+                                #Draw Explosion
+                                if car.crashing and (current_ticks - car.collision_time) >= car.crash_animation_timer:
+                                    if DEBUG_CRASH:
+                                        print('{} - Crash Timer triggerred'.format(current_ticks))
+                                    car.display_explosion()
+                                    car.collision_time = current_ticks
+
+                            trace_frame_time("Managed all Events & Timers", frame_start)
+
+                            for car in cars:
+                                car.draw(track1)
+                                trace_frame_time("Drawn car", frame_start)
+                            if not race_finish and not race_start:
+                                for car in cars:
+                                    race_finish = car.test_finish_line(track1)
+                                    if race_finish == True:
+                                        break
+                                #Draw Checkered Flag and finish race
+                                if race_finish:
+                                    animation_index = 0
+                                    flag_waves = 0
+                                    flag_waved = False
+                                    wave_up = True
+                                    for car in cars:
+                                        car.speed = 0
+                                    pygame.time.set_timer(CHECKEREDFLAG, 40)
 
 
-                        for car in cars:
-                            #Draw White Flag for Last lap
-                            if not last_lap and car.lap_count == race_laps -1:
-                                animation_index = 0
-                                flag_waves = 0
-                                wave_up = True
-                                last_lap = True
-                                pygame.time.set_timer(WHITEFLAG, 40)
-                                break
+                            for car in cars:
+                                #Draw White Flag for Last lap
+                                if not last_lap and car.lap_count == race_laps -1:
+                                    animation_index = 0
+                                    flag_waves = 0
+                                    wave_up = True
+                                    last_lap = True
+                                    pygame.time.set_timer(WHITEFLAG, 40)
+                                    break
 
-                        trace_frame_time("Test Finish ", frame_start)
-                        game_display.blit(track1.background, (0, 0))
-                        if race_start:
-                            game_display.blit(green_flag_frames[animation_index],track1.flag_anchor)
+                            trace_frame_time("Test Finish ", frame_start)
+                            game_display.blit(track1.background, (0, 0))
+                            if race_start:
+                                game_display.blit(green_flag_frames[animation_index],track1.flag_anchor)
 
-                        if last_lap and not flag_waved:
-                            game_display.blit(white_flag_frames[animation_index],track1.flag_anchor)
+                            if last_lap and not flag_waved:
+                                game_display.blit(white_flag_frames[animation_index],track1.flag_anchor)
 
-                        if race_finish and not flag_waved:
-                            game_display.blit(checkered_flag_frames[animation_index],track1.flag_anchor)
-                        for car in cars:
-                            car.blit(track1)
-                            draw_score(car, track1)
+                            if race_finish and not flag_waved:
+                                game_display.blit(checkered_flag_frames[animation_index],track1.flag_anchor)
+                            for car in cars:
+                                car.blit(track1)
+                                draw_score(car, track1)
 
-                        pygame.display.update()
-                        trace_frame_time("Display Updated ", frame_start)
-                        frame_duration = pygame.time.get_ticks() - frame_start
-                        current_fps = round(1000/frame_duration)
-                        if DEBUG_FPS:
-                            print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
-                        clock.tick(FPS)
+                            pygame.display.update()
+                            trace_frame_time("Display Updated ", frame_start)
+                            frame_duration = pygame.time.get_ticks() - frame_start
+                            current_fps = round(1000/frame_duration)
+                            if DEBUG_FPS:
+                                print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
+                            clock.tick(FPS)
 
-                        #Display Podium Screen
-                        if race_finish and flag_waved:
-                            #Ranking Cars
-                            ranking = [-1, -1, -1, -1]
-                            #Evaluate progress
-                            for i in range(0, len(cars)):
-                                cars[i].progress_gate = track1.find_progress_gate((cars[i].x_position, cars[i].y_position))
-                                ranking[i] = i
-                            #Ranking cars
-                            sorted = False
-                            while sorted == False:
-                                switched = False
+                            #Display Podium Screen
+                            if race_finish and flag_waved:
+                                #Ranking Cars
+                                ranking = [-1, -1, -1, -1]
+                                #Evaluate progress
                                 for i in range(0, len(cars)):
-                                    if i < len(cars) - 1 :
-                                        swap_needed = False
-                                        if get_progress(cars[ranking[i]]) < get_progress(cars[ranking[i+1]]):
-                                            swap_needed = True
-                                        #Checking for cars in the same gate
-                                        if get_progress(cars[ranking[i]]) == get_progress(cars[ranking[i+1]]):
-                                            #Check distance to the next gate
-                                            #p3 = car position P&1,p2 = gate = line between closest internal and external point
-                                            next_gate = cars[ranking[i]].progress_gate + 1
-                                            if next_gate == len(track1.external_gate_points):
-                                                next_gate = 0
-                                            p1 = track1.internal_gate_points[next_gate]
-                                            p2 = track1.external_gate_points[next_gate]
-                                            p3 = (cars[ranking[i]].x_position, cars[ranking[i]].y_position)
-
-                                            p1=np.array(p1)
-                                            p2=np.array(p2)
-                                            p3=np.array(p3)
-
-                                            current_car_dist = np.cross(p2-p1,p3-p1)/np.linalg.norm(p2-p1)
-
-                                            p3 = (cars[ranking[i+1]].x_position, cars[ranking[i+1]].y_position)
-                                            p3=np.array(p3)
-
-                                            next_car_dist = np.cross(p2-p1,p3-p1)/np.linalg.norm(p2-p1)
-
-                                            #Switch order if next cars is closer to the next gate
-                                            if next_car_dist < current_car_dist:
+                                    cars[i].progress_gate = track1.find_progress_gate((cars[i].x_position, cars[i].y_position))
+                                    ranking[i] = i
+                                #Ranking cars
+                                sorted = False
+                                while sorted == False:
+                                    switched = False
+                                    for i in range(0, len(cars)):
+                                        if i < len(cars) - 1 :
+                                            swap_needed = False
+                                            if get_progress(cars[ranking[i]]) < get_progress(cars[ranking[i+1]]):
                                                 swap_needed = True
-                                        if swap_needed:
-                                            swap = ranking[i]
-                                            ranking[i] = ranking[i + 1]
-                                            ranking[i + 1] = swap
-                                            switched = True
-                                if switched == False:
-                                    sorted = True
+                                            #Checking for cars in the same gate
+                                            if get_progress(cars[ranking[i]]) == get_progress(cars[ranking[i+1]]):
+                                                #Check distance to the next gate
+                                                #p3 = car position P&1,p2 = gate = line between closest internal and external point
+                                                next_gate = cars[ranking[i]].progress_gate + 1
+                                                if next_gate == len(track1.external_gate_points):
+                                                    next_gate = 0
+                                                p1 = track1.internal_gate_points[next_gate]
+                                                p2 = track1.external_gate_points[next_gate]
+                                                p3 = (cars[ranking[i]].x_position, cars[ranking[i]].y_position)
 
-                            mechanic_index += 1
-                            if mechanic_index >= len(mechanic_frames_list):
-                                mechanic_index = 0
-                            mechanic_frames = mechanic_frames_list[mechanic_index]
+                                                p1=np.array(p1)
+                                                p2=np.array(p2)
+                                                p3=np.array(p3)
 
-                            crowd_background = pygame.Surface((display_width,120))
+                                                current_car_dist = np.cross(p2-p1,p3-p1)/np.linalg.norm(p2-p1)
 
-                            crowd_background.fill(cars[ranking[0]].main_color)
+                                                p3 = (cars[ranking[i+1]].x_position, cars[ranking[i+1]].y_position)
+                                                p3=np.array(p3)
 
-                            composed_race_podium = pygame.Surface((display_width, display_height))
-                            composed_race_podium.blit(crowd_background, (0, 0))
-                            composed_race_podium.blit(race_podium_screen, (0,0))
-                            composed_race_podium.blit(crowd_flags[0], (0,0))
-                            composed_race_podium.blit(cars[ranking[0]].first_car, (0,0))
-                            composed_race_podium.blit(cars[ranking[1]].second_car, (0,0))
-                            composed_race_podium.blit(cars[ranking[2]].third_car, (0,0))
-                            composed_race_podium.blit(cars[ranking[3]].fourth_car, (0,0))
-                            composed_race_podium.blit(mechanic_frames[0], (0,0))
+                                                next_car_dist = np.cross(p2-p1,p3-p1)/np.linalg.norm(p2-p1)
 
-                            screen_fadein(composed_race_podium)
-                            display_race_podium_screen(track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
-                            podium_displayed = True
-                            #Game Over if behind a Drone
-                            for i in range(0, len(cars)-1):
-                                if cars[ranking[i]].is_drone:
-                                    for j in range(i+1, len(cars)):
-                                        cars[ranking[j]].end_game()
-                            screen_fadeout()
+                                                #Switch order if next cars is closer to the next gate
+                                                if next_car_dist < current_car_dist:
+                                                    swap_needed = True
+                                            if swap_needed:
+                                                swap = ranking[i]
+                                                ranking[i] = ranking[i + 1]
+                                                ranking[i + 1] = swap
+                                                switched = True
+                                    if switched == False:
+                                        sorted = True
+
+                                mechanic_index += 1
+                                if mechanic_index >= len(mechanic_frames_list):
+                                    mechanic_index = 0
+                                mechanic_frames = mechanic_frames_list[mechanic_index]
+
+                                crowd_background = pygame.Surface((display_width,120))
+
+                                crowd_background.fill(cars[ranking[0]].main_color)
+
+                                composed_race_podium = pygame.Surface((display_width, display_height))
+                                composed_race_podium.blit(crowd_background, (0, 0))
+                                composed_race_podium.blit(race_podium_screen, (0,0))
+                                composed_race_podium.blit(crowd_flags[0], (0,0))
+                                composed_race_podium.blit(cars[ranking[0]].first_car, (0,0))
+                                composed_race_podium.blit(cars[ranking[1]].second_car, (0,0))
+                                composed_race_podium.blit(cars[ranking[2]].third_car, (0,0))
+                                composed_race_podium.blit(cars[ranking[3]].fourth_car, (0,0))
+                                composed_race_podium.blit(mechanic_frames[0], (0,0))
+
+                                screen_fadein(composed_race_podium)
+                                display_race_podium_screen(track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
+                                podium_displayed = True
+                                #Game Over if behind a Drone
+                                for i in range(0, len(cars)-1):
+                                    if cars[ranking[i]].is_drone:
+                                        for j in range(i+1, len(cars)):
+                                            if not cars[ranking[j]].is_drone:
+                                                cars[ranking[j]].end_game()
+                                screen_fadeout()
+                                race_finished = True
             else:
                 game_exit = True
         else:

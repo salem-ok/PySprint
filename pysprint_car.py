@@ -43,6 +43,7 @@ class Car:
 
     #Score
     score = 0
+    game_over = False
     #Track the last time score was incremented dur to progress in race (lap_count, gate_number)
     previous_score_increment = 0
 
@@ -183,6 +184,7 @@ class Car:
     average_lap = 0
 
     def start_game(self):
+        self.game_over = False
         self.is_drone = False
         self.ignore_controls = False
         self.speed_max = self.player_speed
@@ -193,6 +195,7 @@ class Car:
         self.bump_decelaration_step = self.player_bump_decelaration_step
 
     def end_game(self):
+        self.game_over = True
         self.is_drone = True
         self.ignore_controls = False
         self.speed_max = self.drone_speed
