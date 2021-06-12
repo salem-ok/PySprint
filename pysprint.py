@@ -4,6 +4,8 @@ import numpy as np
 import pysprint_car
 import pysprint_tracks
 import random
+import json
+
 
 pygame.init()
 pygame.joystick.init()
@@ -13,6 +15,12 @@ display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
 pysprint_car.display_height = 400
+
+with open(".highscores.json") as high_scores_file:
+    high_scores = json.load(high_scores_file)
+
+with open(".bestlaps.json") as best_laps_file:
+    best_laps = json.load(best_laps_file)
 
 flags = 0
 race_laps = 4
@@ -715,25 +723,34 @@ def display_high_scores():
     top12 = (60, 225)
     top21 = (245, 225)
     top30 = (425, 225)
-    score = 0
-    name = 'xxx'
     for i in range (0,3):
-        game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top3[0], top3[1] + i * 15))
+        score = high_scores["high_scores"][i]["score"]
+        name = high_scores["high_scores"][i]["name"]
+        game_display.blit(small_font.render('{:2d}'.format(i+1), False, white_color), (top3[0], top3[1] + i * 15))
         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top3[0] + 25, top3[1] + i * 15))
         game_display.blit(small_font.render(name, False, white_color), (top3[0] + 110, top3[1] + i * 15))
 
     for i in range (0,9):
-        game_display.blit(small_font.render('{}'.format(i+4), False, white_color), (top12[0], top12[1] + i * 15))
-        game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top12[0] + 25, top12[1] + i * 15))
+        score = high_scores["high_scores"][i+3]["score"]
+        name = high_scores["high_scores"][i+3]["name"]
+        if i+4<10:
+            game_display.blit(small_font.render('{:2d}'.format(i+4), False, white_color), (top12[0] + 5, top12[1] + i * 15))
+        else:
+            game_display.blit(small_font.render('{:2d}'.format(i+4), False, white_color), (top12[0], top12[1] + i * 15))
+        game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top12[0] + 30, top12[1] + i * 15))
         game_display.blit(small_font.render(name, False, white_color), (top12[0] + 110, top12[1] + i * 15))
 
     for i in range (0,9):
-        game_display.blit(small_font.render('{}'.format(i+13), False, white_color), (top21[0], top21[1] + i * 15))
+        score = high_scores["high_scores"][i+12]["score"]
+        name = high_scores["high_scores"][i+12]["name"]
+        game_display.blit(small_font.render('{:2d}'.format(i+13), False, white_color), (top21[0], top21[1] + i * 15))
         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top21[0] + 30, top21[1] + i * 15))
         game_display.blit(small_font.render(name, False, white_color), (top21[0] + 115, top21[1] + i * 15))
 
     for i in range (0,9):
-        game_display.blit(small_font.render('{}'.format(i+22), False, white_color), (top30[0], top30[1] + i * 15))
+        score = high_scores["high_scores"][i+21]["score"]
+        name = high_scores["high_scores"][i+21]["name"]
+        game_display.blit(small_font.render('{:2d}'.format(i+22), False, white_color), (top30[0], top30[1] + i * 15))
         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top30[0] + 30, top30[1] + i * 15))
         game_display.blit(small_font.render(name, False, white_color), (top30[0] + 115, top30[1] + i * 15))
 
@@ -762,19 +779,21 @@ def display_lap_records():
     screen_fadein(lap_records_screen)
     top4 = (55, 270)
     top8 = (335, 270)
-    time = 0.0
-    name = 'xxx'
     for i in range(0,4):
+        time = best_laps["best_laps"][i]["time"]
+        name = best_laps["best_laps"][i]["name"]
         game_display.blit(small_font.render('Track', False, white_color), (top4[0], top4[1] + i * 15))
         game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top4[0] + 70, top4[1] + i * 15))
-        game_display.blit(small_font.render('{}'.format(time), False, white_color), (top4[0] + 100, top4[1] + i * 15))
-        game_display.blit(small_font.render('secs    {}'.format(name), False, white_color), (top4[0] + 145, top4[1] + i * 15))
+        game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top4[0] + 95, top4[1] + i * 15))
+        game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top4[0] + 150, top4[1] + i * 15))
 
     for i in range(0,4):
+        time = best_laps["best_laps"][i+4]["time"]
+        name = best_laps["best_laps"][i+4]["name"]
         game_display.blit(small_font.render('Track', False, white_color), (top8[0], top8[1] + i * 15))
-        game_display.blit(small_font.render('{}'.format(i+4), False, white_color), (top8[0] + 70, top8[1] + i * 15))
-        game_display.blit(small_font.render('{}'.format(time), False, white_color), (top8[0] + 100, top8[1] + i * 15))
-        game_display.blit(small_font.render('secs    {}'.format(name), False, white_color), (top8[0] + 145, top8[1] + i * 15))
+        game_display.blit(small_font.render('{}'.format(i+5), False, white_color), (top8[0] + 70, top8[1] + i * 15))
+        game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top8[0] + 95, top8[1] + i * 15))
+        game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top8[0] + 150, top8[1] + i * 15))
 
     pygame.display.update()
     screen_start_time = pygame.time.get_ticks()
@@ -809,14 +828,36 @@ def print_prepare_to_race(top_left, color):
     game_display.blit(shadow_race_surf, (top_left[0] + (prepare_surf.get_width() - race_surf.get_width())/2, top_left[1] + 50))
     game_display.blit(race_surf, (top_left[0] + (prepare_surf.get_width() - race_surf.get_width())/2, top_left[1] + 50))
 
+def print_game_over(top_left, color):
+    prepare_surf = big_font.render("GAME", False, color)
+    shadow_prepare_surf = big_shadow_font.render("GAME", False, black_color)
+    game_display.blit(shadow_prepare_surf, top_left)
+    game_display.blit(prepare_surf, top_left)
+    to_surf = big_font.render("OVER", False, color)
+    shadow_to_surf = big_shadow_font.render("OVER", False, black_color)
+    game_display.blit(shadow_to_surf, ((top_left[0] + (prepare_surf.get_width() - to_surf.get_width())/2), top_left[1] + 25))
+    game_display.blit(to_surf, ((top_left[0] + (prepare_surf.get_width() - to_surf.get_width())/2), top_left[1] + 25))
+
+def print_enter_initials(car: pysprint_car.Car):
+    game_display.blit(small_font.render("ENTER", False, car.main_color), car.start_screen_text_position)
+    game_display.blit(small_font.render("INITIALS", False, car.main_color), (car.start_screen_text_position[0] - 28, car.start_screen_text_position[1] + 20))
+    if car.enter_high_score:
+        game_display.blit(small_font.render("POSITION {}".format(car.high_score_rank), False, car.main_color), (car.start_screen_text_position[0] - 32, car.start_screen_text_position[1] + 40))
+    else:
+        game_display.blit(small_font.render("BEST LAP", False, car.main_color), (car.start_screen_text_position[0] - 24, car.start_screen_text_position[1] + 40))
+    initials_surf = big_font.render(car.high_score_name, False, car.main_color)
+    shadow_initials_surf = big_shadow_font.render(car.high_score_name, False, black_color)
+    game_display.blit(shadow_initials_surf, (car.start_screen_text_position[0] - 10, car.start_screen_text_position[1] + 60))
+    game_display.blit(initials_surf, (car.start_screen_text_position[0] - 10, car.start_screen_text_position[1] + 60))
+
 
 def print_press_acceltoplay(top_left, color, seconds, game_over):
     game_display.blit(small_font.render("PRESS", False, color), top_left)
     game_display.blit(small_font.render("ACCELERATE", False, color), (top_left[0] - 28, top_left[1] + 20))
     if game_over:
-        game_display.blit(small_font.render("TO CONTINUE".format(seconds), False, color), (top_left[0] - 32, top_left[1] + 40))
+        game_display.blit(small_font.render("TO CONTINUE", False, color), (top_left[0] - 32, top_left[1] + 40))
     else:
-        game_display.blit(small_font.render("TO PLAY".format(seconds), False, color), (top_left[0] - 10, top_left[1] + 40))
+        game_display.blit(small_font.render("TO PLAY", False, color), (top_left[0] - 10, top_left[1] + 40))
     game_display.blit(small_font.render("{}".format(seconds), False, color), (top_left[0] + 24, top_left[1] + 60))
 
 def print_start_race_text(seconds):
@@ -828,6 +869,17 @@ def print_start_race_text(seconds):
     skip_surf = small_font.render("PRESS SPACE TO SKIP", False, white_color)
     game_display.blit(skip_surf, ((600 - skip_surf.get_width())/2, 385))
 
+def print_game_over_text():
+    for car in cars:
+        if car.enter_best_lap or car.enter_high_score:
+            print_enter_initials(car)
+        else:
+            if car.is_drone and car.game_over:
+                print_game_over(car.start_screen_text_position, car.main_color)
+            else:
+                if car.is_drone == False:
+                    print_prepare_to_race(car.start_screen_text_position, car.main_color)
+
 def display_start_race_screen():
     seconds = 5
     screen_exit = False
@@ -836,9 +888,39 @@ def display_start_race_screen():
     #Add Green car
     screen_fadein(start_race_screen)
     print_start_race_text(seconds)
+    game_over_screen = False
     for car in cars:
         game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
         car.prepare_to_race_counter = -1
+        if car.game_over:
+            game_over_screen = True
+            if car.score > high_scores["high_scores"][len(high_scores["high_scores"])-1]["score"]:
+                car.enter_high_score = True
+                car.high_score_name = "A"
+                high_scores["high_scores"][len(high_scores["high_scores"])-1]["score"] = car.score
+                high_scores["high_scores"][len(high_scores["high_scores"])-1]["name"] = car.high_score_name
+                rank_found = False
+                rank = len(high_scores["high_scores"])-1
+                while rank_found == False:
+                    if high_scores["high_scores"][rank-1]["score"]> car.score:
+                        rank_found = True
+                    else:
+                        #Swap score table position
+                        high_scores["high_scores"][rank]["score"] = high_scores["high_scores"][rank-1]["score"]
+                        high_scores["high_scores"][rank-1]["score"] = car.score
+                        high_scores["high_scores"][rank]["name"] = high_scores["high_scores"][rank-1]["name"]
+                        high_scores["high_scores"][rank-1]["name"] = car.high_score_name
+                        rank -= 1
+                        if rank==0:
+                            rank_found = True
+                            rank = 1
+
+                car.high_score_rank = rank
+            if car.best_lap > 0 and car.best_lap/1000 < best_laps["best_laps"][0]["time"]:
+                car.enter_best_lap = True
+                car.high_score_name = "A"
+                best_laps["best_laps"][0]["time"] = round(car.best_lap/1000,1)
+                best_laps["best_laps"][0]["name"] = car.high_score_name
 
     pygame.display.update()
     countdown = pygame.time.get_ticks()
@@ -882,6 +964,101 @@ def display_start_race_screen():
             accelerate_pressed(key_pressed)
 
         clock.tick(15)
+
+    if game_over_screen:
+        screen_exit = False
+        countdown = pygame.time.get_ticks()
+        while not screen_exit:
+            game_display.blit(start_race_screen, (0, 0))
+            print_game_over_text()
+            engine_idle_counter +=1
+            if engine_idle_counter > 2:
+                engine_idle_counter = 0
+            time = pygame.time.get_ticks()
+            for car in cars:
+                game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
+                if car.enter_best_lap or car.enter_high_score:
+                    if car.current_initial <= 2:
+                        #ignore countdown
+                        countdown = time
+                        #If car if keyboard controlled
+                        if car.joystick is None:
+                            if pygame.key.get_pressed()[car.left_key]:
+                                car.move_initial_character(True)
+
+                            if pygame.key.get_pressed()[car.right_key]:
+                                car.move_initial_character(False)
+                        else:
+                            buttons = car.joystick.get_numbuttons()
+                            button_pressed = False
+                            for i in range(buttons):
+                                button = car.joystick.get_button(i)
+                                if button == 1:
+                                    button_pressed = True
+
+                            if button_pressed:
+                                car.validate_initial_character()
+
+                            left_pressed = False
+                            right_pressed = False
+                            axes = car.joystick.get_numaxes()
+                            for i in range(axes):
+                                axis = car.joystick.get_axis(i)
+                                #Ignoring any axis beyong the first 2 which should be analog stick X
+                                #Any axis beyong that is probably an analog shoulder button
+                                if i < 2:
+                                    if axis < 0 and axis < -0.5:
+                                        left_pressed = True
+                                    if axis > 0 and axis > 0.5:
+                                        right_pressed = True
+
+                            hats = car.joystick.get_numhats()
+                            for i in range(hats):
+                                hat = car.joystick.get_hat(i)
+                                if hat[0] == -1:
+                                    left_pressed = True
+
+                                if hat[0] == 1:
+                                    right_pressed = True
+
+                            if left_pressed:
+                                car.move_initial_character(True)
+                            else:
+                                if right_pressed:
+                                    car.move_initial_character(False)
+            for event in pygame.event.get():
+                for car in cars:
+                    if car.enter_best_lap or car.enter_high_score:
+                        if car.current_initial <= 2:
+                            if event.type == pygame.KEYDOWN:
+                                #If car if keyboard controlled
+                                if car.joystick is None:
+                                    if event.key == car.accelerate_key:
+                                        car.validate_initial_character()
+                                    if event.key == car.left_key:
+                                        car.move_initial_character(True)
+                                    if event.key == car.right_key:
+                                        car.move_initial_character(False)
+
+            pygame.display.update()
+            clock.tick(8)
+            if time - countdown >= 2000:
+                screen_exit = True
+                for car in cars:
+                    if car.game_over:
+                        if car.enter_high_score:
+                            high_scores["high_scores"][car.high_score_rank]["name"] = car.high_score_name
+                        if car.enter_best_lap:
+                            best_laps["best_laps"][0]["name"] = car.high_score_name
+                        car.reset_game_over()
+
+
+        with open(".highscores.json","w") as high_scores_file:
+            json.dump(high_scores, high_scores_file)
+
+        with open(".bestlaps.json","w") as best_laps_file:
+            json.dump(best_laps, best_laps_file)
+
     screen_fadeout()
     return pygame.K_SPACE
 

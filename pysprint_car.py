@@ -1,10 +1,12 @@
 #pysprint_car.py
 from typing import DefaultDict
-from numpy import angle
+from numpy import angle, select
 import pygame
 from pygame import Surface, gfxdraw
 import math
 import random
+
+from pygame.key import name
 import pysprint_tracks
 
 game_display = None
@@ -44,7 +46,16 @@ class Car:
     #Score
     score = 0
     game_over = False
-    #Track the last time score was incremented dur to progress in race (lap_count, gate_number)
+    enter_high_score = False
+    enter_best_lap = False
+    lap_times = []
+    best_lap = 0
+    average_lap = 0
+    high_score_rank = 0
+    high_score_name = ""
+    current_initial = 0
+
+    #Track the last time score was incremented due to progress in race (lap_count, gate_number)
     previous_score_increment = 0
 
     #Position & Vector
@@ -125,7 +136,7 @@ class Car:
     drone_deceleration_step = 0.4#0.2
     drone_bump_decelaration_step = 0.3
     drone_bump_speed = 2
-    drone_speed = 4#6
+    drone_speed = 8#6
     turning_angle_threshold = 20
     gate_step = 2
 
@@ -178,13 +189,52 @@ class Car:
     passed_finish_line_wrong_way = False
     lap_count = 0
     current_lap_start = 0
-    lap_times = []
+    def move_initial_character(self, left):
+        current_code = ord(self.high_score_name[self.current_initial])
+        if left:
+            if (current_code > 48 and current_code <= 57) or (current_code > 65 and current_code <= 90):
+                current_code -= 1
+            else:
+                if current_code == 48:
+                    current_code = 90
+                else:
+                    if current_code == 65:
+                        current_code = 57
+        else:
+            if (current_code >= 48 and current_code < 57) or (current_code >= 65 and current_code < 90):
+                current_code += 1
+            else:
+                if current_code == 90:
+                    current_code = 48
+                else:
+                    if current_code == 57:
+                        current_code = 65
+        name_list = list(self.high_score_name)
+        name_list[self.current_initial] = chr(current_code)
+        self.high_score_name = "".join(name_list)
 
-    best_lap = 0
-    average_lap = 0
+    def validate_initial_character(self):
+        self.current_initial += 1
+        if self.current_initial <=2:
+            if len(self.high_score_name)<=self.current_initial:
+                name_list = list(self.high_score_name)
+                name_list.append("A")
+                self.high_score_name = "".join(name_list)
+
+    def reset_game_over(self):
+        self.game_over = False
+        self.enter_high_score = False
+        self.enter_best_lap = False
+        self.lap_times = []
+        self.best_lap = 0
+        self.average_lap = 0
+        self.score = 0
+        self.high_score_rank = 0
+        self.high_score_name = ""
 
     def start_game(self):
-        self.game_over = False
+        if self.game_over==False:
+            self.reset_game_over()
         self.is_drone = False
         self.ignore_controls = False
         self.speed_max = self.player_speed
