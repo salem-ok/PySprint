@@ -108,7 +108,7 @@ class Car:
 
     #30FPS Default Settings
     player_rotation_step = .26
-    player_acceleration_step = 0.13
+    player_acceleration_step = 0.18
     player_deceleration_step = 0.2
     player_bump_decelaration_step = 0.3
     player__bump_speed = 4
@@ -136,7 +136,7 @@ class Car:
     drone_deceleration_step = 0.4#0.2
     drone_bump_decelaration_step = 0.3
     drone_bump_speed = 2
-    drone_speed = 8#6
+    drone_speed = 6#6
     turning_angle_threshold = 20
     gate_step = 2
 

@@ -913,9 +913,8 @@ def display_start_race_screen():
                         rank -= 1
                         if rank==0:
                             rank_found = True
-                            rank = 1
 
-                car.high_score_rank = rank
+                car.high_score_rank = rank+1
             if car.best_lap > 0 and car.best_lap/1000 < best_laps["best_laps"][0]["time"]:
                 car.enter_best_lap = True
                 car.high_score_name = "A"
@@ -975,79 +974,79 @@ def display_start_race_screen():
             if engine_idle_counter > 2:
                 engine_idle_counter = 0
             time = pygame.time.get_ticks()
-            for car in cars:
-                game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
-                if car.enter_best_lap or car.enter_high_score:
-                    if car.current_initial <= 2:
-                        #ignore countdown
-                        countdown = time
-                        #If car if keyboard controlled
-                        if car.joystick is None:
-                            if pygame.key.get_pressed()[car.left_key]:
-                                car.move_initial_character(True)
-
-                            if pygame.key.get_pressed()[car.right_key]:
-                                car.move_initial_character(False)
-                        else:
-                            buttons = car.joystick.get_numbuttons()
-                            button_pressed = False
-                            for i in range(buttons):
-                                button = car.joystick.get_button(i)
-                                if button == 1:
-                                    button_pressed = True
-
-                            if button_pressed:
-                                car.validate_initial_character()
-
-                            left_pressed = False
-                            right_pressed = False
-                            axes = car.joystick.get_numaxes()
-                            for i in range(axes):
-                                axis = car.joystick.get_axis(i)
-                                #Ignoring any axis beyong the first 2 which should be analog stick X
-                                #Any axis beyong that is probably an analog shoulder button
-                                if i < 2:
-                                    if axis < 0 and axis < -0.5:
-                                        left_pressed = True
-                                    if axis > 0 and axis > 0.5:
-                                        right_pressed = True
-
-                            hats = car.joystick.get_numhats()
-                            for i in range(hats):
-                                hat = car.joystick.get_hat(i)
-                                if hat[0] == -1:
-                                    left_pressed = True
-
-                                if hat[0] == 1:
-                                    right_pressed = True
-
-                            if left_pressed:
-                                car.move_initial_character(True)
-                            else:
-                                if right_pressed:
-                                    car.move_initial_character(False)
-            for event in pygame.event.get():
+            if engine_idle_counter == 0:
                 for car in cars:
+                    game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
                     if car.enter_best_lap or car.enter_high_score:
                         if car.current_initial <= 2:
-                            if event.type == pygame.KEYDOWN:
-                                #If car if keyboard controlled
-                                if car.joystick is None:
-                                    if event.key == car.accelerate_key:
-                                        car.validate_initial_character()
-                                    if event.key == car.left_key:
-                                        car.move_initial_character(True)
-                                    if event.key == car.right_key:
-                                        car.move_initial_character(False)
+                            #ignore countdown
+                            countdown = time
+                            #If car if keyboard controlled
+                            if car.joystick is None:
+                                if pygame.key.get_pressed()[car.left_key]:
+                                    car.move_initial_character(True)
 
+                                if pygame.key.get_pressed()[car.right_key]:
+                                    car.move_initial_character(False)
+                            else:
+                                buttons = car.joystick.get_numbuttons()
+                                button_pressed = False
+                                for i in range(buttons):
+                                    button = car.joystick.get_button(i)
+                                    if button == 1:
+                                        button_pressed = True
+
+                                if button_pressed:
+                                    car.validate_initial_character()
+
+                                left_pressed = False
+                                right_pressed = False
+                                axes = car.joystick.get_numaxes()
+                                for i in range(axes):
+                                    axis = car.joystick.get_axis(i)
+                                    #Ignoring any axis beyong the first 2 which should be analog stick X
+                                    #Any axis beyong that is probably an analog shoulder button
+                                    if i < 2:
+                                        if axis < 0 and axis < -0.5:
+                                            left_pressed = True
+                                        if axis > 0 and axis > 0.5:
+                                            right_pressed = True
+
+                                hats = car.joystick.get_numhats()
+                                for i in range(hats):
+                                    hat = car.joystick.get_hat(i)
+                                    if hat[0] == -1:
+                                        left_pressed = True
+
+                                    if hat[0] == 1:
+                                        right_pressed = True
+
+                                if left_pressed:
+                                    car.move_initial_character(True)
+                                else:
+                                    if right_pressed:
+                                        car.move_initial_character(False)
+                for event in pygame.event.get():
+                    for car in cars:
+                        if car.enter_best_lap or car.enter_high_score:
+                            if car.current_initial <= 2:
+                                if event.type == pygame.KEYDOWN:
+                                    #If car if keyboard controlled
+                                    if car.joystick is None:
+                                        if event.key == car.accelerate_key:
+                                            car.validate_initial_character()
+                                        if event.key == car.left_key:
+                                            car.move_initial_character(True)
+                                        if event.key == car.right_key:
+                                            car.move_initial_character(False)
             pygame.display.update()
-            clock.tick(8)
+            clock.tick(15)
             if time - countdown >= 2000:
                 screen_exit = True
                 for car in cars:
                     if car.game_over:
                         if car.enter_high_score:
-                            high_scores["high_scores"][car.high_score_rank]["name"] = car.high_score_name
+                            high_scores["high_scores"][car.high_score_rank-1]["name"] = car.high_score_name
                         if car.enter_best_lap:
                             best_laps["best_laps"][0]["name"] = car.high_score_name
                         car.reset_game_over()
