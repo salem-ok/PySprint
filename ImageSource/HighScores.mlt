@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mlt LC_NUMERIC="C" version="6.17.0" title="Shotcut version 19.10.20" producer="main_bin">
+  <profile description="automatic" width="638" height="428" progressive="1" sample_aspect_num="1" sample_aspect_den="1" display_aspect_num="638" display_aspect_den="428" frame_rate_num="60" frame_rate_den="1" colorspace="601"/>
+  <playlist id="main_bin">
+    <property name="xml_retain">1</property>
+  </playlist>
+  <producer id="black" in="00:00:00.000" out="00:00:38.400">
+    <property name="length">00:00:38.417</property>
+    <property name="eof">pause</property>
+    <property name="resource">0</property>
+    <property name="aspect_ratio">1</property>
+    <property name="mlt_service">color</property>
+    <property name="mlt_image_format">rgb24a</property>
+    <property name="set.test_audio">0</property>
+  </producer>
+  <playlist id="background">
+    <entry producer="black" in="00:00:00.000" out="00:00:38.400"/>
+  </playlist>
+  <producer id="producer0" title="Anonymous Submission" in="00:00:00.000" out="00:00:21.650">
+    <property name="length">00:00:21.667</property>
+    <property name="eof">pause</property>
+    <property name="resource">2:/home/duderino/Videos/Kooha-2021-06-13-12:02:29.mkv</property>
+    <property name="aspect_ratio">1</property>
+    <property name="seekable">1</property>
+    <property name="audio_index">1</property>
+    <property name="video_index">0</property>
+    <property name="mute_on_pause">1</property>
+    <property name="warp_speed">2</property>
+    <property name="warp_resource">/home/duderino/Videos/Kooha-2021-06-13-12:02:29.mkv</property>
+    <property name="mlt_service">timewarp</property>
+    <property name="shotcut:producer">avformat</property>
+    <property name="video_delay">0</property>
+    <property name="shotcut:hash">beff3eed3f23744dd121fc62f8c5d3a4</property>
+    <property name="shotcut:skipConvert">1</property>
+    <property name="global_feed">1</property>
+    <property name="xml">was here</property>
+    <property name="shotcut:caption">Kooha-2021-06-13-12:02:29.mkv (2x)</property>
+  </producer>
+  <producer id="producer1" title="Anonymous Submission" in="00:00:00.000" out="00:00:43.317">
+    <property name="length">00:00:43.333</property>
+    <property name="eof">pause</property>
+    <property name="resource">/home/duderino/Videos/Kooha-2021-06-13-12:02:29.mkv</property>
+    <property name="seekable">1</property>
+    <property name="aspect_ratio">1</property>
+    <property name="audio_index">1</property>
+    <property name="video_index">0</property>
+    <property name="mute_on_pause">1</property>
+    <property name="mlt_service">avformat</property>
+    <property name="video_delay">0</property>
+    <property name="shotcut:hash">beff3eed3f23744dd121fc62f8c5d3a4</property>
+    <property name="shotcut:skipConvert">1</property>
+    <property name="global_feed">1</property>
+    <property name="xml">was here</property>
+    <property name="shotcut:caption">Kooha-2021-06-13-12:02:29.mkv</property>
+  </producer>
+  <producer id="producer2" title="Anonymous Submission" in="00:00:00.000" out="00:00:13.217">
+    <property name="length">00:00:13.233</property>
+    <property name="eof">pause</property>
+    <property name="resource">2:/home/duderino/Videos/Kooha-2021-06-13-12:06:47.mkv</property>
+    <property name="aspect_ratio">1</property>
+    <property name="seekable">1</property>
+    <property name="audio_index">1</property>
+    <property name="video_index">0</property>
+    <property name="mute_on_pause">1</property>
+    <property name="warp_speed">2</property>
+    <property name="warp_resource">/home/duderino/Videos/Kooha-2021-06-13-12:06:47.mkv</property>
+    <property name="mlt_service">timewarp</property>
+    <property name="shotcut:producer">avformat</property>
+    <property name="video_delay">0</property>
+    <property name="shotcut:hash">7f56487c6d5de0b5df6e78bd0fdc3149</property>
+    <property name="shotcut:skipConvert">1</property>
+    <property name="global_feed">1</property>
+    <property name="xml">was here</property>
+    <property name="shotcut:caption">Kooha-2021-06-13-12:06:47.mkv (2x)</property>
+  </producer>
+  <producer id="producer3" title="Anonymous Submission" in="00:00:00.000" out="00:00:26.433">
+    <property name="length">00:00:26.450</property>
+    <property name="eof">pause</property>
+    <property name="resource">/home/duderino/Videos/Kooha-2021-06-13-12:06:47.mkv</property>
+    <property name="audio_index">1</property>
+    <property name="video_index">0</property>
+    <property name="mute_on_pause">0</property>
+    <property name="mlt_service">avformat-novalidate</property>
+    <property name="seekable">1</property>
+    <property name="aspect_ratio">1</property>
+    <property name="creation_time">2021-06-13T11:07:19</property>
+    <property name="shotcut:hash">7f56487c6d5de0b5df6e78bd0fdc3149</property>
+    <property name="ignore_points">0</property>
+    <property name="shotcut:caption">Kooha-2021-06-13-12:06:47.mkv</property>
+    <property name="shotcut:skipConvert">1</property>
+    <property name="global_feed">1</property>
+    <property name="xml">was here</property>
+  </producer>
+  <playlist id="playlist0">
+    <property name="shotcut:video">1</property>
+    <property name="shotcut:name">V1</property>
+    <blank length="00:00:00.067"/>
+    <entry producer="producer0" in="00:00:03.533" out="00:00:16.717"/>
+    <entry producer="producer1" in="00:00:33.467" out="00:00:43.300"/>
+    <entry producer="producer2" in="00:00:02.467" out="00:00:08.683"/>
+    <entry producer="producer3" in="00:00:17.383" out="00:00:26.433"/>
+  </playlist>
+  <playlist id="playlist1">
+    <property name="shotcut:video">1</property>
+    <property name="shotcut:name">V2</property>
+    <blank length="00:00:00.017"/>
+  </playlist>
+  <tractor id="tractor0" title="Shotcut version 19.10.20" global_feed="1" in="00:00:00.000" out="00:00:38.400">
+    <property name="shotcut">1</property>
+    <property name="shotcut:projectAudioChannels">2</property>
+    <property name="shotcut:projectFolder">0</property>
+    <property name="shotcut:scaleFactor">0.588704</property>
+    <track producer="background"/>
+    <track producer="playlist0"/>
+    <track producer="playlist1"/>
+    <transition id="transition0">
+      <property name="a_track">0</property>
+      <property name="b_track">1</property>
+      <property name="mlt_service">mix</property>
+      <property name="always_active">1</property>
+      <property name="sum">1</property>
+    </transition>
+    <transition id="transition1">
+      <property name="a_track">0</property>
+      <property name="b_track">1</property>
+      <property name="version">0.9</property>
+      <property name="mlt_service">frei0r.cairoblend</property>
+      <property name="disable">1</property>
+    </transition>
+    <transition id="transition2">
+      <property name="a_track">0</property>
+      <property name="b_track">2</property>
+      <property name="mlt_service">mix</property>
+      <property name="always_active">1</property>
+      <property name="sum">1</property>
+    </transition>
+    <transition id="transition3">
+      <property name="a_track">1</property>
+      <property name="b_track">2</property>
+      <property name="version">0.9</property>
+      <property name="mlt_service">frei0r.cairoblend</property>
+      <property name="disable">0</property>
+    </transition>
+  </tractor>
+</mlt>

@@ -95,7 +95,6 @@ class Car:
     ideal_vector = None
     next_mid_point = None
     next_gate = None
-    u_turning = False
 
     #Mechanics
     #Car Controls
@@ -131,14 +130,14 @@ class Car:
     drone_personality_modifiers = [0.9,1,1.1]
     drone__invert_personality_modifiers = [1.1,1,0.9]
     drone_personality = 1
-    drone_rotation_step = 0.4#.26
-    drone_acceleration_step = 0.18#0.13
-    drone_deceleration_step = 0.4#0.2
-    drone_bump_decelaration_step = 0.3
-    drone_bump_speed = 2
+    drone_rotation_step = 0.4#.4
+    drone_acceleration_step = 0.18#0.18
+    drone_deceleration_step = 0.4#0.4
+    drone_bump_decelaration_step = 0.3#0.3
+    drone_bump_speed = 2#2
     drone_speed = 6#6
     turning_angle_threshold = 20
-    gate_step = 2
+    gate_step = 1#2
 
 
     #60FPS Settings - Calibrated to an unmodified car
@@ -189,6 +188,27 @@ class Car:
     passed_finish_line_wrong_way = False
     lap_count = 0
     current_lap_start = 0
+    drone_repeat_bumping_counter = 0
+    drone_repeat_bumping_timer = 0
+
+    def set_bumping(self, is_bumping):
+        if self.is_drone:
+            if is_bumping and not self.bumping and self.drone_repeat_bumping_counter==0 and self.drone_repeat_bumping_timer ==0:
+                #First time the car is set to bumping
+                self.drone_repeat_bumping_counter += 1
+                self.drone_repeat_bumping_timer = pygame.time.get_ticks()
+            else:
+                if is_bumping and self.drone_repeat_bumping_counter>0:
+                    #Subsequent Bumps - reset counters if more than  a second apart
+                    if (pygame.time.get_ticks() - self.drone_repeat_bumping_timer) >= 1000:
+                        self.drone_repeat_bumping_counter = 0
+                        self.drone_repeat_bumping_timer = 0
+                    else:
+                        self.drone_repeat_bumping_counter += 1
+
+        self.bumping = is_bumping
+
+
     def move_initial_character(self, left):
         current_code = ord(self.high_score_name[self.current_initial])
         if left:
@@ -505,6 +525,8 @@ class Car:
         #Test if thr car is still collidign and keep moving backwards until not the case
         if intersect_point:
             #No movement as we're stuck
+            if DEBUG_COLLISION:
+                print('Stuck at ({},{})'.format(self.x_position, self.y_position))
             self.y_vector = 0
             self.x_vector = 0
 
@@ -563,7 +585,7 @@ class Car:
 
 
     def init_bump_loop(self, track, intersect_point):
-        self.bumping = True
+        self.set_bumping(True)
         self.speed = self.bump_speed
         #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
         #Lookup in the map for the closest intersection point and the polygon side that is intersecting
@@ -610,7 +632,7 @@ class Car:
         self.bumping_horizontal = False
         self.bumping_vertical = False
         self.bumping_vector_initialized = False
-        self.bumping = False
+        self.set_bumping(False)
         end_time = pygame.time.get_ticks()
         if DEBUG_BUMP:
             print('{} - Bump Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
@@ -711,34 +733,38 @@ class Car:
             self.rotating = False
             self.update_position(track)
 
-    def blit(self, track):
-        #Car is not visible durign explosion
-        if not self.crashing:
-            game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+    def blit(self, track, overlay_blitted):
+        #Cars are blited under teh overlay to be hidden but not dust clouds, explisions and the helicopter
+        if not overlay_blitted:
+            #Car is not visible durign explosion
+            if not self.crashing:
+                game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
 
-        if DEBUG_AI:
-            if self.is_drone:
-                gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.x_position) + round(self.x_vector)*10, round(self.y_position) + round(self.y_vector)*10, self.main_color)
-                gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.ideal_vector[0] + self.x_position), round(self.y_position + self.ideal_vector[1]), (255,255,255))
-                gfxdraw.circle(game_display, round(self.next_mid_point[0]), round(self.next_mid_point[1]), 5, self.main_color)
-        #Blit Dust Cloud if Bumping
-        if self.bumping:
-            if DEBUG_BUMP:
-                print('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
-            if self.animation_index <= 4:
-                game_display.blit(dust_cloud_frames[self.animation_index], (self.x_intersect, self.y_intersect))
-        #Blit Explosion & Helicopter
-        if self.crashing:
-            if self.animation_index <= 4:
-                game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
-            if self.vertical_helicopter:
-                if self.helicopter_y <= self.y_position:
-                    game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-                game_display.blit(self.vertical_helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
-            else:
-                if self.helicopter_x >= self.x_position:
-                    game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-                game_display.blit(self.helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
+            if DEBUG_AI:
+                if self.is_drone:
+                    gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.x_position) + round(self.x_vector)*10, round(self.y_position) + round(self.y_vector)*10, self.main_color)
+                    gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.ideal_vector[0] + self.x_position), round(self.y_position + self.ideal_vector[1]), (255,255,255))
+                    gfxdraw.circle(game_display, round(self.next_mid_point[0]), round(self.next_mid_point[1]), 5, self.main_color)
+
+        if overlay_blitted:
+            #Blit Dust Cloud if Bumping
+            if self.bumping:
+                if DEBUG_BUMP:
+                    print('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
+                if self.animation_index <= 4:
+                    game_display.blit(dust_cloud_frames[self.animation_index], (self.x_intersect, self.y_intersect))
+            #Blit Explosion & Helicopter
+            if self.crashing:
+                if self.animation_index <= 4:
+                    game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
+                if self.vertical_helicopter:
+                    if self.helicopter_y <= self.y_position:
+                        game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+                    game_display.blit(self.vertical_helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
+                else:
+                    if self.helicopter_x >= self.x_position:
+                        game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+                    game_display.blit(self.helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
 
 
     def display_bump_cloud(self):
@@ -792,16 +818,19 @@ class Car:
             if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - (actual_gate_step+1):
                 self.next_gate+=actual_gate_step
             else:
-                self.next_gate = new_next_gate
+                #Eliminate edge cases where the new next gate is behind the previous next next gate
+                if new_next_gate >= self.next_gate:
+                    self.next_gate = new_next_gate
 
         if self.next_gate >= len(track.external_gate_points):
             self.next_gate -= len(track.external_gate_points)
 
         #Midpoint modifier: Normal personality aime for the exact middle of the gate, prudent and aggressive symetrically outcentered
-        midppint_modifier = 2 * (1 + (self.drone_personality_modifiers[self.drone_personality]-1) / 4)
+        midpOint_modifier = 2 * (1 + (self.drone_personality_modifiers[self.drone_personality]-1) / 8)
 
-        self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / midppint_modifier, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / midppint_modifier)
+        self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / midpOint_modifier, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / midpOint_modifier)
         self.ideal_vector = (self.next_mid_point[0] - self.x_position, self.next_mid_point[1] - self.y_position)
+
     def get_cosine(self):
         #cosine method
         dotProduct = self.ideal_vector[0] * self.x_vector + self.ideal_vector[1] * self.y_vector
@@ -850,9 +879,10 @@ class Car:
             else:
                 self.decelerate()
         else:
-            if cosine_angle > (180-self.turning_angle_threshold):
+            # If Vectr angle is too wide review te next gate
+            if (cosine_angle > (180-self.turning_angle_threshold)):
                 i = 1
-                while abs(angle) < self.turning_angle_threshold*1.5:
+                while (abs(angle) < self.turning_angle_threshold*1.5) and (i<5):
                     #Check direction for Next Gate until we get a clear direction to turn to
                     if DEBUG_AI:
                         print ('{} - 180° - Checking {} Gate(s) further'.format(self.color_text, i))
@@ -861,6 +891,18 @@ class Car:
                     cosine_angle =self.get_cosine()
                     i+=1
                     self.rotate(angle > 0)
+                #Search for next gates failes, try previous gates
+                if i>=5:
+                    i = 1
+                    while (abs(angle) < self.turning_angle_threshold*1.5) and (i<5):
+                        #Check direction for Next Gate until we get a clear direction to turn to
+                        if DEBUG_AI:
+                            print ('{} - 180° - Checking {} Gate(s) backwards'.format(self.color_text, i))
+                        self.calculate_ideal_vector(track, self.gate_step - i)
+                        angle = self.get_sine()
+                        cosine_angle =self.get_cosine()
+                        i+=1
+                        self.rotate(angle > 0)
                 self.decelerate()
             else:
                 self.accelerate()

@@ -1,5 +1,6 @@
 import pygame
 import pygame.display
+from pygame import gfxdraw
 import numpy as np
 import pysprint_car
 import pysprint_tracks
@@ -37,6 +38,8 @@ clock = pygame.time.Clock()
 pysprint_car.game_display = game_display
 
 cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car()]
+
+tracks = []
 
 #Scale screen
 #flags = pygame.SCALED
@@ -1518,6 +1521,60 @@ def activate_cars():
             cars[3].fourth_car = fourth_car_red
     return len(nb_drones)
 
+def initialize_tracks():
+        track1 = pysprint_tracks.Track()
+
+        track1.background_filename = pysprint_tracks.track1_background_filename
+        track1.track_mask_filename = pysprint_tracks.track1_mask_filename
+        track1.overlay_filename =  pysprint_tracks.track1_overlay_filename
+        track1.background = pygame.image.load(track1.background_filename)
+        track1.track_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
+        track1.track_overlay = pygame.image.load(track1.overlay_filename).convert_alpha()
+        track1.first_car_start_position = pysprint_tracks.track1_first_car_start_position
+        track1.flag_anchor = pysprint_tracks.track1_flag_anchor
+        track1.start_sprite_angle = pysprint_tracks.track1_start_sprite_angle
+        track1.score_time_reference = pysprint_tracks.track1_score_time_reference
+        track1.complete_lap_score = pysprint_tracks.track1_complete_lap_score
+        track1.external_borders = pysprint_tracks.track1_external_borders
+        track1.internal_borders = pysprint_tracks.track1_internal_borders
+        track1.finish_line_rect = pysprint_tracks.track1_finish_line_rect
+        track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
+        track1.finish_line_direction = pysprint_tracks.track1_finish_line_direction
+        track1.external_gate_points = pysprint_tracks.track1_external_gate_points
+        track1.internal_gate_points = pysprint_tracks.track1_internal_gate_points
+
+        tracks.append(track1)
+
+        track7 = pysprint_tracks.Track()
+
+        track7.background_filename = pysprint_tracks.track7_background_filename
+        track7.track_mask_filename = pysprint_tracks.track7_mask_filename
+        track7.overlay_filename =  pysprint_tracks.track7_overlay_filename
+        track7.background = pygame.image.load(track7.background_filename)
+        track7.track_mask = pygame.image.load(track7.track_mask_filename).convert_alpha()
+        track7.track_overlay = pygame.image.load(track7.overlay_filename).convert_alpha()
+        track7.first_car_start_position = pysprint_tracks.track7_first_car_start_position
+        track7.flag_anchor = pysprint_tracks.track7_flag_anchor
+        track7.start_sprite_angle = pysprint_tracks.track7_start_sprite_angle
+        track7.score_time_reference = pysprint_tracks.track7_score_time_reference
+        track7.complete_lap_score = pysprint_tracks.track7_complete_lap_score
+        track7.external_borders = pysprint_tracks.track7_external_borders
+        track7.internal_borders = pysprint_tracks.track7_internal_borders
+        track7.finish_line_rect = pysprint_tracks.track7_finish_line_rect
+        track7.finish_line = pygame.Rect(track7.finish_line_rect[0], track7.finish_line_rect[1], track7.finish_line_rect[2], track7.finish_line_rect[3])
+        track7.finish_line_direction = pysprint_tracks.track7_finish_line_direction
+
+
+        #for i in range(0,len(pysprint_tracks.track7_external_gate_map),2):
+        i = 0
+        while i < len(pysprint_tracks.track7_external_gate_map):
+            if (i>= 124) and i<= 164 or (i>= 80 and i<= 104):
+                i+=2
+            track7.external_gate_points.append((pysprint_tracks.track7_external_gate_map[i],pysprint_tracks.track7_external_gate_map[i+1]))
+            track7.internal_gate_points.append((pysprint_tracks.track7_internal_gate_map[i],pysprint_tracks.track7_internal_gate_map[i+1]))
+            i+=2
+
+        tracks.append(track7)
 
 def game_loop():
 
@@ -1529,7 +1586,9 @@ def game_loop():
         joy = pygame.joystick.Joystick(i)
         print ('{}'.format(joy.get_name()))
 
+    initialize_tracks()
     initialize_cars()
+    track_index = 0
 
     mechanic_frames_list = [hammer_frames, saw_frames, head_scratch_frames, blow_frames]
     mechanic_index = random.randint(0,3)
@@ -1563,18 +1622,19 @@ def game_loop():
                 race_finished = False
                 nb_drones = activate_cars()
                 if nb_drones < 4:
-                    track1 = pysprint_tracks.Track()
-                    track1.background = pygame.image.load(track1.background_filename)
-                    track1.track_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
-                    track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
-                    screen_fadein(track1.background)
+                    track = tracks[track_index]
+                    track_index += 1
+                    if track_index>= len(tracks):
+                        track_index = 0
+
+                    screen_fadein(track.background)
 
                     #Align Cars on Start Line
                     for i in range (0,4):
-                        cars[i].x_position = track1.first_car_start_position[0]
-                        cars[i].y_position = track1.first_car_start_position[1] + i * 15
-                        cars[i].sprite_angle = track1.start_sprite_angle
-                        cars[i].angle = track1.start_sprite_angle
+                        cars[i].x_position = track.first_car_start_position[0]
+                        cars[i].y_position = track.first_car_start_position[1] + i * 15
+                        cars[i].sprite_angle = track.start_sprite_angle
+                        cars[i].angle = track.start_sprite_angle
                         cars[i].lap_count = 0
                         cars[i].previous_score_increment = 0
                     race_start = True
@@ -1601,7 +1661,7 @@ def game_loop():
                                     car.ignore_controls = True
                                 if not car.ignore_controls:
                                     if car.is_drone:
-                                        car.ai_drive(track1)
+                                        car.ai_drive(track)
                                     else:
                                         #If car if keyboard controlled
                                         if car.joystick is None:
@@ -1665,7 +1725,7 @@ def game_loop():
                                 for car in cars:
                                     if not car.ignore_controls:
                                         if car.is_drone:
-                                            car.ai_drive(track1)
+                                            car.ai_drive(track)
                                         else:
                                             if event.type == pygame.KEYDOWN:
                                                 #If car if keyboard controlled
@@ -1760,11 +1820,11 @@ def game_loop():
                             trace_frame_time("Managed all Events & Timers", frame_start)
 
                             for car in cars:
-                                car.draw(track1)
+                                car.draw(track)
                                 trace_frame_time("Drawn car", frame_start)
                             if not race_finish and not race_start:
                                 for car in cars:
-                                    race_finish = car.test_finish_line(track1)
+                                    race_finish = car.test_finish_line(track)
                                     if race_finish == True:
                                         break
                                 #Draw Checkered Flag and finish race
@@ -1789,18 +1849,30 @@ def game_loop():
                                     break
 
                             trace_frame_time("Test Finish ", frame_start)
-                            game_display.blit(track1.background, (0, 0))
+                            game_display.blit(track.background, (0, 0))
                             if race_start:
-                                game_display.blit(green_flag_frames[animation_index],track1.flag_anchor)
+                                game_display.blit(green_flag_frames[animation_index],track.flag_anchor)
 
                             if last_lap and not flag_waved:
-                                game_display.blit(white_flag_frames[animation_index],track1.flag_anchor)
+                                game_display.blit(white_flag_frames[animation_index],track.flag_anchor)
 
                             if race_finish and not flag_waved:
-                                game_display.blit(checkered_flag_frames[animation_index],track1.flag_anchor)
+                                game_display.blit(checkered_flag_frames[animation_index],track.flag_anchor)
                             for car in cars:
-                                car.blit(track1)
-                                draw_score(car, track1)
+                                car.blit(track, False)
+                            game_display.blit(track.track_overlay, (0, 0))
+                            for car in cars:
+                                car.blit(track, True)
+                            for car in cars:
+                                draw_score(car, track)
+
+                            if DEBUG_AI:
+                                for i in range(0,len(track.external_gate_points),1):
+                                    gfxdraw.line(game_display,track.external_gate_points[i][0], track.external_gate_points[i][1], track.internal_gate_points[i][0], track.internal_gate_points[i][1], white_color)
+                                    index_surf = small_font.render("{}".format(i), False, white_color)
+                                    midpoint = ((track.external_gate_points[i][0] + track.internal_gate_points[i][0]) / 2, (track.external_gate_points[i][1] + track.internal_gate_points[i][1]) / 2)
+                                    game_display.blit(index_surf, midpoint)
+
 
                             pygame.display.update()
                             trace_frame_time("Display Updated ", frame_start)
@@ -1816,7 +1888,7 @@ def game_loop():
                                 ranking = [-1, -1, -1, -1]
                                 #Evaluate progress
                                 for i in range(0, len(cars)):
-                                    cars[i].progress_gate = track1.find_progress_gate((cars[i].x_position, cars[i].y_position))
+                                    cars[i].progress_gate = track.find_progress_gate((cars[i].x_position, cars[i].y_position))
                                     ranking[i] = i
                                 #Ranking cars
                                 sorted = False
@@ -1832,10 +1904,10 @@ def game_loop():
                                                 #Check distance to the next gate
                                                 #p3 = car position P&1,p2 = gate = line between closest internal and external point
                                                 next_gate = cars[ranking[i]].progress_gate + 1
-                                                if next_gate == len(track1.external_gate_points):
+                                                if next_gate == len(track.external_gate_points):
                                                     next_gate = 0
-                                                p1 = track1.internal_gate_points[next_gate]
-                                                p2 = track1.external_gate_points[next_gate]
+                                                p1 = track.internal_gate_points[next_gate]
+                                                p2 = track.external_gate_points[next_gate]
                                                 p3 = (cars[ranking[i]].x_position, cars[ranking[i]].y_position)
 
                                                 p1=np.array(p1)
@@ -1880,7 +1952,7 @@ def game_loop():
                                 composed_race_podium.blit(mechanic_frames[0], (0,0))
 
                                 screen_fadein(composed_race_podium)
-                                display_race_podium_screen(track1, mechanic_frames, ranking, composed_race_podium, crowd_background)
+                                display_race_podium_screen(track, mechanic_frames, ranking, composed_race_podium, crowd_background)
                                 podium_displayed = True
                                 #Game Over if behind a Drone
                                 for i in range(0, len(cars)-1):
