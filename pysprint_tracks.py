@@ -498,6 +498,7 @@ class Track:
     track_overlay = None
     first_car_start_position = None
     flag_anchor = None
+    track_number = None
 
     start_sprite_angle = None
     score_time_reference = None

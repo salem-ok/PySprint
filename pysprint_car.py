@@ -1,6 +1,6 @@
 #pysprint_car.py
 from typing import DefaultDict
-from numpy import angle, select
+from numpy import True_, angle, select
 import pygame
 from pygame import Surface, gfxdraw
 import math
@@ -50,6 +50,7 @@ class Car:
     enter_best_lap = False
     lap_times = []
     best_lap = 0
+    best_laps = []
     average_lap = 0
     high_score_rank = 0
     high_score_name = ""
@@ -135,7 +136,7 @@ class Car:
     drone_deceleration_step = 0.4#0.4
     drone_bump_decelaration_step = 0.3#0.3
     drone_bump_speed = 2#2
-    drone_speed = 6#6
+    drone_speed = 4#6
     turning_angle_threshold = 20
     gate_step = 1#2
 
@@ -190,6 +191,17 @@ class Car:
     current_lap_start = 0
     drone_repeat_bumping_counter = 0
     drone_repeat_bumping_timer = 0
+
+    def save_best_lap(self, track: pysprint_tracks.Track):
+        saved = False
+        if self.best_lap > 0:
+            for lap_time in self.best_laps:
+                if lap_time[1] == track.track_number:
+                    if lap_time[0] > self.best_lap:
+                        lap_time = (self.best_lap, track.track_number)
+                        saved = True
+            if not saved:
+                self.best_laps.append((self.best_lap, track.track_number))
 
     def set_bumping(self, is_bumping):
         if self.is_drone:
@@ -388,7 +400,7 @@ class Car:
             #Wrong situation: reset to default vector
             self.calculate_vector_from_sprite()
 
-    def calculate_bumping_vector(self,track):
+    def calculate_bumping_vector(self,track: pysprint_tracks.Track):
         if not self.bumping_vector_initialized:
             if self.bumping_vertical:
                 #Bump horizontally when hitting a vertical border diagonally or horizontally
@@ -496,7 +508,7 @@ class Car:
                                     self.x_vector = 0
         self.bumping_vector_initialized = True
 
-    def test_collision(self, track, simulate_next_step):
+    def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         track_mask = pygame.mask.from_surface(track.track_mask, 50)
         car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
         x_test = 0
@@ -515,7 +527,7 @@ class Car:
 
         return track_mask.overlap(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
 
-    def calculate_crashing_vector(self,track):
+    def calculate_crashing_vector(self,track: pysprint_tracks.Track):
         #Reposition car in a suitable spot - Move car backwards until no collision detected.
         #Invert vector
         self.x_vector = -self.x_vector
@@ -531,7 +543,7 @@ class Car:
             self.x_vector = 0
 
 
-    def detect_collision(self, track):
+    def detect_collision(self, track: pysprint_tracks.Track):
         if DEBUG_COLLISION:
             print('Checking for Collision at ({},{})'.format(self.x_position, self.y_position))
         intersect_point = self.test_collision(track,False)
@@ -552,11 +564,11 @@ class Car:
                 collision = True
         if collision:
             if  self.detect_crash(track):
-                self.init_crash_loop(track, intersect_point)
+                self.init_crash_loop(intersect_point)
             else:
                 self.init_bump_loop(track, intersect_point)
 
-    def detect_crash(self, track):
+    def detect_crash(self, track: pysprint_tracks.Track):
         if self.max_speed_reached > 0:
             #Only for player cars
             if not self.is_drone:
@@ -584,7 +596,7 @@ class Car:
                 return False
 
 
-    def init_bump_loop(self, track, intersect_point):
+    def init_bump_loop(self, track: pysprint_tracks.Track, intersect_point):
         self.set_bumping(True)
         self.speed = self.bump_speed
         #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
@@ -604,7 +616,7 @@ class Car:
             print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
 
-    def init_crash_loop(self, track, intersect_point):
+    def init_crash_loop(self, intersect_point):
         self.crashing = True
         self.crash_finished = False
         self.speed = 0
@@ -645,7 +657,7 @@ class Car:
             print('{} - Crash Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
 
 
-    def update_position(self, track):
+    def update_position(self, track: pysprint_tracks.Track):
         if self.crashing:
             self.calculate_crashing_vector(track)
         else:
@@ -683,7 +695,7 @@ class Car:
             if self.crash_finished:
                 self.end_crash_loop()
 
-    def test_finish_line(self, track):
+    def test_finish_line(self, track: pysprint_tracks.Track):
         #Detect if car collides with Finish line in the expected direction
         sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
         if sprite_rect.colliderect(track.finish_line):
@@ -722,7 +734,7 @@ class Car:
             self.on_finish_line = False
 
 
-    def draw(self, track):
+    def draw(self, track: pysprint_tracks.Track):
         #Draw Car
         if not self.bumping:
             self.update_position(track)
@@ -733,7 +745,7 @@ class Car:
             self.rotating = False
             self.update_position(track)
 
-    def blit(self, track, overlay_blitted):
+    def blit(self, track: pysprint_tracks.Track, overlay_blitted):
         #Cars are blited under teh overlay to be hidden but not dust clouds, explisions and the helicopter
         if not overlay_blitted:
             #Car is not visible durign explosion
@@ -808,7 +820,7 @@ class Car:
         else:
             self.crash_finished = True
 
-    def calculate_ideal_vector(self, track, actual_gate_step):
+    def calculate_ideal_vector(self, track: pysprint_tracks.Track, actual_gate_step):
         new_next_gate = track.find_progress_gate((self.x_position, self.y_position))
         new_next_gate += actual_gate_step
         if self.next_gate is None:

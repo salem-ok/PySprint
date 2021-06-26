@@ -918,11 +918,12 @@ def display_start_race_screen():
                             rank_found = True
 
                 car.high_score_rank = rank+1
-            if car.best_lap > 0 and car.best_lap/1000 < best_laps["best_laps"][0]["time"]:
-                car.enter_best_lap = True
-                car.high_score_name = "A"
-                best_laps["best_laps"][0]["time"] = round(car.best_lap/1000,1)
-                best_laps["best_laps"][0]["name"] = car.high_score_name
+            for lap_time in car.best_laps:
+                if lap_time[0] > 0 and lap_time[0]/1000 < best_laps["best_laps"][lap_time[1]-1]["time"]:
+                    car.enter_best_lap = True
+                    car.high_score_name = "A"
+                    best_laps["best_laps"][lap_time[1]-1]["time"] = round(lap_time[0]/1000,1)
+                    best_laps["best_laps"][lap_time[1]-1]["name"] = car.high_score_name
 
     pygame.display.update()
     countdown = pygame.time.get_ticks()
@@ -1051,7 +1052,11 @@ def display_start_race_screen():
                         if car.enter_high_score:
                             high_scores["high_scores"][car.high_score_rank-1]["name"] = car.high_score_name
                         if car.enter_best_lap:
-                            best_laps["best_laps"][0]["name"] = car.high_score_name
+                            for lap_time in car.best_laps:
+                                if lap_time[0] > 0 and lap_time[0]/1000 <= best_laps["best_laps"][lap_time[1]-1]["time"]:
+                                    best_laps["best_laps"][lap_time[1]-1]["name"] = car.high_score_name
+
+
                         car.reset_game_over()
 
 
@@ -1523,7 +1528,7 @@ def activate_cars():
 
 def initialize_tracks():
         track1 = pysprint_tracks.Track()
-
+        track1.track_number = 1
         track1.background_filename = pysprint_tracks.track1_background_filename
         track1.track_mask_filename = pysprint_tracks.track1_mask_filename
         track1.overlay_filename =  pysprint_tracks.track1_overlay_filename
@@ -1546,7 +1551,7 @@ def initialize_tracks():
         tracks.append(track1)
 
         track7 = pysprint_tracks.Track()
-
+        track7.track_number = 7
         track7.background_filename = pysprint_tracks.track7_background_filename
         track7.track_mask_filename = pysprint_tracks.track7_mask_filename
         track7.overlay_filename =  pysprint_tracks.track7_overlay_filename
@@ -1596,6 +1601,7 @@ def game_loop():
     while not game_exit:
         key_pressed = -1
         if not race_finished:
+            track_index = 0
             key_pressed = display_loading_screen(False)
             #Attract mode
             while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
@@ -1637,6 +1643,15 @@ def game_loop():
                         cars[i].angle = track.start_sprite_angle
                         cars[i].lap_count = 0
                         cars[i].previous_score_increment = 0
+                        cars[i].next_gate = None
+                        cars[i].progress_gate = -1
+                        cars[i].ideal_vector = None
+                        cars[i].next_mid_point = None
+                        cars[i].next_gate = None
+                        for lap in cars[i].lap_times:
+                            lap = 0
+                        cars[i].best_lap = 0
+
                     race_start = True
                     last_lap = False
                     race_finish = False
@@ -1886,10 +1901,12 @@ def game_loop():
                             if race_finish and flag_waved:
                                 #Ranking Cars
                                 ranking = [-1, -1, -1, -1]
-                                #Evaluate progress
+                                #Evaluate progress and save Best Lap for Track
                                 for i in range(0, len(cars)):
                                     cars[i].progress_gate = track.find_progress_gate((cars[i].x_position, cars[i].y_position))
                                     ranking[i] = i
+                                    if not cars[i].is_drone:
+                                        cars[i].save_best_lap(track)
                                 #Ranking cars
                                 sorted = False
                                 while sorted == False:
