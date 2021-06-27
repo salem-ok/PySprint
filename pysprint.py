@@ -817,6 +817,13 @@ def display_lap_records():
     return key_pressed
 
 
+def print_get_ready():
+    prepare_surf = big_font.render("GET READY", False, white_color)
+    shadow_prepare_surf = big_shadow_font.render("GET READY", False, black_color)
+    game_display.blit(shadow_prepare_surf, (220, 190))
+    game_display.blit(prepare_surf, (220, 190))
+
+
 def print_prepare_to_race(top_left, color):
     prepare_surf = big_font.render("PREPARE", False, color)
     shadow_prepare_surf = big_shadow_font.render("PREPARE", False, black_color)
@@ -1246,6 +1253,10 @@ def display_options():
                     if conflict == False:
                         screen_exit = True
                         for car in cars:
+                            car.joystick = None
+                            car.accelerate_key = None
+                            car.left_key = None
+                            car.right_key = None
                             if car.control_method_index < 2:
                                 #Keyboard 1 or 2
                                 car.accelerate_key = control_methods[car.control_method_index]['ACCELERATE']
@@ -1256,10 +1267,6 @@ def display_options():
                                     car.joystick = pygame.joystick.Joystick(car.control_method_index - 2)
                                     car.joystick.init()
                                 else:
-                                    car.joystick = None
-                                    car.accelerate_key = None
-                                    car.left_key = None
-                                    car.right_key = None
                                     car.is_drone = True
                                     car.speed_max = car.drone_speed
                                     car.bump_speed = car.drone_bump_speed
@@ -1660,6 +1667,20 @@ def game_loop():
                     wave_up = True
                     flag_waved = False
                     podium_displayed = False
+
+
+                    get_ready_time  = pygame.time.get_ticks()
+                    while pygame.time.get_ticks() - get_ready_time < 1500:
+                        game_display.blit(track.background, (0, 0))
+                        for car in cars:
+                            car.blit(track, False)
+                        game_display.blit(track.track_overlay, (0, 0))
+                        for car in cars:
+                            car.blit(track, True)
+                        print_get_ready()
+                        pygame.display.update()
+
+
                     race_start_time = pygame.time.get_ticks()
                     for car in cars:
                         car.current_lap_start = race_start_time
