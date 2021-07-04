@@ -37,7 +37,7 @@ clock = pygame.time.Clock()
 
 pysprint_car.game_display = game_display
 
-cars = [pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car(), pysprint_car.Car()]
+cars = []
 
 tracks = []
 
@@ -1376,6 +1376,10 @@ def get_progress(car):
     return car.lap_count * 1000 + car.progress_gate
 
 def initialize_cars():
+    for i in range(0,4):
+        car = pysprint_car.Car()
+        cars.append(car)
+
     #Initiate Cars as Drones.
     pysprint_car.dust_cloud_frames = dust_cloud_frames
     pysprint_car.explosion_frames = explosion_frames
@@ -1541,7 +1545,14 @@ def initialize_tracks():
         track1.track_overlay = pygame.image.load(track1.overlay_filename).convert_alpha()
         track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
 
-        tracks.append(track1)
+
+
+        track3 = pysprint_tracks.Track()
+        track3.load_track_definition(pysprint_tracks.track3_json_filename)
+        track3.background = pygame.image.load(track3.background_filename)
+        track3.track_mask = pygame.image.load(track3.track_mask_filename).convert_alpha()
+        track3.track_overlay = pygame.image.load(track3.overlay_filename).convert_alpha()
+        track3.finish_line = pygame.Rect(track3.finish_line_rect[0], track3.finish_line_rect[1], track3.finish_line_rect[2], track3.finish_line_rect[3])
 
         track7 = pysprint_tracks.Track()
         track7.load_track_definition(pysprint_tracks.track7_json_filename)
@@ -1550,6 +1561,8 @@ def initialize_tracks():
         track7.track_overlay = pygame.image.load(track7.overlay_filename).convert_alpha()
         track7.finish_line = pygame.Rect(track7.finish_line_rect[0], track7.finish_line_rect[1], track7.finish_line_rect[2], track7.finish_line_rect[3])
 
+        tracks.append(track1)
+        tracks.append(track3)
         tracks.append(track7)
 
 def game_loop():

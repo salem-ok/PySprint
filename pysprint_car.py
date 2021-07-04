@@ -24,40 +24,6 @@ explosion_frames = None
 
 
 class Car:
-    #Appearance
-    #Color
-    main_color = None
-    secondary_color = None
-    color_text = ""
-    sprites = None
-    first_car = None
-    second_car = None
-    third_car = None
-    fourth_car = None
-    start_screen_engine_position = None
-    start_screen_thumb_position = None
-    start_screen_text_position = None
-    score_top_left = None
-    prepare_to_race_counter = -1
-
-    helicopter_frames = None
-    vertical_helicopter_frames = None
-
-    #Score
-    score = 0
-    game_over = False
-    enter_high_score = False
-    enter_best_lap = False
-    lap_times = []
-    best_lap = 0
-    best_laps = []
-    average_lap = 0
-    high_score_rank = 0
-    high_score_name = ""
-    current_initial = 0
-
-    #Track the last time score was incremented due to progress in race (lap_count, gate_number)
-    previous_score_increment = 0
 
     #Position & Vector
     angle_vector_sign = {
@@ -80,31 +46,6 @@ class Car:
         16:(0, -1)
     }
 
-    x_position = 0
-    y_position = 0
-    sprite_angle = 12
-    angle = 12
-    speed = 0
-    a_intersect_side = (0, 0)
-    b_intersect_side = (0, 0)
-    x_intersect = 0
-    y_intersect = 0
-    x_vector = 0
-    y_vector = 0
-    sin_angle = 0
-    progress_gate = -1
-    ideal_vector = None
-    next_mid_point = None
-    next_gate = None
-
-    #Mechanics
-    #Car Controls
-    accelerate_key = None
-    left_key = None
-    right_key = None
-    joystick = None
-    ignore_controls = False
-    control_method_index = None
 
     #30FPS Default Settings
     player_rotation_step = .26
@@ -114,14 +55,6 @@ class Car:
     player__bump_speed = 4
     player_speed = 8
 
-
-    speed_max = 3
-    bump_speed = 2
-    rotation_step = .26
-    acceleration_step = 0.13
-    deceleration_step = 0.2
-    bump_decelaration_step = 0.3
-
     #AI Default Characteristics
     drone_personalities = [
         ("Prudent",0),
@@ -130,16 +63,14 @@ class Car:
     ]
     drone_personality_modifiers = [0.9,1,1.1]
     drone__invert_personality_modifiers = [1.1,1,0.9]
-    drone_personality = 1
     drone_rotation_step = 0.4#.4
     drone_acceleration_step = 0.18#0.18
     drone_deceleration_step = 0.4#0.4
     drone_bump_decelaration_step = 0.3#0.3
     drone_bump_speed = 4#2
-    drone_speed = 5#6
+    drone_speed = 4#6
     turning_angle_threshold = 20
     gate_step = 1#2
-
 
     #60FPS Settings - Calibrated to an unmodified car
     # rotation_step = .13
@@ -149,6 +80,7 @@ class Car:
     # speed_max = 4
     # bump_speed = 3.25
 
+    #Animation Constants
     bump_animation_timer = 33
     crash_animation_timer = 33
     helicopter_step = 10
@@ -167,30 +99,105 @@ class Car:
     crash_random_max = 60
     crash_certainty_treshold = 85#80
 
-    #Car State
-    is_drone = True
-    decelerating = False
-    rotating = False
-    bumping = False
-    crashing = False
-    vertical_helicopter = False
-    bumping_vector_initialized = False
-    bumping_vertical = False
-    bumping_horizontal = False
-    bumping_diagonal = False
-    crash_finished = False
-    animation_index = 0
-    helicopter_index = 0
-    helicopter_x = 0
-    helicopter_y = 0
-    collision_time = 0
-    max_speed_reached = 0
-    on_finish_line = True
-    passed_finish_line_wrong_way = False
-    lap_count = 0
-    current_lap_start = 0
-    drone_repeat_bumping_counter = 0
-    drone_repeat_bumping_timer = 0
+
+    def __init__(self):
+        #Appearance
+        #Color
+        self.main_color = None
+        self.secondary_color = None
+        self.color_text = ""
+        self.sprites = None
+        self.first_car = None
+        self.second_car = None
+        self.third_car = None
+        self.fourth_car = None
+        self.start_screen_engine_position = None
+        self.start_screen_thumb_position = None
+        self.start_screen_text_position = None
+        self.score_top_left = None
+        self.prepare_to_race_counter = -1
+
+        self.helicopter_frames = None
+        self.vertical_helicopter_frames = None
+
+        #Score
+        self.score = 0
+        self.game_over = False
+        self.enter_high_score = False
+        self.enter_best_lap = False
+        self.lap_times = []
+        self.best_lap = 0
+        self.best_laps = []
+        self.average_lap = 0
+        self.high_score_rank = 0
+        self.high_score_name = ""
+        self.current_initial = 0
+
+        #Track the last time score was incremented due to progress in race (lap_count, gate_number)
+        self.previous_score_increment = 0
+
+        self.x_position = 0
+        self.y_position = 0
+        self.sprite_angle = 12
+        self.angle = 12
+        self.speed = 0
+        self.a_intersect_side = (0, 0)
+        self.b_intersect_side = (0, 0)
+        self.x_intersect = 0
+        self.y_intersect = 0
+        self.x_vector = 0
+        self.y_vector = 0
+        self.sin_angle = 0
+        self.progress_gate = -1
+        self.ideal_vector = None
+        self.next_mid_point = None
+        self.next_gate = None
+
+        #Mechanics
+        #Car Controls
+        self.accelerate_key = None
+        self.left_key = None
+        self.right_key = None
+        self.joystick = None
+        self.ignore_controls = False
+        self.control_method_index = None
+
+
+
+        self.speed_max = 3
+        self.bump_speed = 2
+        self.rotation_step = .26
+        self.acceleration_step = 0.13
+        self.deceleration_step = 0.2
+        self.bump_decelaration_step = 0.3
+
+        self.drone_personality = 1
+
+        #Car State
+        self.is_drone = True
+        self.decelerating = False
+        self.rotating = False
+        self.bumping = False
+        self.crashing = False
+        self.vertical_helicopter = False
+        self.bumping_vector_initialized = False
+        self.bumping_vertical = False
+        self.bumping_horizontal = False
+        self.bumping_diagonal = False
+        self.crash_finished = False
+        self.animation_index = 0
+        self.helicopter_index = 0
+        self.helicopter_x = 0
+        self.helicopter_y = 0
+        self.collision_time = 0
+        self.max_speed_reached = 0
+        self.on_finish_line = True
+        self.passed_finish_line_wrong_way = False
+        self.lap_count = 0
+        self.current_lap_start = 0
+        self.drone_repeat_bumping_counter = 0
+        self.drone_repeat_bumping_timer = 0
+        self.mandatory_gates_crossed = []
 
     def save_best_lap(self, track: pysprint_tracks.Track):
         saved = False
@@ -326,60 +333,63 @@ class Car:
                 self.end_bump_loop()
 
     def search_border_side(self, polygon_border, bumping):
-        if bumping:
-            self.bumping_diagonal = False
-            self.bumping_horizontal = False
-            self.bumping_vertical = False
-        for i in range(0, len(polygon_border)):
-            next_index = i+1
-            if next_index == len(polygon_border):
-                next_index = 0
-            top = 0
-            left = 0
-            if polygon_border[i][0] <= polygon_border[next_index][0]:
-                top = polygon_border[i][0]
-            else:
-                top = polygon_border[next_index][0]
-            if polygon_border[i][1] <= polygon_border[next_index][1]:
-                left = polygon_border[i][1]
-            else:
-                left = polygon_border[next_index][1]
+        if polygon_border is None:
+            return False
+        else:
+            if bumping:
+                self.bumping_diagonal = False
+                self.bumping_horizontal = False
+                self.bumping_vertical = False
+            for i in range(0, len(polygon_border)):
+                next_index = i+1
+                if next_index == len(polygon_border):
+                    next_index = 0
+                top = 0
+                left = 0
+                if polygon_border[i][0] <= polygon_border[next_index][0]:
+                    top = polygon_border[i][0]
+                else:
+                    top = polygon_border[next_index][0]
+                if polygon_border[i][1] <= polygon_border[next_index][1]:
+                    left = polygon_border[i][1]
+                else:
+                    left = polygon_border[next_index][1]
 
-            rect_width = abs(polygon_border[next_index][0]-polygon_border[i][0])
-            if rect_width == 0:
-                rect_width = 1
-            rect_height = abs(polygon_border[next_index][1]-polygon_border[i][1])
-            if rect_height == 0:
-                rect_height = 1
-            wall_rect = pygame.Rect(top, left, rect_width, rect_height)
-            #Enlarge detection Box to maximize chance of hitting a polygon side
-            sprite_rect = pygame.Rect(self.x_intersect-self.side_detection_tolerance, self.y_intersect-self.side_detection_tolerance, self.side_detection_tolerance*2, self.side_detection_tolerance*2)
+                rect_width = abs(polygon_border[next_index][0]-polygon_border[i][0])
+                if rect_width == 0:
+                    rect_width = 1
+                rect_height = abs(polygon_border[next_index][1]-polygon_border[i][1])
+                if rect_height == 0:
+                    rect_height = 1
+                wall_rect = pygame.Rect(top, left, rect_width, rect_height)
+                #Enlarge detection Box to maximize chance of hitting a polygon side
+                sprite_rect = pygame.Rect(self.x_intersect-self.side_detection_tolerance, self.y_intersect-self.side_detection_tolerance, self.side_detection_tolerance*2, self.side_detection_tolerance*2)
 
-            if sprite_rect.colliderect(wall_rect):
-                if DEBUG_COLLISION:
-                    print('found matching pair of points ({},{})'.format(polygon_border[i],polygon_border[next_index]))
-                self.a_intersect_side = polygon_border[i]
-                self.b_intersect_side = polygon_border[next_index]
-                if (abs(polygon_border[i][0]-polygon_border[next_index][0]) <= self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1]) > self.diagonal_detection_tolerance):
+                if sprite_rect.colliderect(wall_rect):
                     if DEBUG_COLLISION:
-                        print('x delta <={} - looks vertical enough'.format(self.diagonal_detection_tolerance))
-                    if bumping:
-                        self.bumping_vertical = True
-                    return True
-                if (abs(polygon_border[i][0]-polygon_border[next_index][0])>self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1])<=self.diagonal_detection_tolerance):
+                        print('found matching pair of points ({},{})'.format(polygon_border[i],polygon_border[next_index]))
+                    self.a_intersect_side = polygon_border[i]
+                    self.b_intersect_side = polygon_border[next_index]
+                    if (abs(polygon_border[i][0]-polygon_border[next_index][0]) <= self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1]) > self.diagonal_detection_tolerance):
+                        if DEBUG_COLLISION:
+                            print('x delta <={} - looks vertical enough'.format(self.diagonal_detection_tolerance))
+                        if bumping:
+                            self.bumping_vertical = True
+                        return True
+                    if (abs(polygon_border[i][0]-polygon_border[next_index][0])>self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1])<=self.diagonal_detection_tolerance):
+                        if DEBUG_COLLISION:
+                            print('y delta <={} - looks horizontal enough'.format(self.diagonal_detection_tolerance))
+                        if bumping:
+                            self.bumping_horizontal = True
+                        return True
                     if DEBUG_COLLISION:
-                        print('y delta <={} - looks horizontal enough'.format(self.diagonal_detection_tolerance))
+                        print('Diagonal Bumping')
                     if bumping:
-                        self.bumping_horizontal = True
+                        self.bumping_diagonal = True
+                        self.bumping_horizontal = False
+                        self.bumping_vertical = False
                     return True
-                if DEBUG_COLLISION:
-                    print('Diagonal Bumping')
-                if bumping:
-                    self.bumping_diagonal = True
-                    self.bumping_horizontal = False
-                    self.bumping_vertical = False
-                return True
-        return False
+            return False
 
     def calculate_vector_from_sprite(self):
         self.sin_angle = math.sin(math.radians(abs(self.sprite_angle*22.5-90)))
@@ -587,7 +597,7 @@ class Car:
             if self.speed >= self.speed_crash_probability_threshold * self.speed_max:
                 crash_probability = crash_probability * self.speed_crash_probability_penalty
             #2- If A sensitive Border has been hit
-            if self.search_border_side(track.external_borders, False) or self.search_border_side(track.internal_borders, False):
+            if self.search_border_side(track.external_borders, False) or self.search_border_side(track.internal_borders, False) or self.search_border_side(track.secondary_internal_borders, False):
                 if self.a_intersect_side[2] == 1 and self.b_intersect_side[2] == 1:
                     crash_probability = crash_probability * self.sensitive_border_crash_probability_penalty
             if crash_probability > self.crash_certainty_treshold:
@@ -605,13 +615,15 @@ class Car:
         self.y_intersect = intersect_point[1]
         self.collision_time = pygame.time.get_ticks()
         #Search external borders other corners of the sprite in case no border poinst detected
+        #Also search secondary Internal brders like roundabouts
         if not self.search_border_side(track.external_borders, True):
             if not self.search_border_side(track.internal_borders, True):
-                #Despite overlap detected no intersection with any side of the Track polygons has been found
-                #Unable to determine the orientation of the colliding border
-                if DEBUG_BUMP:
-                    print('No Macthing Border Side found')
-                self.end_bump_loop()
+                if not self.search_border_side(track.secondary_internal_borders, True):
+                    #Despite overlap detected no intersection with any side of the Track polygons has been found
+                    #Unable to determine the orientation of the colliding border
+                    if DEBUG_BUMP:
+                        print('No Macthing Border Side found')
+                    self.end_bump_loop()
         if DEBUG_BUMP:
             print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
@@ -695,7 +707,21 @@ class Car:
             if self.crash_finished:
                 self.end_crash_loop()
 
+    def test_mandatory_gates(self, track: pysprint_tracks.Track):
+        if track.mandatory_gates is None:
+            return
+        else:
+            if len(track.mandatory_gates) > len(self.mandatory_gates_crossed):
+                #Check whcih is the next Mandatory gate to cross and add it as crossed if collision if not already added
+                next_gate = track.mandatory_gates[len(self.mandatory_gates_crossed)]
+                gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0]), abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1]))
+                sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
+                if sprite_rect.colliderect(gate_rect):
+                    #if gate is passed
+                    self.mandatory_gates_crossed.append(next_gate)
+
     def test_finish_line(self, track: pysprint_tracks.Track):
+        self.test_mandatory_gates(track)
         #Detect if car collides with Finish line in the expected direction
         sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
         if sprite_rect.colliderect(track.finish_line):
@@ -707,25 +733,37 @@ class Car:
                         if DEBUG_FINISH:
                             print('{} - Passed the line in the right direction after going the wrong way)'.format(pygame.time.get_ticks()))
                     else:
-                        finish_time = pygame.time.get_ticks()
-                        self.lap_times[self.lap_count] = finish_time - self.current_lap_start
-                        if DEBUG_FINISH:
-                            print('{} - New Lap {} - Duration: {})'.format(finish_time, self.lap_count, self.lap_times[self.lap_count]))
-                        self.lap_count+=1
-                        self.average_lap =  sum(self.lap_times)/self.lap_count
-                        if self.best_lap == 0:
-                            self.best_lap = self.lap_times[self.lap_count-1]
+                        #Check if all mandatory gates were passed before awarding a new lap
+                        full_lap = False
+                        if track.mandatory_gates is None:
+                            full_lap = True
                         else:
-                            if self.best_lap > self.lap_times[self.lap_count-1]:
-                                self.best_lap = self.lap_times[self.lap_count-1]
-
-                        if self.lap_count == race_laps:
-                            #Race finished
+                            if len(self.mandatory_gates_crossed)==len(track.mandatory_gates):
+                                full_lap = True
+                                #reset Gates tracker for the next lap
+                                self.mandatory_gates_crossed.clear()
+                        if full_lap:
+                            finish_time = pygame.time.get_ticks()
+                            self.lap_times[self.lap_count] = finish_time - self.current_lap_start
                             if DEBUG_FINISH:
-                                print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_lap, self.best_lap))
-                            return True
-                        self.current_lap_start = finish_time
-                        return False
+                                print('{} - New Lap {} - Duration: {})'.format(finish_time, self.lap_count, self.lap_times[self.lap_count]))
+                            self.lap_count+=1
+                            self.average_lap =  sum(self.lap_times)/self.lap_count
+                            if self.best_lap == 0:
+                                self.best_lap = self.lap_times[self.lap_count-1]
+                            else:
+                                if self.best_lap > self.lap_times[self.lap_count-1]:
+                                    self.best_lap = self.lap_times[self.lap_count-1]
+
+                            if self.lap_count == race_laps:
+                                #Race finished
+                                if DEBUG_FINISH:
+                                    print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_lap, self.best_lap))
+                                return True
+                            self.current_lap_start = finish_time
+                            return False
+                        else:
+                             print('{} - Passed the line in the right directionbut not all mandatory gates passed)'.format(pygame.time.get_ticks()))
                 else:
                     self.passed_finish_line_wrong_way = True
                     if DEBUG_FINISH:
@@ -755,8 +793,10 @@ class Car:
             if DEBUG_AI:
                 if self.is_drone:
                     gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.x_position) + round(self.x_vector)*10, round(self.y_position) + round(self.y_vector)*10, self.main_color)
-                    gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.ideal_vector[0] + self.x_position), round(self.y_position + self.ideal_vector[1]), (255,255,255))
-                    gfxdraw.circle(game_display, round(self.next_mid_point[0]), round(self.next_mid_point[1]), 5, self.main_color)
+                    if not self.ideal_vector is None:
+                        gfxdraw.line(game_display,round(self.x_position), round(self.y_position), round(self.ideal_vector[0] + self.x_position), round(self.y_position + self.ideal_vector[1]), (255,255,255))
+                    if not self.next_mid_point is None:
+                        gfxdraw.circle(game_display, round(self.next_mid_point[0]), round(self.next_mid_point[1]), 5, self.main_color)
 
         if overlay_blitted:
             #Blit Dust Cloud if Bumping
@@ -830,9 +870,13 @@ class Car:
             if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - (actual_gate_step+1):
                 self.next_gate+=actual_gate_step
             else:
-                #Eliminate edge cases where the new next gate is behind the previous next next gate
-                if new_next_gate >= self.next_gate:
-                    self.next_gate = new_next_gate
+                #Eliminate cases where the AI is tempte to cut the roundabout
+                if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
+                    self.next_gate+=actual_gate_step
+                else:
+                    #Eliminate edge cases where the new next gate is behind the previous next next gate
+                    if new_next_gate >= self.next_gate:
+                        self.next_gate = new_next_gate
 
         if self.next_gate >= len(track.external_gate_points):
             self.next_gate -= len(track.external_gate_points)

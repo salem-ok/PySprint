@@ -6,8 +6,12 @@ import json
 #Track 1 Setup
 track1_json_filename = 'Assets/SuperSprintTrack1.json'
 
+#Track 3 Setup
+track3_json_filename = 'Assets/SuperSprintTrack3.json'
+
 #Track 7 Setup
 track7_json_filename = 'Assets/SuperSprintTrack7.json'
+
 
 
 def calculate_distance(point1,point2):
@@ -15,33 +19,30 @@ def calculate_distance(point1,point2):
 
 
 class Track:
-    background_filename = None
-    track_mask_filename = None
-    overlay_filename =  None
-    background = None
-    track_mask = None
-    track_overlay = None
-    first_car_start_position = None
-    flag_anchor = None
-    track_number = None
-
-    start_sprite_angle = None
-    score_time_reference = None
-    complete_lap_score = None
-    external_borders = None
-
-    internal_borders = None
-
-    finish_line_rect = None
-
-    finish_line = None
-    finish_line_direction = None
-
-
-    #External gate points
-
-    external_gate_points = []
-    internal_gate_points = []
+    def __init__(self):
+        self.background_filename = None
+        self.track_mask_filename = None
+        self.overlay_filename =  None
+        self.background = None
+        self.track_mask = None
+        self.track_overlay = None
+        self.first_car_start_position = None
+        self.flag_anchor = None
+        self.track_number = None
+        self.start_sprite_angle = None
+        self.score_time_reference = None
+        self.complete_lap_score = None
+        self.external_borders = None
+        self.internal_borders = None
+        self.secondary_internal_borders = None
+        self.finish_line_rect = None
+        self.finish_line = None
+        self.finish_line_direction = None
+        #To check if players have driven through mandatory checkpoints (i.e. roundabouts)
+        self.mandatory_gates = None
+        #External gate points
+        self.external_gate_points = []
+        self.internal_gate_points = []
 
     def load_track_definition(self, filename):
         with open(filename) as track_file:
@@ -59,11 +60,14 @@ class Track:
         self.complete_lap_score = track_json["complete_lap_score"]
         self.external_borders = track_json["external_borders"]
         self.internal_borders = track_json["internal_borders"]
+        if "secondary_internal_borders" in track_json:
+            self.secondary_internal_borders = track_json["secondary_internal_borders"]
         self.finish_line_rect = track_json["finish_line_rect"]
         self.finish_line_direction = track_json["finish_line_direction"]
         self.external_gate_points = track_json["external_gate_points"]
         self.internal_gate_points = track_json["internal_gate_points"]
-
+        if "mandatory_gates" in track_json:
+            self.mandatory_gates = track_json["mandatory_gates"]
 
 
 
