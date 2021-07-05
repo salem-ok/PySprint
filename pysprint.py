@@ -51,7 +51,7 @@ pysprint_car.DEBUG_BUMP = DEBUG_BUMP
 pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
+DEBUG_AI = True
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1561,9 +1561,12 @@ def initialize_tracks():
         track7.track_overlay = pygame.image.load(track7.overlay_filename).convert_alpha()
         track7.finish_line = pygame.Rect(track7.finish_line_rect[0], track7.finish_line_rect[1], track7.finish_line_rect[2], track7.finish_line_rect[3])
 
-        tracks.append(track1)
+
         tracks.append(track3)
         tracks.append(track7)
+        tracks.append(track1)
+
+
 
 def game_loop():
 
