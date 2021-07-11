@@ -1,6 +1,9 @@
 #pysprint_tracks.py
 import math
 import json
+import random
+import pygame
+from pygame import Surface, gfxdraw
 
 
 #Track 1 Setup
@@ -12,18 +15,28 @@ track3_json_filename = 'Assets/SuperSprintTrack3.json'
 #Track 7 Setup
 track7_json_filename = 'Assets/SuperSprintTrack7.json'
 
+#Max and min random time for a gate to be closed or open
+max_random_time = 2500
+min_random_time = 1000
 
+game_display = None
+display_width = None
+display_height = None
+road_gate_frames = None
+road_gate_mask_frames = None
+road_gate_shade_frames = None
 
 def calculate_distance(point1,point2):
     return math.sqrt( ((point1[0]-point2[0])**2)+((point1[1]-point2[1])**2))
 
-
 class Track:
+
     def __init__(self):
         self.background_filename = None
         self.track_mask_filename = None
         self.overlay_filename =  None
         self.background = None
+        self.base_mask = None
         self.track_mask = None
         self.track_overlay = None
         self.first_car_start_position = None
@@ -41,8 +54,16 @@ class Track:
         #To check if players have driven through mandatory checkpoints (i.e. roundabouts)
         self.mandatory_gates = None
         #External gate points
-        self.external_gate_points = []
-        self.internal_gate_points = []
+        self.external_gate_points = None
+        self.internal_gate_points = None
+        #Track Opening Gates
+        self.road_gates_anchors = None
+        self.road_gates_frames_index = []
+        self.road_gates_timers = []
+        self.road_gates_opening = []
+        #When timer = next event time open or close the gate depending on status
+        self.road_gates_next_event_time = []
+
 
     def load_track_definition(self, filename):
         with open(filename) as track_file:
@@ -68,6 +89,8 @@ class Track:
         self.internal_gate_points = track_json["internal_gate_points"]
         if "mandatory_gates" in track_json:
             self.mandatory_gates = track_json["mandatory_gates"]
+        if "road_gates_anchors" in track_json:
+            self.road_gates_anchors = track_json["road_gates_anchors"]
 
 
 
@@ -117,3 +140,66 @@ class Track:
         if score_increment > car.previous_score_increment:
             car.score += score_increment
             car.previous_score_increment = score_increment
+
+    def blit_background(self,race_started):
+        surf = self.background.copy()
+        if not self.road_gates_anchors is None:
+            if len(self.road_gates_timers)==0:
+                #Initialise gates status and timers
+                i = 0
+                for anchor in self.road_gates_anchors:
+                    self.road_gates_frames_index.append(0)
+                    # if race_started then set timer (gates should be closed and frozen when "get ready" is desplayed
+                    if race_started:
+                        self.road_gates_timers.append(pygame.time.get_ticks() + i * 500)
+                        self.road_gates_opening.append(False)
+                        i+=1
+            if race_started:
+                now = pygame.time.get_ticks()
+            for i in range(0, len(self.road_gates_anchors)):
+                if race_started:
+                    #If gate is closed or open (frame 0 or frame 4): blit the same frame until timer is reached
+                    if self.road_gates_frames_index[i] == 0 or self.road_gates_frames_index[i] == 4:
+                        if now >=self.road_gates_timers[i]:
+                            self.road_gates_timers[i] = now + 100
+                            if self.road_gates_frames_index[i] == 0:
+                                self.road_gates_opening[i] = True
+                                self.road_gates_frames_index[i] += 1
+                            elif self.road_gates_frames_index[i] == 4:
+                                self.road_gates_opening[i] = False
+                                self.road_gates_frames_index[i] -= 1
+                    #If gate is closing or opening (Frames 1,2 & 3): blit the next (or previous) frame until timer is reached
+                    if self.road_gates_frames_index[i] > 0 and self.road_gates_frames_index[i] < 4:
+                        if now >=self.road_gates_timers[i]:
+                            if self.road_gates_opening[i]:
+                                self.road_gates_frames_index[i] += 1
+                                #if Gate is fully open, randomize timer to start closing it
+                                if self.road_gates_frames_index[i] == 4:
+                                    self.road_gates_timers[i] = now + random.randint(min_random_time,max_random_time)
+                                else:
+                                    self.road_gates_timers[i] = now + 100
+                            else:
+                                self.road_gates_frames_index[i] -= 1
+                                #if Gate is fully closed, randomize timer to start opening it
+                                if self.road_gates_frames_index[i] == 0:
+                                    self.road_gates_timers[i] = now + random.randint(min_random_time,max_random_time)
+                                else:
+                                    self.road_gates_timers[i] = now + 10
+
+                surf.blit(road_gate_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+        self.update_track_mask()
+        game_display.blit(surf,(0,0))
+
+
+    def blit_overlay(self):
+        surf = self.track_overlay.copy()
+        if not self.road_gates_anchors is None:
+            for i in range(0, len(self.road_gates_anchors)):
+                surf.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+        game_display.blit(surf,(0,0))
+
+    def update_track_mask(self):
+        self.track_mask = self.base_mask.copy()
+        if not self.road_gates_anchors is None:
+            for i in range(0, len(self.road_gates_anchors)):
+                self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))

@@ -16,6 +16,9 @@ display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
 pysprint_car.display_height = 400
+pysprint_tracks.display_width = 640
+pysprint_tracks.display_height = 400
+
 
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
@@ -36,6 +39,7 @@ pygame.display.set_icon(icon)
 clock = pygame.time.Clock()
 
 pysprint_car.game_display = game_display
+pysprint_tracks.game_display = game_display
 
 cars = []
 
@@ -47,11 +51,11 @@ tracks = []
 FPS = 30
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-pysprint_car.DEBUG_BUMP = DEBUG_BUMP
-pysprint_car.DEBUG_CRASH = DEBUG_CRASH
+# pysprint_car.DEBUG_BUMP = DEBUG_BUMP
+# pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = True
+DEBUG_AI = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -107,6 +111,36 @@ start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').c
 high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
+
+
+
+# For the Background
+pysprint_tracks.road_gate_frames = {
+    0:pygame.image.load('Assets/Gate0.png').convert_alpha(),
+    1:pygame.image.load('Assets/Gate1.png').convert_alpha(),
+    2:pygame.image.load('Assets/Gate2.png').convert_alpha(),
+    3:pygame.image.load('Assets/Gate3.png').convert_alpha(),
+    4:pygame.image.load('Assets/Gate4.png').convert_alpha()
+}
+
+# For the Overlay
+pysprint_tracks.road_gate_shade_frames = {
+    0:pygame.image.load('Assets/GateShade0.png').convert_alpha(),
+    1:pygame.image.load('Assets/GateShade1.png').convert_alpha(),
+    2:pygame.image.load('Assets/GateShade2.png').convert_alpha(),
+    3:pygame.image.load('Assets/GateShade3.png').convert_alpha(),
+    4:pygame.image.load('Assets/GateShade4.png').convert_alpha()
+}
+
+# For the Overlay
+pysprint_tracks.road_gate_mask_frames = {
+    0:pygame.image.load('Assets/GateMask0.png').convert_alpha(),
+    1:pygame.image.load('Assets/GateMask1.png').convert_alpha(),
+    2:pygame.image.load('Assets/GateMask2.png').convert_alpha(),
+    3:pygame.image.load('Assets/GateMask3.png').convert_alpha(),
+    4:pygame.image.load('Assets/GateMask4.png').convert_alpha()
+}
+
 
 
 crowd_flags = {
@@ -1341,9 +1375,6 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
     game_display.blit(shadow_score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
     game_display.blit(score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
 
-
-
-
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS:
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
@@ -1537,11 +1568,13 @@ def activate_cars():
             cars[3].fourth_car = fourth_car_red
     return len(nb_drones)
 
+
+
 def initialize_tracks():
         track1 = pysprint_tracks.Track()
         track1.load_track_definition(pysprint_tracks.track1_json_filename)
         track1.background = pygame.image.load(track1.background_filename)
-        track1.track_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
+        track1.base_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
         track1.track_overlay = pygame.image.load(track1.overlay_filename).convert_alpha()
         track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
 
@@ -1550,21 +1583,22 @@ def initialize_tracks():
         track3 = pysprint_tracks.Track()
         track3.load_track_definition(pysprint_tracks.track3_json_filename)
         track3.background = pygame.image.load(track3.background_filename)
-        track3.track_mask = pygame.image.load(track3.track_mask_filename).convert_alpha()
+        track3.base_mask = pygame.image.load(track3.track_mask_filename).convert_alpha()
         track3.track_overlay = pygame.image.load(track3.overlay_filename).convert_alpha()
         track3.finish_line = pygame.Rect(track3.finish_line_rect[0], track3.finish_line_rect[1], track3.finish_line_rect[2], track3.finish_line_rect[3])
 
         track7 = pysprint_tracks.Track()
         track7.load_track_definition(pysprint_tracks.track7_json_filename)
         track7.background = pygame.image.load(track7.background_filename)
-        track7.track_mask = pygame.image.load(track7.track_mask_filename).convert_alpha()
+        track7.base_mask = pygame.image.load(track7.track_mask_filename).convert_alpha()
         track7.track_overlay = pygame.image.load(track7.overlay_filename).convert_alpha()
         track7.finish_line = pygame.Rect(track7.finish_line_rect[0], track7.finish_line_rect[1], track7.finish_line_rect[2], track7.finish_line_rect[3])
 
 
-        tracks.append(track3)
+
         tracks.append(track7)
         tracks.append(track1)
+        tracks.append(track3)
 
 
 
@@ -1651,10 +1685,10 @@ def game_loop():
 
                     get_ready_time  = pygame.time.get_ticks()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
-                        game_display.blit(track.background, (0, 0))
+                        track.blit_background(False)
                         for car in cars:
                             car.blit(track, False)
-                        game_display.blit(track.track_overlay, (0, 0))
+                        track.blit_overlay()
                         for car in cars:
                             car.blit(track, True)
                         print_get_ready()
@@ -1865,7 +1899,7 @@ def game_loop():
                                     break
 
                             trace_frame_time("Test Finish ", frame_start)
-                            game_display.blit(track.background, (0, 0))
+                            track.blit_background(True)
                             if race_start:
                                 game_display.blit(green_flag_frames[animation_index],track.flag_anchor)
 
@@ -1876,7 +1910,7 @@ def game_loop():
                                 game_display.blit(checkered_flag_frames[animation_index],track.flag_anchor)
                             for car in cars:
                                 car.blit(track, False)
-                            game_display.blit(track.track_overlay, (0, 0))
+                            track.blit_overlay()
                             for car in cars:
                                 car.blit(track, True)
                             for car in cars:
@@ -1888,6 +1922,17 @@ def game_loop():
                                     index_surf = small_font.render("{}".format(i), False, white_color)
                                     midpoint = ((track.external_gate_points[i][0] + track.internal_gate_points[i][0]) / 2, (track.external_gate_points[i][1] + track.internal_gate_points[i][1]) / 2)
                                     game_display.blit(index_surf, midpoint)
+
+                            if DEBUG_BUMP or DEBUG_CRASH:
+                                for i in range(0,len(track.external_borders)-1,1):
+                                    gfxdraw.line(game_display,track.external_borders[i][0], track.external_borders[i][1], track.external_borders[i+1][0], track.external_borders[i+1][1], white_color)
+                                    index_surf = small_font.render("{}".format(i), False, white_color)
+                                    game_display.blit(index_surf, (track.external_borders[i][0], track.external_borders[i][1]))
+
+                                for i in range(0,len(track.internal_borders)-1,1):
+                                    gfxdraw.line(game_display,track.internal_borders[i][0], track.internal_borders[i][1], track.internal_borders[i+1][0], track.internal_borders[i+1][1], white_color)
+                                    index_surf = small_font.render("{}".format(i), False, white_color)
+                                    game_display.blit(index_surf, (track.internal_borders[i][0], track.internal_borders[i][1]))
 
 
                             pygame.display.update()

@@ -14,7 +14,7 @@ DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-DEBUG_AI = True
+DEBUG_AI = False
 
 race_laps = None
 display_width = None
@@ -83,13 +83,14 @@ class Car:
     #Animation Constants
     bump_animation_timer = 33
     crash_animation_timer = 33
-    helicopter_step = 10
+    helicopter_step = 15
 
     #Collision Settings
     diagonal_detection_tolerance = 2
     vector_simulation_length = 10
     side_detection_tolerance = 7
     max_speed_crash_threshold = 3000
+    collision_area_threshold = 75
     #Threshold over which theer is a higher chance to crash
     speed_crash_probability_threshold = 0.85
     #% increase of probability to crash if condition is true
@@ -537,6 +538,26 @@ class Car:
 
         return track_mask.overlap(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
 
+    def test_collision_area(self, track: pysprint_tracks.Track, simulate_next_step):
+        track_mask = pygame.mask.from_surface(track.track_mask, 50)
+        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+        x_test = 0
+        y_test = 0
+        if simulate_next_step:
+            if self.x_vector > 0:
+                x_test = self.vector_simulation_length
+            else:
+                if self.x_vector < 0:
+                    x_test = -self.vector_simulation_length
+            if self.y_vector > 0:
+                y_test = self.vector_simulation_length
+            else:
+                if self.y_vector < 0:
+                    y_test = -self.vector_simulation_length
+
+        return track_mask.overlap_area(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
+
+
     def calculate_crashing_vector(self,track: pysprint_tracks.Track):
         #Reposition car in a suitable spot - Move car backwards until no collision detected.
         #Invert vector
@@ -579,6 +600,15 @@ class Car:
                 self.init_bump_loop(track, intersect_point)
 
     def detect_crash(self, track: pysprint_tracks.Track):
+
+        #if overlap between car and circuit mask > collision_area_threshold pixels  crash is forced to avoid traversing walls and gates
+        area = self.test_collision_area(track,False)
+        if DEBUG_CRASH:
+            print('collision area : {}'.format(area))
+
+        if  area > self.collision_area_threshold:
+            return True
+
         if self.max_speed_reached > 0:
             #Only for player cars
             if not self.is_drone:
@@ -695,6 +725,11 @@ class Car:
             if self.speed > 0:
                 self.detect_collision(track)
             else:
+                #If car is not moving, check for colision area size. Force crash
+                area = self.test_collision_area(track,False)
+                if area>self.collision_area_threshold:
+                    intersect_point = self.test_collision(track,False)
+                    self.init_crash_loop(intersect_point)
                 if self.bumping:
                     #Force end of Bump Routine if car is not moving
                     self.end_bump_loop()
@@ -789,6 +824,13 @@ class Car:
             #Car is not visible durign explosion
             if not self.crashing:
                 game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+            # else:
+            #     if self.vertical_helicopter:
+            #         if self.helicopter_y <= self.y_position:
+            #             game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+            #     else:
+            #         if self.helicopter_x >= self.x_position:
+            #             game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
 
             if DEBUG_AI:
                 if self.is_drone:
@@ -810,12 +852,8 @@ class Car:
                 if self.animation_index <= 4:
                     game_display.blit(explosion_frames[self.animation_index], (self.x_intersect, self.y_intersect))
                 if self.vertical_helicopter:
-                    if self.helicopter_y <= self.y_position:
-                        game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
                     game_display.blit(self.vertical_helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
                 else:
-                    if self.helicopter_x >= self.x_position:
-                        game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
                     game_display.blit(self.helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
 
 
