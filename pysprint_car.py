@@ -14,7 +14,7 @@ DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-DEBUG_AI = False
+DEBUG_AI = True
 
 race_laps = None
 display_width = None

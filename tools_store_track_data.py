@@ -226,8 +226,8 @@ def insert_gates(filename, to_add):
     with open(filename,"w") as track_file:
         json.dump(track_json, track_file)
 
-#to_modify = [(1,418,111,414,31)]
-#modify_gates(pysprint_tracks.track3_json_filename, to_modify)
+# to_modify = [(23,58,239,70,239)]
+# modify_gates(pysprint_tracks.track3_json_filename, to_modify)
 
 #to_remove = [1,2,4,5,7,9,10,15,16,17,19,20,21,23,26,28,29,31,32,33,35,37,38,48,51,52,56,57,60,61,63,67,72,74,75,77,78,79,81]
 #remove_gates(pysprint_tracks.track7_json_filename, to_remove)
