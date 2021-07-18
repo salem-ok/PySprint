@@ -1921,6 +1921,17 @@ def game_loop():
                                     index_surf = small_font.render("{}".format(i), False, white_color)
                                     midpoint = ((track.external_gate_points[i][0] + track.internal_gate_points[i][0]) / 2, (track.external_gate_points[i][1] + track.internal_gate_points[i][1]) / 2)
                                     game_display.blit(index_surf, midpoint)
+                                for i in range(0, len(track.road_gates_anchors)):
+                                    if track.road_gates_frames_index[i] == 4:
+                                        shortcut_color = green_color
+                                    else:
+                                        shortcut_color = red_color
+                                    for j in range (1, len(track.internal_ai_gates_shortcuts[i])):
+                                        gfxdraw.line(game_display, track.internal_ai_gates_shortcuts[i][j][0],track.internal_ai_gates_shortcuts[i][j][1], track.external_ai_gates_shortcuts[i][j][0],track.external_ai_gates_shortcuts[i][j][1], shortcut_color)
+                                        index_surf = small_font.render("{}".format(j), False, shortcut_color)
+                                        midpoint = ((track.external_ai_gates_shortcuts[i][j][0] + track.internal_ai_gates_shortcuts[i][j][0]) / 2, (track.external_ai_gates_shortcuts[i][j][1] + track.internal_ai_gates_shortcuts[i][j][1]) / 2)
+                                        game_display.blit(index_surf, midpoint)
+
 
                             if DEBUG_BUMP or DEBUG_CRASH:
                                 for i in range(0,len(track.external_borders)-1,1):

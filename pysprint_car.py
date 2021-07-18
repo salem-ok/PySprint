@@ -199,6 +199,7 @@ class Car:
         self.drone_repeat_bumping_counter = 0
         self.drone_repeat_bumping_timer = 0
         self.mandatory_gates_crossed = []
+        self.shortcut_gates_crossed = []
 
     def save_best_lap(self, track: pysprint_tracks.Track):
         saved = False
@@ -742,6 +743,21 @@ class Car:
             if self.crash_finished:
                 self.end_crash_loop()
 
+    def test_shortcut_gates(self, track: pysprint_tracks.Track):
+        if self.shortcut_gates_crossed is None:
+            return
+        else:
+            if type (self.next_gate) is tuple:
+                if len(track.external_ai_gates_shortcuts[self.next_gate[0]])-1 > len(self.shortcut_gates_crossed):
+                    #Check whcih is the next Mandatory gate to cross and add it as crossed if collision if not already added
+                    next_gate_to_test = (self.next_gate[0],len(self.shortcut_gates_crossed)+1)
+                    gate_rect = pygame.Rect(min(track.internal_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][0],track.external_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][0]), min(track.internal_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][1],track.external_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][1]),abs(track.internal_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][0]-track.external_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][0])+1, abs(track.internal_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][1]-track.external_ai_gates_shortcuts[next_gate_to_test[0]][next_gate_to_test[1]][1])+1)
+                    sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
+                    if sprite_rect.colliderect(gate_rect):
+                        #if gate is passed
+                        self.shortcut_gates_crossed.append(next_gate_to_test)
+
+
     def test_mandatory_gates(self, track: pysprint_tracks.Track):
         if track.mandatory_gates is None:
             return
@@ -749,7 +765,7 @@ class Car:
             if len(track.mandatory_gates) > len(self.mandatory_gates_crossed):
                 #Check whcih is the next Mandatory gate to cross and add it as crossed if collision if not already added
                 next_gate = track.mandatory_gates[len(self.mandatory_gates_crossed)]
-                gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0]), abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1]))
+                gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0])+1, abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1])+1)
                 sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
                 if sprite_rect.colliderect(gate_rect):
                     #if gate is passed
@@ -898,31 +914,68 @@ class Car:
         else:
             self.crash_finished = True
 
-    def calculate_ideal_vector(self, track: pysprint_tracks.Track, actual_gate_step):
-        new_next_gate = track.find_progress_gate((self.x_position, self.y_position))
-        new_next_gate += actual_gate_step
-        if self.next_gate is None:
-            self.next_gate = new_next_gate
-        else:
-            #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
-            if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - (actual_gate_step+1):
-                self.next_gate+=actual_gate_step
-            else:
-                #Eliminate cases where the AI is tempte to cut the roundabout
-                if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
-                    self.next_gate+=actual_gate_step
-                else:
-                    #Eliminate edge cases where the new next gate is behind the previous next next gate
-                    if new_next_gate >= self.next_gate:
-                        self.next_gate = new_next_gate
+    def validate_next_tuple(self, track: pysprint_tracks.Track, new_next_gate):
+        #If current gate is already a tuple
+        if type(self.next_gate) is tuple:
+            #Pointing to the next uncrossed gate
+            if len(self.shortcut_gates_crossed) < len(track.internal_ai_gates_shortcuts[self.next_gate[0]])-1:
+                self.next_gate = (self.next_gate[0], len(self.shortcut_gates_crossed)+1)
 
-        if self.next_gate >= len(track.external_gate_points):
-            self.next_gate -= len(track.external_gate_points)
+            if self.next_gate[1] == len(track.external_ai_gates_shortcuts[new_next_gate[0]])-1:
+                if len(self.shortcut_gates_crossed) == len(track.internal_ai_gates_shortcuts[self.next_gate[0]])-1:
+                    #Exiting a shortcut and resuming following the track if all shortcut cgates have been passed & point to the shortcut exit gate
+                    self.next_gate = track.external_ai_gates_shortcuts[new_next_gate[0]][0][1]
+                    self.shortcut_gates_crossed = None
+                else:
+                    #If next shortcut gate is ou of bounds, Pointing to the next uncrossed gate
+                    self.next_gate = (self.next_gate[0], len(self.shortcut_gates_crossed)+1)
+        else:
+            #Check if previous gate is close to the "shortcut trigger gate" for the shortcut thta has been detected
+            if abs(self.next_gate - track.external_ai_gates_shortcuts[new_next_gate[0]][0][0])<2:
+                #check if teh gate is open, if not, continue on track and ignor shortcut
+                if track.road_gates_frames_index[new_next_gate[0]] == 4:
+                    self.next_gate = new_next_gate
+                    self.shortcut_gates_crossed = []
+
+    def calculate_ideal_vector(self, track: pysprint_tracks.Track, actual_gate_step):
+        new_next_gate = track.find_progress_gate((self.x_position, self.y_position),actual_gate_step, self.next_gate)
+        #Gate is a tuple we deal with an open gate shortcut
+        if type(new_next_gate) is tuple:
+            self.validate_next_tuple(track,new_next_gate)
+
+        if not type(new_next_gate) is tuple:
+            new_next_gate += actual_gate_step
+            if self.next_gate is None:
+                self.next_gate = new_next_gate
+            else:
+                #Exiting a shortcut and resuming following the track if all shortcut gates have been passed & point to the shortcut exit gate
+                if type(self.next_gate) is tuple:
+                     if len(self.shortcut_gates_crossed) == len(track.internal_ai_gates_shortcuts[self.next_gate[0]])-1:
+                        self.next_gate = track.external_ai_gates_shortcuts[self.next_gate[0]][0][1]
+                        self.shortcut_gates_crossed = None
+                else:
+                    #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
+                    if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - (actual_gate_step+1):
+                        self.next_gate+=actual_gate_step
+                    else:
+                        #Eliminate cases where the AI is tempte to cut the roundabout
+                        if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
+                            self.next_gate+=actual_gate_step
+                        else:
+                            #Eliminate edge cases where the new next gate is behind the previous next next gate
+                            if new_next_gate >= self.next_gate:
+                                self.next_gate = new_next_gate
+                    if self.next_gate >= len(track.external_gate_points):
+                        self.next_gate -= len(track.external_gate_points)
 
         #Midpoint modifier: Normal personality aime for the exact middle of the gate, prudent and aggressive symetrically outcentered
         midpOint_modifier = 2 * (1 + (self.drone_personality_modifiers[self.drone_personality]-1) / 8)
 
-        self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / midpOint_modifier, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / midpOint_modifier)
+        #Gate index is a tuple means we deal witha an open gate shortcut
+        if type(self.next_gate) is tuple:
+            self.next_mid_point = ((track.external_ai_gates_shortcuts[self.next_gate[0]][self.next_gate[1]][0] + track.internal_ai_gates_shortcuts[self.next_gate[0]][self.next_gate[1]][0])/ 2, (track.external_ai_gates_shortcuts[self.next_gate[0]][self.next_gate[1]][1] + track.internal_ai_gates_shortcuts[self.next_gate[0]][self.next_gate[1]][1])/ 2)
+        else:
+            self.next_mid_point = ((track.external_gate_points[self.next_gate][0] + track.internal_gate_points[self.next_gate][0]) / midpOint_modifier, (track.external_gate_points[self.next_gate][1] + track.internal_gate_points[self.next_gate][1]) / midpOint_modifier)
         self.ideal_vector = (self.next_mid_point[0] - self.x_position, self.next_mid_point[1] - self.y_position)
 
     def get_cosine(self):
@@ -946,6 +999,9 @@ class Car:
 
 
     def ai_drive(self, track: pysprint_tracks.Track):
+
+        if self.is_drone and len(track.internal_ai_gates_shortcuts)>0:
+            self.test_shortcut_gates(track)
 
         self.calculate_ideal_vector(track, self.gate_step)
 
