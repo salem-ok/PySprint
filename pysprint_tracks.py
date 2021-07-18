@@ -166,7 +166,7 @@ class Track:
                 closest_gate_index = int_index
 
         closest_shortcut_index = None
-        if not actual_gate_step is None:
+        if not actual_gate_step is None and not  self.internal_ai_gates_shortcuts is None:
             int_shortcut = self.find_shortcut_point(position, self.internal_ai_gates_shortcuts, currentgate)
             ext_shortcut = self.find_shortcut_point(position, self.external_ai_gates_shortcuts, currentgate)
 

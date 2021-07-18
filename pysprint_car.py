@@ -1000,7 +1000,7 @@ class Car:
 
     def ai_drive(self, track: pysprint_tracks.Track):
 
-        if self.is_drone and len(track.internal_ai_gates_shortcuts)>0:
+        if self.is_drone and not track.internal_ai_gates_shortcuts is None:
             self.test_shortcut_gates(track)
 
         self.calculate_ideal_vector(track, self.gate_step)
