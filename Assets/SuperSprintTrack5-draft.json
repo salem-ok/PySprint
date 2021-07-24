@@ -1,0 +1,62 @@
+{
+    "track_number": 5,
+    "background_filename": "Assets/SuperSprintTrack5.png",
+    "mask_filename": "Assets/SuperSprintTrack5Mask.png",
+    "overlay_filename": "Assets/SuperSprintTrack5Overlay.png",
+    "finish_line_rect": [
+        308,
+        32,
+        4,
+        82
+    ],
+    "first_car_start_position": [
+        308,
+        41
+    ],
+    "flag_anchor": [
+        321,
+        14
+    ],
+    "road_gates_anchors": [
+        [
+            160,
+            104
+        ],
+        [
+            225,
+            200
+        ],
+        [
+            159,
+            280
+        ]
+    ],
+    "start_sprite_angle": 12,
+    "score_time_reference": 8.6,
+    "complete_lap_score": 80,
+    "finish_line_direction": -1,
+   "internal_ai_gates_shortcuts": [
+        [
+            [
+                2,
+                11
+            ],
+            [
+                325,
+                116
+            ],
+            [
+                290,
+                116
+            ],
+            [
+                290,
+                130
+            ],
+            [
+                300,
+                160
+            ]
+        ]
+    ]
+}

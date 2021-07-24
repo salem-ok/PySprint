@@ -91,13 +91,13 @@ import json
 
 
 #Template for laoding HTML Maps into the Track JSON format
-external_borders_map = [411,32,262,32,80,32,64,34,51,38,40,46,30,57,21,71,18,79,16,92,15,146,15,166,23,180,37,192,46,197,54,199,231,201,346,202,429,203,429,218,424,224,319,253,163,208,82,209,66,210,54,214,45,218,28,234,22,246,18,255,16,270,16,347,35,366,40,372,48,373,62,378,81,380,162,381,322,335,332,335,485,380,562,380,583,377,596,372,615,358,628,342,626,99,625,81,619,69,615,59,598,43,586,35,560,31]
-internal_borders_map = [537,115,103,114,100,126,487,128,502,136,516,148,525,163,529,173,530,258,521,265,481,278,471,279,456,289,461,293,518,308,530,310,539,305,544,304,545,120]
-secondary_internal_borders_map = [94,304,139,304,159,299,160,287,151,281,86,281,86,296]
-external_gate_points_map = [414,31,290,32,207,31,163,31,84,31,40,46,16,82,16,120,15,154,28,184,75,199,138,199,210,199,289,201,363,200,429,202,431,204,432,207,432,210,432,213,431,217,429,221,394,232,320,280,241,278,179,295,159,298,141,304,98,303,93,302,90,301,88,299,87,297,86,285,85,283,88,281,93,280,150,280,238,308,325,332,391,350,487,380,559,380,595,373,616,356,631,338,630,279,629,215,629,160,628,110,623,74,614,50,591,34,559,31,491,31]
-internal_gate_points_map = [418,111,291,113,206,113,163,113,106,113,106,117,105,120,106,123,107,126,110,127,112,129,138,129,207,126,294,126,366,129,430,128,486,128,515,147,529,175,529,256,481,278,457,288,419,302,327,331,257,349,192,367,165,375,140,376,91,375,62,372,40,367,16,342,16,306,17,284,21,249,46,218,80,209,151,208,253,234,323,255,417,284,498,305,528,310,538,308,544,305,545,296,546,269,545,211,545,162,546,127,542,120,537,115,528,112,518,111,494,111]
-gates_to_remove = [5,7,9,16,17,20,22,25,27,29,30,31,34,35,39,40,43,44,51,52,53]
-filename = pysprint_tracks.track3_json_filename
+external_borders_map = [558,32,80,32,50,38,28,59,18,80,16,93,15,153,14,180,33,201,44,208,358,210,362,221,353,224,145,221,71,216,41,225,21,242,14,255,9,272,11,340,29,358,49,368,106,376,130,379,562,381,588,375,603,366,618,355,627,343,635,326,635,308,623,302,607,288,588,272,588,259,603,250,618,242,634,222,625,216,622,205,593,181,585,172,587,164,592,159,601,155,622,143,630,131,631,123,625,121,627,96,621,74,616,60,598,42,577,33]
+internal_borders_map = [505,113,138,113,133,121,134,128,376,127,397,132,409,134,434,159,448,175,446,184,453,187,455,204,455,246,447,261,428,277,408,289,125,289,115,295,115,304,508,304,509,295,506,285,486,280,466,265,470,245,485,230,495,222,506,222,510,217,510,207,496,202,469,188,470,169,472,159,486,150,501,144,511,136,510,120]
+secondary_internal_borders_map = []
+external_gate_points_map = [321,32,152,32,80,32,30,58,14,92,14,156,49,206,135,209,174,208,268,207,320,207,358,208,363,214,364,221,358,224,322,223,238,222,172,222,146,220,72,218,19,240,9,288,11,339,60,371,121,378,172,378,246,379,350,380,429,380,536,381,597,372,605,343,610,309,589,266,588,218,588,169,586,114,586,76,561,44,519,31]
+internal_gate_points_map = [324,113,152,113,139,116,135,119,135,124,136,125,138,126,146,127,173,128,275,128,322,127,393,130,444,171,449,258,407,289,322,288,239,286,171,289,145,288,124,288,120,291,117,295,119,300,123,302,131,303,172,303,253,303,351,305,431,306,502,306,511,306,513,304,514,302,514,267,513,213,513,165,514,121,515,119,515,116,512,114]
+gates_to_remove = []
+filename = pysprint_tracks.track5_json_filename
 
 def create_track_file(filename,external_borders_map,internal_borders_map, secondary_internal_borders_map,external_gate_points_map,internal_gate_points_map,gates_to_remove):
     with open(filename) as track_file:
@@ -129,8 +129,7 @@ def create_track_file(filename,external_borders_map,internal_borders_map, second
     j = 0
 
     while i < len(external_gate_points_map):
-        if not j in to_remove:
-            track_json["external_gate_points"].append([external_gate_points_map[i],external_gate_points_map[i+1]])
+        track_json["external_gate_points"].append([external_gate_points_map[i],external_gate_points_map[i+1]])
         i+=2
         j+=1
 
@@ -138,14 +137,15 @@ def create_track_file(filename,external_borders_map,internal_borders_map, second
     i = 0
     j = 0
     while i < len(internal_gate_points_map):
-        if not j in to_remove:
-            track_json["internal_gate_points"].append([internal_gate_points_map[i],internal_gate_points_map[i+1]])
+        track_json["internal_gate_points"].append([internal_gate_points_map[i],internal_gate_points_map[i+1]])
         i+=2
         j+=1
 
     with open(filename,"w") as track_file:
         json.dump(track_json, track_file)
 
+
+create_track_file(filename,external_borders_map,internal_borders_map, secondary_internal_borders_map,external_gate_points_map,internal_gate_points_map,gates_to_remove)
 
 # #Tweak Track 1 file
 
@@ -226,8 +226,8 @@ def insert_gates(filename, to_add):
     with open(filename,"w") as track_file:
         json.dump(track_json, track_file)
 
-to_modify = [(31,214,214,260,164)]
-modify_gates(pysprint_tracks.track7_json_filename, to_modify)
+#to_modify = [(31,214,214,260,164)]
+#modify_gates(pysprint_tracks.track7_json_filename, to_modify)
 
 #to_remove = [26] #1,2,4,5,7,9,10,15,16,17,19,20,21,23,26,28,29,31,32,33,35,37,38,48,51,52,56,57,60,61,63,67,72,74,75,77,78,79,81]
 #remove_gates(pysprint_tracks.track3_json_filename, to_remove)
