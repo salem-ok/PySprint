@@ -201,6 +201,44 @@ class Car:
         self.mandatory_gates_crossed = []
         self.shortcut_gates_crossed = []
 
+    def reset_racing_status(self):
+        self.decelerating = False
+        self.rotating = False
+        self.bumping = False
+        self.crashing = False
+        self.vertical_helicopter = False
+        self.bumping_vector_initialized = False
+        self.bumping_vertical = False
+        self.bumping_horizontal = False
+        self.bumping_diagonal = False
+        self.crash_finished = False
+        self.animation_index = 0
+        self.helicopter_index = 0
+        self.helicopter_x = 0
+        self.helicopter_y = 0
+        self.collision_time = 0
+        self.max_speed_reached = 0
+        self.on_finish_line = True
+        self.passed_finish_line_wrong_way = False
+        self.lap_count = 0
+        self.current_lap_start = 0
+        self.drone_repeat_bumping_counter = 0
+        self.drone_repeat_bumping_timer = 0
+        self.mandatory_gates_crossed = []
+        self.shortcut_gates_crossed = []
+        self.previous_score_increment = 0
+        self.next_gate = None
+        self.progress_gate = -1
+        self.ideal_vector = None
+        self.next_mid_point = None
+        self.next_gate = None
+        for lap in self.lap_times:
+            lap = 0
+        self.best_lap = 0
+
+
+
+
     def save_best_lap(self, track: pysprint_tracks.Track):
         saved = False
         if self.best_lap > 0:
@@ -566,7 +604,7 @@ class Car:
         self.y_vector = -self.y_vector
 
         intersect_point = self.test_collision(track, True)
-        #Test if thr car is still collidign and keep moving backwards until not the case
+        #Test if the car is still collidign and keep moving backwards until not the case
         if intersect_point:
             #No movement as we're stuck
             if DEBUG_COLLISION:

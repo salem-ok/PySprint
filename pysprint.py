@@ -1601,6 +1601,10 @@ def initialize_tracks():
 
 
 
+
+
+
+
 def game_loop():
 
     game_exit = False
@@ -1661,16 +1665,7 @@ def game_loop():
                         cars[i].y_position = track.first_car_start_position[1] + i * 15
                         cars[i].sprite_angle = track.start_sprite_angle
                         cars[i].angle = track.start_sprite_angle
-                        cars[i].lap_count = 0
-                        cars[i].previous_score_increment = 0
-                        cars[i].next_gate = None
-                        cars[i].progress_gate = -1
-                        cars[i].ideal_vector = None
-                        cars[i].next_mid_point = None
-                        cars[i].next_gate = None
-                        for lap in cars[i].lap_times:
-                            lap = 0
-                        cars[i].best_lap = 0
+                        cars[i].reset_racing_status()
 
                     race_start = True
                     last_lap = False
@@ -1921,16 +1916,17 @@ def game_loop():
                                     index_surf = small_font.render("{}".format(i), False, white_color)
                                     midpoint = ((track.external_gate_points[i][0] + track.internal_gate_points[i][0]) / 2, (track.external_gate_points[i][1] + track.internal_gate_points[i][1]) / 2)
                                     game_display.blit(index_surf, midpoint)
-                                for i in range(0, len(track.road_gates_anchors)):
-                                    if track.road_gates_frames_index[i] == 4:
-                                        shortcut_color = green_color
-                                    else:
-                                        shortcut_color = red_color
-                                    for j in range (1, len(track.internal_ai_gates_shortcuts[i])):
-                                        gfxdraw.line(game_display, track.internal_ai_gates_shortcuts[i][j][0],track.internal_ai_gates_shortcuts[i][j][1], track.external_ai_gates_shortcuts[i][j][0],track.external_ai_gates_shortcuts[i][j][1], shortcut_color)
-                                        index_surf = small_font.render("{}".format(j), False, shortcut_color)
-                                        midpoint = ((track.external_ai_gates_shortcuts[i][j][0] + track.internal_ai_gates_shortcuts[i][j][0]) / 2, (track.external_ai_gates_shortcuts[i][j][1] + track.internal_ai_gates_shortcuts[i][j][1]) / 2)
-                                        game_display.blit(index_surf, midpoint)
+                                if not track.road_gates_anchors is None:
+                                    for i in range(0, len(track.road_gates_anchors)):
+                                        if track.road_gates_frames_index[i] == 4:
+                                            shortcut_color = green_color
+                                        else:
+                                            shortcut_color = red_color
+                                        for j in range (1, len(track.internal_ai_gates_shortcuts[i])):
+                                            gfxdraw.line(game_display, track.internal_ai_gates_shortcuts[i][j][0],track.internal_ai_gates_shortcuts[i][j][1], track.external_ai_gates_shortcuts[i][j][0],track.external_ai_gates_shortcuts[i][j][1], shortcut_color)
+                                            index_surf = small_font.render("{}".format(j), False, shortcut_color)
+                                            midpoint = ((track.external_ai_gates_shortcuts[i][j][0] + track.internal_ai_gates_shortcuts[i][j][0]) / 2, (track.external_ai_gates_shortcuts[i][j][1] + track.internal_ai_gates_shortcuts[i][j][1]) / 2)
+                                            game_display.blit(index_surf, midpoint)
 
 
                             if DEBUG_BUMP or DEBUG_CRASH:
