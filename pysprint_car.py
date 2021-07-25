@@ -14,7 +14,7 @@ DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-DEBUG_AI = True
+DEBUG_AI = False
 
 race_laps = None
 display_width = None
@@ -134,9 +134,6 @@ class Car:
         self.high_score_name = ""
         self.current_initial = 0
 
-        #Track the last time score was incremented due to progress in race (lap_count, gate_number)
-        self.previous_score_increment = 0
-
         self.x_position = 0
         self.y_position = 0
         self.sprite_angle = 12
@@ -175,6 +172,8 @@ class Car:
         self.drone_personality = 1
 
         #Car State
+        #Track the last time score was incremented due to progress in race (lap_count, gate_number)
+        self.previous_score_increment = 0
         self.is_drone = True
         self.decelerating = False
         self.rotating = False
@@ -226,7 +225,6 @@ class Car:
         self.drone_repeat_bumping_timer = 0
         self.mandatory_gates_crossed = []
         self.shortcut_gates_crossed = []
-        self.previous_score_increment = 0
         self.next_gate = None
         self.progress_gate = -1
         self.ideal_vector = None
@@ -235,7 +233,7 @@ class Car:
         for lap in self.lap_times:
             lap = 0
         self.best_lap = 0
-
+        self.previous_score_increment = 0
 
 
 
@@ -993,7 +991,7 @@ class Car:
                         self.shortcut_gates_crossed = None
                 else:
                     #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
-                    if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) >= len(track.external_gate_points) - (actual_gate_step+1):
+                    if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) > len(track.external_gate_points) - (actual_gate_step+1):
                         self.next_gate+=actual_gate_step
                     else:
                         #Eliminate cases where the AI is tempte to cut the roundabout

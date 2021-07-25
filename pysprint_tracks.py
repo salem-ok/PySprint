@@ -19,8 +19,8 @@ track5_json_filename = 'Assets/SuperSprintTrack5.json'
 track7_json_filename = 'Assets/SuperSprintTrack7.json'
 
 #Max and min random time for a gate to be closed or open
-max_random_time = 2500
-min_random_time = 1500
+max_random_time = 3000
+min_random_time = 2000
 
 game_display = None
 display_width = None
@@ -126,8 +126,8 @@ class Track:
         #if current gate is a tuple, we already engaged in a shortcut,
         #we need to continue on it regardless of teh gate status
         if currentgate is None or not type(currentgate) is tuple:
-            #If we're not already in a shortcut then we only return a shortcut if the gate is open
-            if not self.road_gates_frames_index[i] == 4:
+            #If we're not already in a shortcut then we only return a shortcut if the gate is open or opening
+            if not self.road_gates_frames_index[i] == 4 or not self.road_gates_opening[i]:
                 return -1
             #And if the shortcut gate detected is the first one of teh shortcut (i.e. index = 1)
             if shortest_index[1]>1:
@@ -221,10 +221,10 @@ class Track:
         index = self.find_progress_gate((car.x_position, car.y_position),car.gate_step)
         score_increment = 0
         if not type(index) is tuple:
-            score_increment = math.ceil((car.lap_count+1) * (index/len(self.internal_borders))) * 10
+            score_increment = math.ceil((car.lap_count+1) * (index/len(self.internal_borders))) * 30
         #Increment score if there has been progress wince last score increment
         if score_increment > car.previous_score_increment:
-            car.score += score_increment
+            car.score += score_increment - car.previous_score_increment
             car.previous_score_increment = score_increment
 
     def blit_background(self,race_started):
