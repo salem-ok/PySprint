@@ -1515,57 +1515,57 @@ def activate_cars():
                             personalities[i]=-1
                             unmodified = False
 
-        if cars[0].is_drone:
-            cars[0].sprites = blue_drone_sprites
-            cars[0].first_car = first_car_blue_drone
-            cars[0].second_car = second_car_blue_drone
-            cars[0].third_car = third_car_blue_drone
-            cars[0].fourth_car = fourth_car_blue_drone
-        else:
-            cars[0].sprites = blue_car_sprites
-            cars[0].first_car = first_car_blue
-            cars[0].second_car = second_car_blue
-            cars[0].third_car = third_car_blue
-            cars[0].fourth_car = fourth_car_blue
+    if cars[0].is_drone:
+        cars[0].sprites = blue_drone_sprites
+        cars[0].first_car = first_car_blue_drone
+        cars[0].second_car = second_car_blue_drone
+        cars[0].third_car = third_car_blue_drone
+        cars[0].fourth_car = fourth_car_blue_drone
+    else:
+        cars[0].sprites = blue_car_sprites
+        cars[0].first_car = first_car_blue
+        cars[0].second_car = second_car_blue
+        cars[0].third_car = third_car_blue
+        cars[0].fourth_car = fourth_car_blue
 
-        if cars[1].is_drone:
-            cars[1].sprites = green_drone_sprites
-            cars[1].first_car = first_car_green_drone
-            cars[1].second_car = second_car_green_drone
-            cars[1].third_car = third_car_green_drone
-            cars[1].fourth_car = fourth_car_green_drone
-        else:
-            cars[1].sprites = green_car_sprites
-            cars[1].first_car = first_car_green
-            cars[1].second_car = second_car_green
-            cars[1].third_car = third_car_green
-            cars[1].fourth_car = fourth_car_green
+    if cars[1].is_drone:
+        cars[1].sprites = green_drone_sprites
+        cars[1].first_car = first_car_green_drone
+        cars[1].second_car = second_car_green_drone
+        cars[1].third_car = third_car_green_drone
+        cars[1].fourth_car = fourth_car_green_drone
+    else:
+        cars[1].sprites = green_car_sprites
+        cars[1].first_car = first_car_green
+        cars[1].second_car = second_car_green
+        cars[1].third_car = third_car_green
+        cars[1].fourth_car = fourth_car_green
 
-        if cars[2].is_drone:
-            cars[2].sprites = yellow_drone_sprites
-            cars[2].first_car = first_car_yellow_drone
-            cars[2].second_car = second_car_yellow_drone
-            cars[2].third_car = third_car_yellow_drone
-            cars[2].fourth_car = fourth_car_yellow_drone
-        else:
-            cars[2].sprites = yellow_car_sprites
-            cars[2].first_car = first_car_yellow
-            cars[2].second_car = second_car_yellow
-            cars[2].third_car = third_car_yellow
-            cars[2].fourth_car = fourth_car_yellow
+    if cars[2].is_drone:
+        cars[2].sprites = yellow_drone_sprites
+        cars[2].first_car = first_car_yellow_drone
+        cars[2].second_car = second_car_yellow_drone
+        cars[2].third_car = third_car_yellow_drone
+        cars[2].fourth_car = fourth_car_yellow_drone
+    else:
+        cars[2].sprites = yellow_car_sprites
+        cars[2].first_car = first_car_yellow
+        cars[2].second_car = second_car_yellow
+        cars[2].third_car = third_car_yellow
+        cars[2].fourth_car = fourth_car_yellow
 
-        if cars[3].is_drone:
-            cars[3].sprites = red_drone_sprites
-            cars[3].first_car = first_car_red_drone
-            cars[3].second_car = second_car_red_drone
-            cars[3].third_car = third_car_red_drone
-            cars[3].fourth_car = fourth_car_red_drone
-        else:
-            cars[3].sprites = red_car_sprites
-            cars[3].first_car = first_car_red
-            cars[3].second_car = second_car_red
-            cars[3].third_car = third_car_red
-            cars[3].fourth_car = fourth_car_red
+    if cars[3].is_drone:
+        cars[3].sprites = red_drone_sprites
+        cars[3].first_car = first_car_red_drone
+        cars[3].second_car = second_car_red_drone
+        cars[3].third_car = third_car_red_drone
+        cars[3].fourth_car = fourth_car_red_drone
+    else:
+        cars[3].sprites = red_car_sprites
+        cars[3].first_car = first_car_red
+        cars[3].second_car = second_car_red
+        cars[3].third_car = third_car_red
+        cars[3].fourth_car = fourth_car_red
     return len(nb_drones)
 
 
@@ -1703,7 +1703,7 @@ def game_loop():
                             podium_displayed = True
                         else:
                             for car in cars:
-                                if car.bumping or race_finish:
+                                if car.bumping or car.spinning or race_finish:
                                     car.ignore_controls = True
                                 if not car.ignore_controls:
                                     if car.is_drone:
@@ -1847,9 +1847,15 @@ def game_loop():
                                         flag_waved = True
                                         pygame.time.set_timer(CHECKEREDFLAG, 00)
 
-                            #Check animation timers for crashes and bumps
+                            #Check animation timers for spins, crashes and bumps
                             current_ticks = pygame.time.get_ticks()
                             for car in cars:
+                                #Spin the car
+                                if car.spinning and (current_ticks - car.collision_time) >= car.bump_animation_timer:
+                                    if DEBUG_BUMP:
+                                        print('{} - Spin Timer triggerred'.format(current_ticks))
+                                    car.display_spinning()
+                                    car.collision_time = current_ticks
                                 #Draw Dust Cloud
                                 if car.bumping and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
@@ -1866,7 +1872,7 @@ def game_loop():
                             trace_frame_time("Managed all Events & Timers", frame_start)
 
                             for car in cars:
-                                car.draw(track)
+                                car.draw(track,cars)
                                 trace_frame_time("Drawn car", frame_start)
                             if not race_finish and not race_start:
                                 for car in cars:

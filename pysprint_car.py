@@ -7,11 +7,13 @@ import math
 import random
 
 from pygame.key import name
+from pygame.mask import from_threshold
 import pysprint_tracks
 
 game_display = None
 DEBUG_FINISH = False
-DEBUG_COLLISION = False
+DEBUG_COLLISION = True
+DEBUG__CAR_COLLISION = True
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
@@ -44,6 +46,26 @@ class Car:
         14:(-1, -1),
         15:(-1, -1),
         16:(0, -1)
+    }
+
+    front_area = {
+        0:[(8,2),(24,8)],
+        1:[(16,2),(30,12)],
+        2:[(20,4),(32,12)],
+        3:[(20,6),(32,16)],
+        4:[(22,8),(32,20)],
+        5:[(18,12),(32,22)],
+        6:[(12,14),(30,22)],
+        7:[(12,18),(28,24)],
+        8:[(8,16),(26,24)],
+        9:[(4,16),(20,24)],
+        10:[(2,14),(20,22)],
+        11:[(0,12),(14,22)],
+        12:[(0,8),(10,20)],
+        13:[(0,6),(12,16)],
+        14:[(0,4),(14,12)],
+        15:[(4,2),(20,12)],
+        16:[(8,2),(24,8)]
     }
 
 
@@ -179,6 +201,12 @@ class Car:
         self.rotating = False
         self.bumping = False
         self.crashing = False
+        self.spinning = False
+        self.frontal_colliding = False
+        self.side_colliding_offender = False
+        self.side_colliding_victim = False
+        self.side_colliding_offender_vector = None
+        self.side_colliding_other_car = None
         self.vertical_helicopter = False
         self.bumping_vector_initialized = False
         self.bumping_vertical = False
@@ -264,6 +292,9 @@ class Car:
                         self.drone_repeat_bumping_counter += 1
 
         self.bumping = is_bumping
+
+    def set_spinning(self, is_spinning):
+        self.spinning = is_spinning
 
 
     def move_initial_character(self, left):
@@ -442,7 +473,7 @@ class Car:
             self.y_vector = self.y_vector * abs(self.speed * self.sin_angle) / abs(self.y_vector)
 
         if not self.x_vector == 0:
-            self.x_vector = self.x_vector * math.sqrt(self.speed*self.speed-self.y_vector*self.y_vector)  / abs(self.x_vector)
+            self.x_vector = self.x_vector * math.sqrt(abs(self.speed*self.speed-self.y_vector*self.y_vector))  / abs(self.x_vector)
 
         if self.x_vector==0 and self.y_vector==0 and self.speed>0:
             #Wrong situation: reset to default vector
@@ -556,6 +587,126 @@ class Car:
                                     self.x_vector = 0
         self.bumping_vector_initialized = True
 
+    def calculate_side_colliding_vector(self, other_car):
+        if self.side_colliding_offender:
+        #Offending Car: bumping aginst the victim car similarly to bumping against a border
+            if not self.bumping_vector_initialized:
+                if other_car.sprite_angle ==0 or other_car.sprite_angle ==8 or other_car.sprite_angle ==16 :
+                    #Bump horizontally when hitting a vertical car diagonally or horizontally
+                    #Invert X component fo the vector
+                    self.x_vector = -self.x_vector
+                    self.y_vector = 0
+                else:
+                    if other_car.sprite_angle ==4 or other_car.sprite_angle ==12:
+                        #Bump vertically when hitting a horizontal border diagonally or vertically
+                        #Invert Y component fo the vector
+                        self.y_vector = -self.y_vector
+                        self.x_vector = 0
+                    else:
+                        if self.bumping_diagonal:
+                            #Diagonal Bumping: Bump Diagnoally if hit Horizontally - or Vertically  - Vert or Horiz Bump if hit diagonally
+                            if self.x_vector == 0 or self.y_vector == 0:
+                                #Car is moving Horizontally or Vertical - Force 45 degree angle
+                                self.sin_angle = math.sin(math.radians(abs(45)))
+                                new_vector = abs(self.speed * self.sin_angle)
+                                if (other_car.sprite_angle > 4 and other_car.sprite_angle < 8) or (other_car.sprite_angle > 12 and other_car.sprite_angle < 16):
+                                    #Top-Right or Bottom Left Diagonal
+                                    if self.y_vector > 0 or self.x_vector < 0:
+                                        #Bottom Left Diagonal - Invert Y Component
+                                        self.x_vector = new_vector
+                                        self.y_vector = -new_vector
+                                    else:
+                                        if self.y_vector < 0 or self.x_vector > 0:
+                                            #Top Right Diagonal - Invert X Component
+                                            self.x_vector = -new_vector
+                                            self.y_vector = new_vector
+                                if (other_car.sprite_angle < 4 and other_car.sprite_angle > 0) or (other_car.sprite_angle < 12 and other_car.sprite_angle > 8):
+                                    #Top-left or Bottom Right Diagonal
+                                    if self.y_vector < 0 or self.x_vector < 0:
+                                        #Top Left Diagonal - No Changes on vector
+                                        self.x_vector = new_vector
+                                        self.y_vector = new_vector
+                                    else:
+                                        if self.y_vector > 0 or self.x_vector > 0:
+                                            #Bottom Right Diagonal - Invert Vector
+                                            self.x_vector = -new_vector
+                                            self.y_vector = -new_vector
+                            else:
+                                #Car is Diagonal - Assuming Orthogonal to the Border - Normal Bump - Invert Vector
+                                self.x_vector = -self.x_vector
+                                self.y_vector = -self.y_vector
+        elif self.side_colliding_victim:
+            #Victim Car: Vector is modified by offending car's vector
+            self.x_vector = self.side_colliding_offender_vector[0]
+            self.y_vector = self.side_colliding_offender_vector[1]
+        self.bumping_vector_initialized = True
+
+
+    def test_car_collisions(self, cars):
+        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+
+        for i in range(0,len(cars)):
+            #Check collision with other cars
+            if not cars[i].color_text==self.color_text:
+                other_car_mask = pygame.mask.from_surface(cars[i].sprites[cars[i].sprite_angle], 50)
+                collision = other_car_mask.overlap(car_mask, (round(self.x_position-cars[i].x_position),round(self.y_position-cars[i].y_position)))
+                if collision:
+                    #Determine relative position of each car to determine the effect of the collision
+                    angle_delta = self.sprite_angle - cars[i].sprite_angle
+                    #Frontal Collision: sprite angles are opposite (+/- 1 step)
+                    if abs(angle_delta) >  6 and abs(angle_delta) < 10:
+                        if DEBUG__CAR_COLLISION:
+                            print('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                            self.init_frontal_car_collision_loop()
+                            cars[i].init_frontal_car_collision_loop()
+                    ##No Collision: sprite angles are equal (+/- 1 step)
+                    elif abs(angle_delta) < 2 or abs(angle_delta) >14:
+                        if DEBUG__CAR_COLLISION:
+                            print('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                    else:
+                    ##Side Collision
+                        #Check if the other car's front area is touching
+                        #define reactangluar surfaces fro teh front area of each sprite
+                        other_front_collision = False
+                        if collision[0]>=self.front_area[cars[i].sprite_angle][0][0] and collision[0]<=self.front_area[cars[i].sprite_angle][1][0]:
+                            if collision[1]>=self.front_area[cars[i].sprite_angle][0][1] and collision[1]<=self.front_area[cars[i].sprite_angle][1][1]:
+                                other_front_collision = True
+                        front_collision = False
+                        other_collision = car_mask.overlap(other_car_mask, (round(cars[i].x_position-self.x_position),round(cars[i].y_position-self.y_position)))
+                        if other_collision:
+                            if other_collision[0]>=self.front_area[self.sprite_angle][0][0] and other_collision[0]<=self.front_area[self.sprite_angle][1][0]:
+                                if other_collision[1]>=self.front_area[self.sprite_angle][0][1] and other_collision[1]<=self.front_area[self.sprite_angle][1][1]:
+                                    front_collision = True
+                        else:
+                            other_collision = (-1,-1)
+                        if DEBUG__CAR_COLLISION:
+                            print('Side Colllision: {}-sprite:{}-front:{} - {}-sprite:{}-front:{} - ({},{}) - ({},{})'.format(cars[i].color_text,cars[i].sprite_angle,other_front_collision,self.color_text,self.sprite_angle,front_collision,collision[0],collision[1],other_collision[0],other_collision[1]))
+                        if not front_collision == other_front_collision:
+                            if other_front_collision:
+                                if not self.side_colliding_victim:
+                                    self.init_side_car_collision_victim_loop(cars[i], collision)
+                                if not cars[i].side_colliding_offender:
+                                    cars[i].init_side_car_collision_offender_loop(self, collision)
+                            else:
+                                if not self.side_colliding_offender:
+                                    self.init_side_car_collision_offender_loop(cars[i], collision)
+                                if not cars[i].side_colliding_victim:
+                                    cars[i].init_side_car_collision_victim_loop(self, collision)
+                        # elif front_collision and other_front_collision:
+                        #     #Side collision where both fronts are touching: offendre is the car with teh highest speed
+                        #     #Ignore if no fronts are involved
+                        #     if self.speed < cars[i].speed:
+                        #         if not self.side_colliding_victim:
+                        #             self.init_side_car_collision_victim_loop(cars[i], collision)
+                        #         if not cars[i].side_colliding_offender:
+                        #             cars[i].init_side_car_collision_offender_loop(self, collision)
+                        #     else:
+                        #         if not self.side_colliding_offender:
+                        #             self.init_side_car_collision_offender_loop(cars[i], collision)
+                        #         if not cars[i].side_colliding_victim:
+                        #             cars[i].init_side_car_collision_victim_loop(self, collision)
+
+
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         track_mask = pygame.mask.from_surface(track.track_mask, 50)
         car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
@@ -609,6 +760,8 @@ class Car:
                 print('Stuck at ({},{})'.format(self.x_position, self.y_position))
             self.y_vector = 0
             self.x_vector = 0
+            self.x_position = track.first_car_start_position[0]
+            self.y_position = track.first_car_start_position[1]
 
 
     def detect_collision(self, track: pysprint_tracks.Track):
@@ -672,6 +825,39 @@ class Car:
             else:
                 return False
 
+    def init_frontal_car_collision_loop(self):
+        self.set_spinning(True)
+        self.frontal_colliding = True
+        self.side_colliding_offender = False
+        self.side_colliding_victim = False
+        self.side_colliding_other_car = None
+        self.animation_index = 0
+        self.collision_time = pygame.time.get_ticks()
+
+    def init_side_car_collision_offender_loop(self, victim, collision):
+        self.set_bumping(True)
+        self.speed = self.bump_speed * 0.75
+        self.collision_time = pygame.time.get_ticks()
+        self.x_intersect = collision[0]
+        self.y_intersect = collision[1]
+        self.animation_index = 0
+        self.frontal_colliding = False
+        self.side_colliding_offender = True
+        self.side_colliding_victim = False
+        self.side_colliding_other_car = victim
+
+    def init_side_car_collision_victim_loop(self, offender, collision):
+        self.set_bumping(True)
+        self.speed = self.bump_speed * 0.75
+        self.collision_time = pygame.time.get_ticks()
+        self.animation_index = 0
+        self.x_intersect = collision[0]
+        self.y_intersect = collision[1]
+        self.frontal_colliding = False
+        self.side_colliding_offender = False
+        self.side_colliding_victim = True
+        self.side_colliding_other_car = offender
+        self.side_colliding_offender_vector = (offender.x_vector, offender.y_vector)
 
     def init_bump_loop(self, track: pysprint_tracks.Track, intersect_point):
         self.set_bumping(True)
@@ -723,6 +909,16 @@ class Car:
         self.bumping_horizontal = False
         self.bumping_vertical = False
         self.bumping_vector_initialized = False
+
+        if self.frontal_colliding:
+            self.frontal_colliding = False
+        if self.side_colliding_offender:
+            self.side_colliding_offender = False
+            self.side_colliding_other_car = None
+        if self.side_colliding_victim:
+            self.side_colliding_victim = False
+            self.side_colliding_other_car = None
+
         self.set_bumping(False)
         end_time = pygame.time.get_ticks()
         if DEBUG_BUMP:
@@ -735,8 +931,10 @@ class Car:
         if DEBUG_CRASH:
             print('{} - Crash Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
 
+    def end_spinning_loop(self):
+        self.spinning = False
 
-    def update_position(self, track: pysprint_tracks.Track):
+    def update_position(self, track: pysprint_tracks.Track, cars):
         if self.crashing:
             self.calculate_crashing_vector(track)
         else:
@@ -749,7 +947,10 @@ class Car:
                     self.calculate_skidding_vector()
             if self.bumping:
                 #Calculate Vector - Bumping
-                self.calculate_bumping_vector(track)
+                if self.side_colliding_offender or self.side_colliding_victim:
+                    self.calculate_side_colliding_vector(self.side_colliding_other_car)
+                else:
+                    self.calculate_bumping_vector(track)
 
         #Update Car Offset
         self.x_position += self.x_vector
@@ -761,6 +962,7 @@ class Car:
             #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
             if self.speed > 0:
                 self.detect_collision(track)
+                self.test_car_collisions(cars)
             else:
                 #If car is not moving, check for colision area size. Force crash
                 area = self.test_collision_area(track,False)
@@ -859,16 +1061,21 @@ class Car:
             self.on_finish_line = False
 
 
-    def draw(self, track: pysprint_tracks.Track):
+    def draw(self, track: pysprint_tracks.Track, cars):
         #Draw Car
         if not self.bumping:
-            self.update_position(track)
+            self.update_position(track, cars)
             self.ignore_controls = False
         if self.bumping:
             #Ignore controls until Buming routine is finished - Force Skidding & Decelaration
             self.decelerating = True
             self.rotating = False
-            self.update_position(track)
+            self.update_position(track, cars)
+        if self.spinning:
+            #Ignore controls until Spinning routine is finished - Force Skidding & Decelaration
+            self.decelerating = True
+            self.rotating = False
+            self.update_position(track, cars)
 
     def blit(self, track: pysprint_tracks.Track, overlay_blitted):
         #Cars are blited under teh overlay to be hidden but not dust clouds, explisions and the helicopter
@@ -908,6 +1115,17 @@ class Car:
                 else:
                     game_display.blit(self.helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
 
+    def display_spinning(self):
+        if DEBUG__CAR_COLLISION:
+            print('{} - Increment Spin Frame'.format(pygame.time.get_ticks()))
+        #Spin the car
+        self.animation_index+=1
+        if self.animation_index <16:
+            self.sprite_angle+=1
+            if self.sprite_angle >=16:
+                self.sprite_angle-=16
+        else:
+            self.end_spinning_loop()
 
     def display_bump_cloud(self):
         if DEBUG_BUMP:
