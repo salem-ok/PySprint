@@ -12,8 +12,8 @@ import pysprint_tracks
 
 game_display = None
 DEBUG_FINISH = False
-DEBUG_COLLISION = True
-DEBUG__CAR_COLLISION = True
+DEBUG_COLLISION = False
+DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
