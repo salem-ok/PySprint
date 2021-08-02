@@ -657,8 +657,8 @@ class Car:
                     if abs(angle_delta) >  6 and abs(angle_delta) < 10:
                         if DEBUG__CAR_COLLISION:
                             print('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                            self.init_frontal_car_collision_loop()
-                            cars[i].init_frontal_car_collision_loop()
+                        self.init_frontal_car_collision_loop()
+                        cars[i].init_frontal_car_collision_loop()
                     ##No Collision: sprite angles are equal (+/- 1 step)
                     elif abs(angle_delta) < 2 or abs(angle_delta) >14:
                         if DEBUG__CAR_COLLISION:
@@ -706,6 +706,21 @@ class Car:
                         #         if not cars[i].side_colliding_victim:
                         #             cars[i].init_side_car_collision_victim_loop(self, collision)
 
+    def get_simulation_vector(self):
+        x_test = 0
+        y_test = 0
+        if self.x_vector > 0:
+            x_test = self.vector_simulation_length
+        else:
+            if self.x_vector < 0:
+                x_test = -self.vector_simulation_length
+        if self.y_vector > 0:
+            y_test = self.vector_simulation_length
+        else:
+            if self.y_vector < 0:
+                y_test = -self.vector_simulation_length
+        result  = (x_test,y_test)
+        return result
 
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         track_mask = pygame.mask.from_surface(track.track_mask, 50)
@@ -713,17 +728,9 @@ class Car:
         x_test = 0
         y_test = 0
         if simulate_next_step:
-            if self.x_vector > 0:
-                x_test = self.vector_simulation_length
-            else:
-                if self.x_vector < 0:
-                    x_test = -self.vector_simulation_length
-            if self.y_vector > 0:
-                y_test = self.vector_simulation_length
-            else:
-                if self.y_vector < 0:
-                    y_test = -self.vector_simulation_length
-
+            result = self.get_simulation_vector()
+            x_test = result[0]
+            y_test = result[1]
         return track_mask.overlap(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
 
     def test_collision_area(self, track: pysprint_tracks.Track, simulate_next_step):
@@ -765,7 +772,13 @@ class Car:
                 self.y_position = track.first_car_start_position[1]
             else:
                 self.x_position = (track.external_gate_points[self.progress_gate][0] + track.internal_gate_points[self.progress_gate][0])/ 2
-                self.y_position = (track.external_gate_points[self.progress_gate][1] + track.internal_gate_points[self.progress_gate][1])/ 2                
+                self.y_position = (track.external_gate_points[self.progress_gate][1] + track.internal_gate_points[self.progress_gate][1])/ 2
+        else:
+            result = self.get_simulation_vector()
+            self.x_position = round(self.x_position+result[0])
+            self.y_position = round(self.y_position+result[1])
+            self.y_vector = 0
+            self.x_vector = 0
 
     def detect_collision(self, track: pysprint_tracks.Track):
         if DEBUG_COLLISION:
@@ -830,6 +843,7 @@ class Car:
 
     def init_frontal_car_collision_loop(self):
         self.set_spinning(True)
+        self.speed = self.speed_max * 0.6
         self.frontal_colliding = True
         self.side_colliding_offender = False
         self.side_colliding_victim = False

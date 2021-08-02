@@ -222,6 +222,8 @@ class Track:
         score_increment = 0
         if not type(index) is tuple:
             score_increment = math.ceil((car.lap_count+1) * (index/len(self.internal_borders))) * 30
+            if not car.is_drone:
+                car.progress_gate = index
         #Increment score if there has been progress wince last score increment
         if score_increment > car.previous_score_increment:
             car.score += score_increment - car.previous_score_increment
