@@ -755,14 +755,17 @@ class Car:
         intersect_point = self.test_collision(track, True)
         #Test if the car is still collidign and keep moving backwards until not the case
         if intersect_point:
-            #No movement as we're stuck
+            #Reposition the to the midpoint of the latest progress gate or Start Line by default
             if DEBUG_COLLISION:
-                print('Stuck at ({},{})'.format(self.x_position, self.y_position))
+                print('Car stuck outside of borders at ({},{}) - Repositionning'.format(self.x_position, self.y_position))
             self.y_vector = 0
             self.x_vector = 0
-            self.x_position = track.first_car_start_position[0]
-            self.y_position = track.first_car_start_position[1]
-
+            if self.progress_gate is None:
+                self.x_position = track.first_car_start_position[0]
+                self.y_position = track.first_car_start_position[1]
+            else:
+                self.x_position = (track.external_gate_points[self.progress_gate][0] + track.internal_gate_points[self.progress_gate][0])/ 2
+                self.y_position = (track.external_gate_points[self.progress_gate][1] + track.internal_gate_points[self.progress_gate][1])/ 2                
 
     def detect_collision(self, track: pysprint_tracks.Track):
         if DEBUG_COLLISION:
