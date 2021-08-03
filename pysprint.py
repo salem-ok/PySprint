@@ -56,6 +56,7 @@ DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
 DEBUG_AI = False
+DISABLE_DRONES = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1599,7 +1600,6 @@ def initialize_tracks():
         track7.track_overlay = pygame.image.load(track7.overlay_filename).convert_alpha()
         track7.finish_line = pygame.Rect(track7.finish_line_rect[0], track7.finish_line_rect[1], track7.finish_line_rect[2], track7.finish_line_rect[3])
 
-
         tracks.append(track1)
         tracks.append(track3)
         tracks.append(track5)
@@ -1707,7 +1707,8 @@ def game_loop():
                                     car.ignore_controls = True
                                 if not car.ignore_controls:
                                     if car.is_drone:
-                                        car.ai_drive(track)
+                                        if not DISABLE_DRONES:
+                                            car.ai_drive(track)
                                     else:
                                         #If car if keyboard controlled
                                         if car.joystick is None:
@@ -1771,7 +1772,8 @@ def game_loop():
                                 for car in cars:
                                     if not car.ignore_controls:
                                         if car.is_drone:
-                                            car.ai_drive(track)
+                                            if not DISABLE_DRONES:
+                                                car.ai_drive(track)
                                         else:
                                             if event.type == pygame.KEYDOWN:
                                                 #If car if keyboard controlled

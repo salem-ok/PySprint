@@ -13,7 +13,7 @@ import pysprint_tracks
 game_display = None
 DEBUG_FINISH = False
 DEBUG_COLLISION = False
-DEBUG__CAR_COLLISION = False
+DEBUG__CAR_COLLISION = True
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
@@ -637,8 +637,30 @@ class Car:
                                 self.y_vector = -self.y_vector
         elif self.side_colliding_victim:
             #Victim Car: Vector is modified by offending car's vector
-            self.x_vector = self.side_colliding_offender_vector[0]
-            self.y_vector = self.side_colliding_offender_vector[1]
+            # self.x_vector = self.side_colliding_offender_vector[0]
+            # self.y_vector = self.side_colliding_offender_vector[1]
+            #Sine method
+            car_vector_length = math.sqrt(self.side_colliding_offender_vector[0]**2 + self.side_colliding_offender_vector[1]**2)
+            cross_product = car_vector_length * math.sqrt(1)
+            # using cross-product formula
+            if cross_product ==0:
+                offender_sin_angle = 0
+            else:
+                offender_sin_angle = (self.side_colliding_offender_vector[0] * 1 - self.side_colliding_offender_vector[1] * 0)/cross_product
+
+            self.sin_angle = offender_sin_angle
+
+            if not self.side_colliding_offender_vector[1] == 0:
+                self.y_vector = abs(self.speed * self.sin_angle)
+                self.y_vector = self.y_vector * self.side_colliding_offender_vector[1]/abs(self.side_colliding_offender_vector[1])
+            else:
+                self.y_vector = 0
+            if not self.side_colliding_offender_vector[0] == 0:
+                self.x_vector = math.sqrt(abs(self.speed*self.speed-self.y_vector*self.y_vector))
+                self.x_vector = self.x_vector * self.side_colliding_offender_vector[0]/abs(self.side_colliding_offender_vector[0])
+            else:
+                self.x_vector = 0
+
         self.bumping_vector_initialized = True
 
 
@@ -653,58 +675,68 @@ class Car:
                 if collision:
                     #Determine relative position of each car to determine the effect of the collision
                     angle_delta = self.sprite_angle - cars[i].sprite_angle
-                    #Frontal Collision: sprite angles are opposite (+/- 1 step)
-                    if abs(angle_delta) >  6 and abs(angle_delta) < 10:
-                        if DEBUG__CAR_COLLISION:
-                            print('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                        self.init_frontal_car_collision_loop()
-                        cars[i].init_frontal_car_collision_loop()
-                    ##No Collision: sprite angles are equal (+/- 1 step)
+                    #Frontal Collision: sprite angles are opposite  and at least 50% max speed is reached
+                    if (abs(angle_delta) < 10) and (abs(angle_delta) >6):
+                        if self.speed>0.5*self.speed_max and cars[i].speed>0.5*cars[i].speed_max:
+                            if DEBUG__CAR_COLLISION:
+                                print('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                            self.init_frontal_car_collision_loop()
+                            cars[i].init_frontal_car_collision_loop()
+                    ##No Collision: sprite angles are equal or close (+/- 1 step)
                     elif abs(angle_delta) < 2 or abs(angle_delta) >14:
                         if DEBUG__CAR_COLLISION:
                             print('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                    else:
-                    ##Side Collision
-                        #Check if the other car's front area is touching
-                        #define reactangluar surfaces fro teh front area of each sprite
-                        other_front_collision = False
-                        if collision[0]>=self.front_area[cars[i].sprite_angle][0][0] and collision[0]<=self.front_area[cars[i].sprite_angle][1][0]:
-                            if collision[1]>=self.front_area[cars[i].sprite_angle][0][1] and collision[1]<=self.front_area[cars[i].sprite_angle][1][1]:
-                                other_front_collision = True
-                        front_collision = False
-                        other_collision = car_mask.overlap(other_car_mask, (round(cars[i].x_position-self.x_position),round(cars[i].y_position-self.y_position)))
-                        if other_collision:
-                            if other_collision[0]>=self.front_area[self.sprite_angle][0][0] and other_collision[0]<=self.front_area[self.sprite_angle][1][0]:
-                                if other_collision[1]>=self.front_area[self.sprite_angle][0][1] and other_collision[1]<=self.front_area[self.sprite_angle][1][1]:
-                                    front_collision = True
+                    #Sprites angle is equidisant from right angles
+                    elif (abs(angle_delta)==6) or (abs(angle_delta)==2) or (abs(angle_delta)==10) or (abs(angle_delta)==14):
+                        #If cars are at high speed, force spinning (if one of them is not a drone, as drones are almost always at max speed)
+                        if (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone):
+                            if DEBUG__CAR_COLLISION:
+                                print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                            self.init_frontal_car_collision_loop()
+                            cars[i].init_frontal_car_collision_loop()
                         else:
-                            other_collision = (-1,-1)
-                        if DEBUG__CAR_COLLISION:
-                            print('Side Colllision: {}-sprite:{}-front:{} - {}-sprite:{}-front:{} - ({},{}) - ({},{})'.format(cars[i].color_text,cars[i].sprite_angle,other_front_collision,self.color_text,self.sprite_angle,front_collision,collision[0],collision[1],other_collision[0],other_collision[1]))
-                        if not front_collision == other_front_collision:
-                            if other_front_collision:
-                                if not self.side_colliding_victim:
-                                    self.init_side_car_collision_victim_loop(cars[i], collision)
-                                if not cars[i].side_colliding_offender:
-                                    cars[i].init_side_car_collision_offender_loop(self, collision)
+                            if DEBUG__CAR_COLLISION:
+                                print('No Colllision (Drone involved): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                    else:
+                        ##Side Collision
+                        #Check if the other car's front area is touching
+                        #define reactangluar surfaces for the front area of each sprite
+                        if (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone) and (abs(angle_delta)==5) or (abs(angle_delta)==11):
+                            #If cars are at high speed, force spinning when angle is open (if one of them is not a drone, as drones are almost always at max speed)
+                            if DEBUG__CAR_COLLISION:
+                                print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                            self.init_frontal_car_collision_loop()
+                            cars[i].init_frontal_car_collision_loop()
+                        elif (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (abs(angle_delta)==3) or (abs(angle_delta)==13):
+                            #If cars are at high speed, ignore when angle is closed
+                            if DEBUG__CAR_COLLISION:
+                                print('No Colllision (Drone involved): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                        else:
+                            other_front_collision = False
+                            if collision[0]>=self.front_area[cars[i].sprite_angle][0][0] and collision[0]<=self.front_area[cars[i].sprite_angle][1][0]:
+                                if collision[1]>=self.front_area[cars[i].sprite_angle][0][1] and collision[1]<=self.front_area[cars[i].sprite_angle][1][1]:
+                                    other_front_collision = True
+                            front_collision = False
+                            other_collision = car_mask.overlap(other_car_mask, (round(cars[i].x_position-self.x_position),round(cars[i].y_position-self.y_position)))
+                            if other_collision:
+                                if other_collision[0]>=self.front_area[self.sprite_angle][0][0] and other_collision[0]<=self.front_area[self.sprite_angle][1][0]:
+                                    if other_collision[1]>=self.front_area[self.sprite_angle][0][1] and other_collision[1]<=self.front_area[self.sprite_angle][1][1]:
+                                        front_collision = True
                             else:
-                                if not self.side_colliding_offender:
-                                    self.init_side_car_collision_offender_loop(cars[i], collision)
-                                if not cars[i].side_colliding_victim:
-                                    cars[i].init_side_car_collision_victim_loop(self, collision)
-                        # elif front_collision and other_front_collision:
-                        #     #Side collision where both fronts are touching: offendre is the car with teh highest speed
-                        #     #Ignore if no fronts are involved
-                        #     if self.speed < cars[i].speed:
-                        #         if not self.side_colliding_victim:
-                        #             self.init_side_car_collision_victim_loop(cars[i], collision)
-                        #         if not cars[i].side_colliding_offender:
-                        #             cars[i].init_side_car_collision_offender_loop(self, collision)
-                        #     else:
-                        #         if not self.side_colliding_offender:
-                        #             self.init_side_car_collision_offender_loop(cars[i], collision)
-                        #         if not cars[i].side_colliding_victim:
-                        #             cars[i].init_side_car_collision_victim_loop(self, collision)
+                                other_collision = (-1,-1)
+                            if DEBUG__CAR_COLLISION:
+                                print('Side Colllision: {}-sprite:{}-front:{} - {}-sprite:{}-front:{} - ({},{}) - ({},{})'.format(cars[i].color_text,cars[i].sprite_angle,other_front_collision,self.color_text,self.sprite_angle,front_collision,collision[0],collision[1],other_collision[0],other_collision[1]))
+                            if not front_collision == other_front_collision:
+                                if other_front_collision:
+                                    if not self.side_colliding_victim:
+                                        self.init_side_car_collision_victim_loop(cars[i], collision)
+                                    if not cars[i].side_colliding_offender:
+                                        cars[i].init_side_car_collision_offender_loop(self, collision)
+                                else:
+                                    if not self.side_colliding_offender:
+                                        self.init_side_car_collision_offender_loop(cars[i], collision)
+                                    if not cars[i].side_colliding_victim:
+                                        cars[i].init_side_car_collision_victim_loop(self, collision)
 
     def get_simulation_vector(self):
         x_test = 0
@@ -865,7 +897,7 @@ class Car:
 
     def init_side_car_collision_victim_loop(self, offender, collision):
         self.set_bumping(True)
-        self.speed = self.bump_speed * 0.75
+        self.speed = self.bump_speed
         self.collision_time = pygame.time.get_ticks()
         self.animation_index = 0
         self.x_intersect = collision[0]
@@ -979,7 +1011,8 @@ class Car:
             #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
             if self.speed > 0:
                 self.detect_collision(track)
-                self.test_car_collisions(cars)
+                if not self.side_colliding_offender and not self.side_colliding_victim and not self.frontal_colliding:
+                    self.test_car_collisions(cars)
             else:
                 #If car is not moving, check for colision area size. Force crash
                 area = self.test_collision_area(track,False)
@@ -1137,7 +1170,7 @@ class Car:
             print('{} - Increment Spin Frame'.format(pygame.time.get_ticks()))
         #Spin the car
         self.animation_index+=1
-        if self.animation_index <16:
+        if self.animation_index <17:
             self.sprite_angle+=1
             if self.sprite_angle >=16:
                 self.sprite_angle-=16
