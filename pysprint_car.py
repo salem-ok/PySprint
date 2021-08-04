@@ -647,7 +647,8 @@ class Car:
                 offender_sin_angle = 0
             else:
                 offender_sin_angle = (self.side_colliding_offender_vector[0] * 1 - self.side_colliding_offender_vector[1] * 0)/cross_product
-
+            if offender_sin_angle == 0:
+                offender_sin_angle = 1
             self.sin_angle = offender_sin_angle
 
             if not self.side_colliding_offender_vector[1] == 0:
@@ -682,21 +683,17 @@ class Car:
                                 print('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                             self.init_frontal_car_collision_loop()
                             cars[i].init_frontal_car_collision_loop()
-                    ##No Collision: sprite angles are equal or close (+/- 1 step)
-                    elif abs(angle_delta) < 2 or abs(angle_delta) >14:
+                    ##No Collision: sprite angles are equal or close (+/- 2 step)
+                    elif abs(angle_delta) <= 2 or abs(angle_delta) >=14:
                         if DEBUG__CAR_COLLISION:
                             print('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                    #Sprites angle is equidisant from right angles
-                    elif (abs(angle_delta)==6) or (abs(angle_delta)==2) or (abs(angle_delta)==10) or (abs(angle_delta)==14):
+                    #Sprites angle is equidisant from right angles and cars opposite directions
+                    elif (abs(angle_delta)==6) or (abs(angle_delta)==10) and ((self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone)):
                         #If cars are at high speed, force spinning (if one of them is not a drone, as drones are almost always at max speed)
-                        if (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone):
-                            if DEBUG__CAR_COLLISION:
-                                print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                            self.init_frontal_car_collision_loop()
-                            cars[i].init_frontal_car_collision_loop()
-                        else:
-                            if DEBUG__CAR_COLLISION:
-                                print('No Colllision (Drone involved): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                        if DEBUG__CAR_COLLISION:
+                            print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                        self.init_frontal_car_collision_loop()
+                        cars[i].init_frontal_car_collision_loop()
                     else:
                         ##Side Collision
                         #Check if the other car's front area is touching
@@ -732,11 +729,15 @@ class Car:
                                         self.init_side_car_collision_victim_loop(cars[i], collision)
                                     if not cars[i].side_colliding_offender:
                                         cars[i].init_side_car_collision_offender_loop(self, collision)
+                                    if DEBUG__CAR_COLLISION:
+                                        print('Side Colllision: Victim: {} - Offender: {}'.format(self.color_text,cars[i].color_text))
                                 else:
                                     if not self.side_colliding_offender:
                                         self.init_side_car_collision_offender_loop(cars[i], collision)
                                     if not cars[i].side_colliding_victim:
                                         cars[i].init_side_car_collision_victim_loop(self, collision)
+                                    if DEBUG__CAR_COLLISION:
+                                        print('Side Colllision: Victim: {} - Offender: {}'.format(cars[i].color_text,self.color_text))
 
     def get_simulation_vector(self):
         x_test = 0
@@ -885,7 +886,7 @@ class Car:
 
     def init_side_car_collision_offender_loop(self, victim, collision):
         self.set_bumping(True)
-        self.speed = self.bump_speed * 0.75
+        self.speed = self.bump_speed * 0.5
         self.collision_time = pygame.time.get_ticks()
         self.x_intersect = collision[0]
         self.y_intersect = collision[1]
@@ -897,7 +898,7 @@ class Car:
 
     def init_side_car_collision_victim_loop(self, offender, collision):
         self.set_bumping(True)
-        self.speed = self.bump_speed
+        self.speed = self.player__bump_speed
         self.collision_time = pygame.time.get_ticks()
         self.animation_index = 0
         self.x_intersect = collision[0]
@@ -926,7 +927,7 @@ class Car:
                     if DEBUG_BUMP:
                         print('No Macthing Border Side found')
                     self.end_bump_loop()
-        if DEBUG_BUMP:
+        if DEBUG_BUMP or DEBUG__CAR_COLLISION:
             print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
 
@@ -970,7 +971,7 @@ class Car:
 
         self.set_bumping(False)
         end_time = pygame.time.get_ticks()
-        if DEBUG_BUMP:
+        if DEBUG_BUMP or DEBUG__CAR_COLLISION:
             print('{} - Bump Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
 
     def end_crash_loop(self):
@@ -1178,7 +1179,7 @@ class Car:
             self.end_spinning_loop()
 
     def display_bump_cloud(self):
-        if DEBUG_BUMP:
+        if DEBUG_BUMP or DEBUG__CAR_COLLISION:
             print('{} - Increment Bump Frame'.format(pygame.time.get_ticks()))
         if self.animation_index < len(dust_cloud_frames):
             self.animation_index += 1
