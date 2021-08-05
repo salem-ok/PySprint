@@ -18,6 +18,14 @@ track5_json_filename = 'Assets/SuperSprintTrack5.json'
 #Track 7 Setup
 track7_json_filename = 'Assets/SuperSprintTrack7.json'
 
+#Bonus Frames
+bonus_frames = None
+bonus_shade_frames = None
+bonus_position = None
+bonus_display_interval = 6000
+bonus_display_duration = 10000
+tiny_font = None
+
 #Max and min random time for a gate to be closed or open
 max_random_time = 3000
 min_random_time = 2000
@@ -65,9 +73,16 @@ class Track:
         self.road_gates_timers = []
         self.road_gates_opening = []
         #When timer = next event time open or close the gate depending on status
-        self.road_gates_next_event_time = []
         self.external_ai_gates_shortcuts = None
         self.internal_ai_gates_shortcuts = None
+        #Timer for Bonus display animation
+        self.bonus_timer = None
+        self.bonus_displayed = False
+        self.bonus_rolling = False
+        self.bonus_frame_index = None
+        self.bonus_value = None
+        self.bonus_position = None
+
 
 
     def load_track_definition(self, filename):
@@ -291,3 +306,87 @@ class Track:
         if not self.road_gates_anchors is None:
             for i in range(0, len(self.road_gates_anchors)):
                 self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+
+    def hide_bonus(self):
+        self.bonus_displayed = False
+        self.bonus_rolling = False
+        self.bonus_frame_index = -1
+        self.bonus_timer = pygame.time.get_ticks() + bonus_display_interval
+
+    def blit_bonus(self, race_started):
+        #Initialize timer for bonus
+        if self.bonus_timer is None:
+            self.hide_bonus()
+        if race_started:
+            now = pygame.time.get_ticks()
+            #if timer is reached: if Bonus displayed = False the we start rolling out the bonus, if False, we start rolling in.
+            if now >=self.bonus_timer:
+                if self.bonus_displayed:
+                    if self.bonus_rolling:
+                        #Animate the rolling out and display of the bonus
+                        self.bonus_frame_index+=1
+                        self.bonus_timer = now +100
+                        if self.bonus_frame_index>3:
+                            #Bonus fully displayed
+                            self.bonus_frame_index=3
+                            self.bonus_timer = now + bonus_display_duration
+                            self.bonus_rolling = False
+                    else:
+                        #Now we hide the bonus
+                        self.bonus_rolling = True
+                        self.bonus_displayed = False
+                        self.bonus_timer = now + 133
+                else:
+                    if self.bonus_rolling:
+                        #Animate the rolling in and hiding of the bonus
+                        self.bonus_frame_index-=1
+                        self.bonus_timer = now + 133
+                        if self.bonus_frame_index<0:
+                            #Bonus Fully Hidden
+                            self.bonus_frame_index=-1
+                            self.bonus_timer = now + bonus_display_interval
+                            self.bonus_rolling = False
+                    else:
+                        #Now we display the bonus
+                        self.bonus_value = '{}'.format(random.randint(2,10) * 50)
+                        #Pick a gate at random and place the bonus randomly on the gate
+                        bonus_gate = random.randint(0, len(self.external_gate_points)-1)
+
+                        if self.external_gate_points[bonus_gate][0]<self.internal_gate_points[bonus_gate][0]:
+                            min_x  = self.external_gate_points[bonus_gate][0]
+                            max_x = self.internal_gate_points[bonus_gate][0]
+                        else:
+                            min_x  = self.internal_gate_points[bonus_gate][0]
+                            max_x = self.external_gate_points[bonus_gate][0]
+
+                        bonus_x = random.randint(min_x,max_x)
+                        if bonus_x + 30 > max_x:
+                            bonus_x = self.internal_gate_points[bonus_gate][0] -33
+                        elif bonus_x < min_x:
+                            bonus_x = min_x + 3
+
+                        if self.external_gate_points[bonus_gate][1]<self.internal_gate_points[bonus_gate][1]:
+                            min_y  = self.external_gate_points[bonus_gate][1]
+                            max_y = self.internal_gate_points[bonus_gate][1]
+                        else:
+                            min_y  = self.internal_gate_points[bonus_gate][1]
+                            max_y = self.external_gate_points[bonus_gate][1]
+
+                        bonus_y = random.randint(min_y,max_y)
+                        if bonus_y + 16 > max_y:
+                            bonus_y = self.internal_gate_points[bonus_gate][0] - 18
+                        elif bonus_y < min_y:
+                            bonus_y = min_y + 2
+
+                        self.bonus_position = (bonus_x,bonus_y)
+                        self.bonus_rolling = True
+                        self.bonus_displayed = True
+                        self.bonus_timer = now +100
+
+        if self.bonus_frame_index>=0:
+            slice_index = self.bonus_frame_index
+            bonus_value_surf = tiny_font.render(self.bonus_value[0:slice_index], False, (255, 255, 255))
+            game_display.blit(bonus_frames[self.bonus_frame_index],self.bonus_position)
+            game_display.blit(bonus_value_surf,(self.bonus_position[0]+1,self.bonus_position[1]+3))
+            if self.bonus_frame_index<=2:
+                game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)

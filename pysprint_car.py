@@ -13,7 +13,7 @@ import pysprint_tracks
 game_display = None
 DEBUG_FINISH = False
 DEBUG_COLLISION = False
-DEBUG__CAR_COLLISION = True
+DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
@@ -755,6 +755,16 @@ class Car:
         result  = (x_test,y_test)
         return result
 
+    def test_bonus(self, track: pysprint_tracks.Track):
+        if track.bonus_frame_index >=0:
+            bonus_mask = pygame.mask.from_surface(pysprint_tracks.bonus_frames[track.bonus_frame_index], 50)
+            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+            x_test = 0
+            y_test = 0
+            return  bonus_mask.overlap(car_mask, (round(self.x_position-track.bonus_position[0]),round(self.y_position-track.bonus_position[1])))
+        else:
+            return False
+
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         track_mask = pygame.mask.from_surface(track.track_mask, 50)
         car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
@@ -1005,6 +1015,10 @@ class Car:
         #Update Car Offset
         self.x_position += self.x_vector
         self.y_position += self.y_vector
+        #If car runs on Bonus, increase score
+        if self.test_bonus(track):
+            self.score+=int(track.bonus_value)
+            track.hide_bonus()
 
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status

@@ -56,7 +56,7 @@ DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
 DEBUG_AI = False
-DISABLE_DRONES = True
+DISABLE_DRONES = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -66,7 +66,8 @@ CHECKEREDFLAG = WHITEFLAG + 1
 JOYSTICK_BUTTON_PRESSED = -2
 
 #Load Assets
-
+tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
+pysprint_tracks.tiny_font = tiny_font
 small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
 shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
 big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
@@ -112,6 +113,21 @@ start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').c
 high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
+
+
+
+#Bonus Frames:
+pysprint_tracks.bonus_frames = {
+    0:pygame.image.load('Assets/BonusFrame0.png').convert_alpha(),
+    1:pygame.image.load('Assets/BonusFrame1.png').convert_alpha(),
+    2:pygame.image.load('Assets/BonusFrame2.png').convert_alpha(),
+    3:pygame.image.load('Assets/BonusFrame3.png').convert_alpha()
+}
+pysprint_tracks.bonus_shade_frames = {
+    0:pygame.image.load('Assets/BonusFrame0Shade.png').convert_alpha(),
+    1:pygame.image.load('Assets/BonusFrame1Shade.png').convert_alpha(),
+    2:pygame.image.load('Assets/BonusFrame2Shade.png').convert_alpha()
+}
 
 
 
@@ -1682,6 +1698,7 @@ def game_loop():
                     get_ready_time  = pygame.time.get_ticks()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
+                        track.blit_bonus(False)
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay()
@@ -1904,6 +1921,7 @@ def game_loop():
 
                             trace_frame_time("Test Finish ", frame_start)
                             track.blit_background(True)
+                            track.blit_bonus(True)
                             if race_start:
                                 game_display.blit(green_flag_frames[animation_index],track.flag_anchor)
 
