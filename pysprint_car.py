@@ -207,6 +207,7 @@ class Car:
         self.side_colliding_victim = False
         self.side_colliding_offender_vector = None
         self.side_colliding_other_car = None
+        self.on_spill = False
         self.vertical_helicopter = False
         self.bumping_vector_initialized = False
         self.bumping_vertical = False
@@ -765,6 +766,16 @@ class Car:
         else:
             return False
 
+    def test_spill(self,image, position):
+        if not position is None:
+            spill_mask = pygame.mask.from_surface(image, 50)
+            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+            x_test = 0
+            y_test = 0
+            return  spill_mask.overlap(car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
+        else:
+            return False
+
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         track_mask = pygame.mask.from_surface(track.track_mask, 50)
         car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
@@ -883,6 +894,37 @@ class Car:
                 return True
             else:
                 return False
+
+    def detect_spills(self, track: pysprint_tracks.Track):
+        if self.test_spill(pysprint_tracks.oil_spill_image,track.oil_spill_position):
+            if not self.on_spill:
+                self.init_oil_spill_loop()
+            return True
+        elif self.test_spill(pysprint_tracks.water_spill_image,track.water_spill_position):
+            if not self.on_spill:
+                self.init_water_spill_loop()
+            return True
+        elif self.test_spill(pysprint_tracks.grease_spill_image,track.grease_spill_position):
+            if not self.on_spill:
+                self.init_grease_spill_loop()
+            return True
+        else:
+            return False
+
+    def init_oil_spill_loop(self):
+        self.set_spinning(True)
+        self.speed = self.speed_max *0.6
+        self.animation_index = 0
+        self.collision_time = pygame.time.get_ticks()
+
+    def init_water_spill_loop(self):
+        self.speed = 0
+
+    def init_grease_spill_loop(self):
+        self.set_spinning(True)
+        self.speed = self.speed_max *0.4
+        self.animation_index = 0
+        self.collision_time = pygame.time.get_ticks()
 
     def init_frontal_car_collision_loop(self):
         self.set_spinning(True)
@@ -1019,24 +1061,26 @@ class Car:
         if self.test_bonus(track):
             self.score+=int(track.bonus_value)
             track.hide_bonus()
-
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status
             self.rotating = False
-            #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
-            if self.speed > 0:
-                self.detect_collision(track)
-                if not self.side_colliding_offender and not self.side_colliding_victim and not self.frontal_colliding:
-                    self.test_car_collisions(cars)
-            else:
-                #If car is not moving, check for colision area size. Force crash
-                area = self.test_collision_area(track,False)
-                if area>self.collision_area_threshold:
-                    intersect_point = self.test_collision(track,False)
-                    self.init_crash_loop(intersect_point)
-                if self.bumping:
-                    #Force end of Bump Routine if car is not moving
-                    self.end_bump_loop()
+            #Check for all spills
+            self.on_spill = self.detect_spills(track)
+            if not self.on_spill:
+                #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
+                if self.speed > 0:
+                    self.detect_collision(track)
+                    if not self.side_colliding_offender and not self.side_colliding_victim and not self.frontal_colliding:
+                        self.test_car_collisions(cars)
+                else:
+                    #If car is not moving, check for colision area size. Force crash
+                    area = self.test_collision_area(track,False)
+                    if area>self.collision_area_threshold:
+                        intersect_point = self.test_collision(track,False)
+                        self.init_crash_loop(intersect_point)
+                    if self.bumping:
+                        #Force end of Bump Routine if car is not moving
+                        self.end_bump_loop()
         else:
             #Car is not moving anymore
             self.x_vector = 0
@@ -1317,7 +1361,6 @@ class Car:
 
 
     def ai_drive(self, track: pysprint_tracks.Track):
-
         if self.is_drone and not track.internal_ai_gates_shortcuts is None:
             self.test_shortcut_gates(track)
 

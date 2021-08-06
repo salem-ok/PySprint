@@ -116,6 +116,11 @@ race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').conve
 
 
 
+#Spills
+pysprint_tracks.oil_spill_image = pygame.image.load('Assets/OilSpill.png').convert_alpha()
+pysprint_tracks.water_spill_image = pygame.image.load('Assets/WaterSpill.png').convert_alpha()
+pysprint_tracks.grease_spill_image = pygame.image.load('Assets/GreaseSpill.png').convert_alpha()
+
 #Bonus Frames:
 pysprint_tracks.bonus_frames = {
     0:pygame.image.load('Assets/BonusFrame0.png').convert_alpha(),
@@ -1697,6 +1702,7 @@ def game_loop():
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
                         track.blit_bonus(False)
+                        track.blit_obstacles(False)
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay()
@@ -1920,6 +1926,7 @@ def game_loop():
                             trace_frame_time("Test Finish ", frame_start)
                             track.blit_background(True)
                             track.blit_bonus(True)
+                            track.blit_obstacles(True)
                             if race_start:
                                 game_display.blit(green_flag_frames[animation_index],track.flag_anchor)
 

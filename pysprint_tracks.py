@@ -18,6 +18,11 @@ track5_json_filename = 'Assets/SuperSprintTrack5.json'
 #Track 7 Setup
 track7_json_filename = 'Assets/SuperSprintTrack7.json'
 
+#Spills
+oil_spill_image = None
+water_spill_image = None
+grease_spill_image = None
+
 #Bonus Frames
 bonus_frames = None
 bonus_shade_frames = None
@@ -82,7 +87,10 @@ class Track:
         self.bonus_frame_index = None
         self.bonus_value = None
         self.bonus_position = None
-
+        #Spills
+        self.oil_spill_position = None
+        self.water_spill_position = None
+        self.grease_spill_position = None
 
 
     def load_track_definition(self, filename):
@@ -307,6 +315,39 @@ class Track:
             for i in range(0, len(self.road_gates_anchors)):
                 self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
 
+    def get_random_position(self, height, width):
+        #Pick a gate at random and place the bonus randomly on the gate
+        random_gate = random.randint(0, len(self.external_gate_points)-1)
+
+        if self.external_gate_points[random_gate][0]<self.internal_gate_points[random_gate][0]:
+            min_x  = self.external_gate_points[random_gate][0]
+            max_x = self.internal_gate_points[random_gate][0]
+        else:
+            min_x  = self.internal_gate_points[random_gate][0]
+            max_x = self.external_gate_points[random_gate][0]
+
+        random_x = random.randint(min_x,max_x)
+        if random_x + width > max_x:
+            random_x = self.internal_gate_points[random_gate][0] - (width+3)
+        elif random_x < min_x:
+            random_x = min_x + 3
+
+        if self.external_gate_points[random_gate][1]<self.internal_gate_points[random_gate][1]:
+            min_y  = self.external_gate_points[random_gate][1]
+            max_y = self.internal_gate_points[random_gate][1]
+        else:
+            min_y  = self.internal_gate_points[random_gate][1]
+            max_y = self.external_gate_points[random_gate][1]
+
+        random_y = random.randint(min_y,max_y)
+        if random_y + height > max_y:
+            random_y = self.internal_gate_points[random_gate][0] - (height+2)
+        elif random_y < min_y:
+            random_y = min_y + 2
+
+        return (random_x,random_y)
+
+
     def hide_bonus(self):
         self.bonus_displayed = False
         self.bonus_rolling = False
@@ -349,36 +390,7 @@ class Track:
                     else:
                         #Now we display the bonus
                         self.bonus_value = '{}'.format(random.randint(2,10) * 50)
-                        #Pick a gate at random and place the bonus randomly on the gate
-                        bonus_gate = random.randint(0, len(self.external_gate_points)-1)
-
-                        if self.external_gate_points[bonus_gate][0]<self.internal_gate_points[bonus_gate][0]:
-                            min_x  = self.external_gate_points[bonus_gate][0]
-                            max_x = self.internal_gate_points[bonus_gate][0]
-                        else:
-                            min_x  = self.internal_gate_points[bonus_gate][0]
-                            max_x = self.external_gate_points[bonus_gate][0]
-
-                        bonus_x = random.randint(min_x,max_x)
-                        if bonus_x + 30 > max_x:
-                            bonus_x = self.internal_gate_points[bonus_gate][0] -33
-                        elif bonus_x < min_x:
-                            bonus_x = min_x + 3
-
-                        if self.external_gate_points[bonus_gate][1]<self.internal_gate_points[bonus_gate][1]:
-                            min_y  = self.external_gate_points[bonus_gate][1]
-                            max_y = self.internal_gate_points[bonus_gate][1]
-                        else:
-                            min_y  = self.internal_gate_points[bonus_gate][1]
-                            max_y = self.external_gate_points[bonus_gate][1]
-
-                        bonus_y = random.randint(min_y,max_y)
-                        if bonus_y + 16 > max_y:
-                            bonus_y = self.internal_gate_points[bonus_gate][0] - 18
-                        elif bonus_y < min_y:
-                            bonus_y = min_y + 2
-
-                        self.bonus_position = (bonus_x,bonus_y)
+                        self.bonus_position = self.get_random_position(16,30)
                         self.bonus_rolling = True
                         self.bonus_displayed = True
                         self.bonus_timer = now +100
@@ -390,3 +402,16 @@ class Track:
             game_display.blit(bonus_value_surf,(self.bonus_position[0]+1,self.bonus_position[1]+3))
             if self.bonus_frame_index<=2:
                 game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)
+
+    def blit_obstacles(self, race_started):
+        #Display an oil spill
+        if self.oil_spill_position is None:
+            self.oil_spill_position = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
+        if self.water_spill_position is None:
+            self.water_spill_position = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
+        if self.grease_spill_position is None:
+            self.grease_spill_position = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
+        if race_started:
+            game_display.blit(oil_spill_image,self.oil_spill_position)
+            game_display.blit(water_spill_image,self.water_spill_position)
+            game_display.blit(grease_spill_image,self.grease_spill_position)
