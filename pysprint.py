@@ -1621,8 +1621,6 @@ def initialize_tracks():
         tracks.append(track5)
         tracks.append(track7)
 
-
-
 def game_loop():
 
     game_exit = False

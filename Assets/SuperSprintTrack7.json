@@ -21,6 +21,11 @@
     "score_time_reference": 11.5,
     "complete_lap_score": 80,
     "finish_line_direction": 1,
+    "mandatory_gates": [
+        5,
+        28,
+        42
+    ],
     "external_borders": [
         [
             147,

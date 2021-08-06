@@ -1082,16 +1082,14 @@ class Car:
             if not self.on_finish_line:
                 self.on_finish_line = True
                 if self.x_vector * track.finish_line_direction > 0:
+                    full_lap = False
                     if self.passed_finish_line_wrong_way:
                         self.passed_finish_line_wrong_way = False
                         if DEBUG_FINISH:
                             print('{} - Passed the line in the right direction after going the wrong way)'.format(pygame.time.get_ticks()))
                     else:
                         #Check if all mandatory gates were passed before awarding a new lap
-                        full_lap = False
-                        if track.mandatory_gates is None:
-                            full_lap = True
-                        else:
+                        if not track.mandatory_gates is None:
                             if len(self.mandatory_gates_crossed)==len(track.mandatory_gates):
                                 full_lap = True
                                 #reset Gates tracker for the next lap
@@ -1117,7 +1115,8 @@ class Car:
                             self.current_lap_start = finish_time
                             return False
                         else:
-                             print('{} - Passed the line in the right directionbut not all mandatory gates passed)'.format(pygame.time.get_ticks()))
+                            if DEBUG_FINISH:
+                                print('{} - Passed the line in the right directionbut not all mandatory gates passed)'.format(pygame.time.get_ticks()))
                 else:
                     self.passed_finish_line_wrong_way = True
                     if DEBUG_FINISH:
