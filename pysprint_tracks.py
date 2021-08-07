@@ -23,6 +23,10 @@ oil_spill_image = None
 water_spill_image = None
 grease_spill_image = None
 
+#Traffic Cone
+traffic_cone = None
+traffic_cone_shade = None
+
 #Bonus Frames
 bonus_frames = None
 bonus_shade_frames = None
@@ -107,7 +111,8 @@ class Track:
         self.external_pole_position = None
         self.internal_pole_position = None
         self.middle_pole_position = None
-
+        #Traffic Cones
+        self.traffic_cones_positions = None
 
     def load_track_definition(self, filename):
         with open(filename) as track_file:
@@ -354,7 +359,7 @@ class Track:
         if random_x + width > max_x:
             random_x = self.internal_gate_points[random_gate][0] - (width+3)
         elif random_x < min_x:
-            random_x = min_x + 3
+            random_x = min_x + 15
 
         if self.external_gate_points[random_gate][1]<self.internal_gate_points[random_gate][1]:
             min_y  = self.external_gate_points[random_gate][1]
@@ -367,7 +372,7 @@ class Track:
         if random_y + height > max_y:
             random_y = self.internal_gate_points[random_gate][0] - (height+2)
         elif random_y < min_y:
-            random_y = min_y + 2
+            random_y = min_y + 15
 
         return (random_x,random_y)
 
@@ -434,19 +439,6 @@ class Track:
 
 
     def blit_obstacles(self, race_started):
-        #Display an oil spill
-        if self.oil_spill_position is None:
-            self.oil_spill_position = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
-        if self.water_spill_position is None:
-            self.water_spill_position = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
-        if self.grease_spill_position is None:
-            self.grease_spill_position = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
-
-        if race_started:
-            game_display.blit(oil_spill_image,self.oil_spill_position)
-            game_display.blit(water_spill_image,self.water_spill_position)
-            game_display.blit(grease_spill_image,self.grease_spill_position)
-
         #Display poles
         if self.poles_gate_index is None:
             self.poles_gate_index = self.get_random_poles_position()
@@ -546,3 +538,28 @@ class Track:
                 self.track_mask.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
             if self.poles_frame_indexes[2]:
                 self.track_mask.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
+
+
+        #Display spills
+        if self.oil_spill_position is None:
+            self.oil_spill_position = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
+        if self.water_spill_position is None:
+            self.water_spill_position = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
+        if self.grease_spill_position is None:
+            self.grease_spill_position = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
+
+        if race_started:
+            game_display.blit(oil_spill_image,self.oil_spill_position)
+            game_display.blit(water_spill_image,self.water_spill_position)
+            game_display.blit(grease_spill_image,self.grease_spill_position)
+
+        #Display Traffic Cones
+        if self.traffic_cones_positions is None:
+            self.traffic_cones_positions = []
+            for i in range(1,15):
+                self.traffic_cones_positions.append(self.get_random_position(traffic_cone.get_height(),traffic_cone_shade.get_width()))
+
+        if race_started:
+            for i in range(0,len(self.traffic_cones_positions)):
+                game_display.blit(traffic_cone,self.traffic_cones_positions[i])
+                game_display.blit(traffic_cone_shade,self.traffic_cones_positions[i])

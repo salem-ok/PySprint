@@ -5,6 +5,7 @@ import pygame
 from pygame import Surface, gfxdraw
 import math
 import random
+from pygame.constants import CONTROLLER_AXIS_RIGHTX
 
 from pygame.key import name
 from pygame.mask import from_threshold
@@ -208,6 +209,7 @@ class Car:
         self.side_colliding_offender_vector = None
         self.side_colliding_other_car = None
         self.on_spill = False
+        self.hitting_cone = False
         self.vertical_helicopter = False
         self.bumping_vector_initialized = False
         self.bumping_vertical = False
@@ -776,6 +778,15 @@ class Car:
         else:
             return False
 
+    def test_cones(self, track: pysprint_tracks.Track):
+        if not track.traffic_cones_positions is None:
+            cone_mask = pygame.mask.from_surface(pysprint_tracks.traffic_cone, 50)
+            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+            for i in range(0,len(track.traffic_cones_positions)):
+                if cone_mask.overlap(car_mask, (round(self.x_position-track.traffic_cones_positions[i][0]),round(self.y_position-track.traffic_cones_positions[i][1]))):
+                    return i
+        return -1
+
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         track_mask = pygame.mask.from_surface(track.track_mask, 50)
         car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
@@ -910,6 +921,22 @@ class Car:
             return True
         else:
             return False
+
+    def detect_cones(self, track: pysprint_tracks.Track):
+        cone_hit = self.test_cones(track)
+        if cone_hit>=0:
+            self.init_cone_loop(track.traffic_cones_positions[cone_hit])
+            track.traffic_cones_positions.pop(cone_hit)
+
+
+    def init_cone_loop(self,cone_hit):
+        self.set_bumping(True)
+        self.hitting_cone = True
+        self.speed = 0
+        self.animation_index = 0
+        self.x_intersect = cone_hit[0]
+        self.y_intersect = cone_hit[1]
+        self.collision_time = pygame.time.get_ticks()
 
     def init_oil_spill_loop(self):
         self.set_spinning(True)
@@ -1066,6 +1093,8 @@ class Car:
             self.rotating = False
             #Check for all spills
             self.on_spill = self.detect_spills(track)
+            #check for Traffic Cones
+            self.detect_cones(track)
             if not self.on_spill:
                 #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
                 if self.speed > 0:
@@ -1079,8 +1108,9 @@ class Car:
                         intersect_point = self.test_collision(track,False)
                         self.init_crash_loop(intersect_point)
                     if self.bumping:
-                        #Force end of Bump Routine if car is not moving
-                        self.end_bump_loop()
+                        #Force end of Bump Routine if car is not moving unless we hit a cone
+                        if not self.hitting_cone:
+                            self.end_bump_loop()
         else:
             #Car is not moving anymore
             self.x_vector = 0
@@ -1191,13 +1221,6 @@ class Car:
             #Car is not visible durign explosion
             if not self.crashing:
                 game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-            # else:
-            #     if self.vertical_helicopter:
-            #         if self.helicopter_y <= self.y_position:
-            #             game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-            #     else:
-            #         if self.helicopter_x >= self.x_position:
-            #             game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
 
             if DEBUG_AI:
                 if self.is_drone:

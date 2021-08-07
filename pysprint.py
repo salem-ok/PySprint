@@ -114,6 +114,11 @@ high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').conver
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
 
+#Traffic Cone
+pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
+pysprint_tracks.traffic_cone_shade = pygame.image.load('Assets/TrafficConeShade.png').convert_alpha()
+
+
 #Poles Frames:
 pysprint_tracks.poles_frames = {
     0:pygame.image.load('Assets/PoleFrame0.png').convert_alpha(),
@@ -1707,8 +1712,8 @@ def game_loop():
                     get_ready_time  = pygame.time.get_ticks()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
-                        track.blit_bonus(False)
                         track.blit_obstacles(False)
+                        track.blit_bonus(False)
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay()
@@ -1931,8 +1936,8 @@ def game_loop():
 
                             trace_frame_time("Test Finish ", frame_start)
                             track.blit_background(True)
-                            track.blit_bonus(True)
                             track.blit_obstacles(True)
+                            track.blit_bonus(True)
                             if race_start:
                                 game_display.blit(green_flag_frames[animation_index],track.flag_anchor)
 
