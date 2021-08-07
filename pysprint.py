@@ -65,14 +65,7 @@ CHECKEREDFLAG = WHITEFLAG + 1
 
 JOYSTICK_BUTTON_PRESSED = -2
 
-#Load Assets
-tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
-pysprint_tracks.tiny_font = tiny_font
-small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
-shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
-big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
-big_shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
-
+#Colors
 black_color = (0, 0, 0)
 white_color = (255, 255, 255)
 red_color = (238, 0, 34)
@@ -105,6 +98,13 @@ score_top_left_green = (161,0)
 score_top_left_red = (321,0)
 score_top_left_yellow = (481,0)
 
+#Load Assets
+tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
+pysprint_tracks.tiny_font = tiny_font
+small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
+big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
+big_shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
 
 loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
 credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
@@ -114,7 +114,13 @@ high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').conver
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
 
-
+#Poles Frames:
+pysprint_tracks.poles_frames = {
+    0:pygame.image.load('Assets/PoleFrame0.png').convert_alpha(),
+    1:pygame.image.load('Assets/PoleFrame1.png').convert_alpha(),
+    2:pygame.image.load('Assets/PoleFrame2.png').convert_alpha(),
+    3:pygame.image.load('Assets/PoleFrame3.png').convert_alpha()
+}
 
 #Spills
 pysprint_tracks.oil_spill_image = pygame.image.load('Assets/OilSpill.png').convert_alpha()

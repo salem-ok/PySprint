@@ -31,6 +31,12 @@ bonus_display_interval = 6000
 bonus_display_duration = 10000
 tiny_font = None
 
+#Poles Frames
+poles_frames = None
+poles_gate = None
+poles_pop_up_interval = 900
+poles_stay_up_duration = 1300
+
 #Max and min random time for a gate to be closed or open
 max_random_time = 3000
 min_random_time = 2000
@@ -91,6 +97,16 @@ class Track:
         self.oil_spill_position = None
         self.water_spill_position = None
         self.grease_spill_position = None
+        #Timer for Poles display animation
+        self.poles_timer = None
+        self.poles_popping_up = False
+        self.poles_popping_down = False
+        self.poles_frame_indexes = None
+        self.poles_moving_index = None
+        self.poles_gate_index = None
+        self.external_pole_position = None
+        self.internal_pole_position = None
+        self.middle_pole_position = None
 
 
     def load_track_definition(self, filename):
@@ -315,6 +331,14 @@ class Track:
             for i in range(0, len(self.road_gates_anchors)):
                 self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
 
+    def get_random_poles_position(self):
+        #Pick a gate at random where teh gate is more than 40 pixels long
+        random_gate = random.randint(1, len(self.external_gate_points)-1)
+        while calculate_distance(self.external_gate_points[random_gate],self.internal_gate_points[random_gate])<40:
+            random_gate = random.randint(0, len(self.external_gate_points)-1)
+
+        return random_gate
+
     def get_random_position(self, height, width):
         #Pick a gate at random and place the bonus randomly on the gate
         random_gate = random.randint(0, len(self.external_gate_points)-1)
@@ -403,6 +427,12 @@ class Track:
             if self.bonus_frame_index<=2:
                 game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)
 
+    def test_pole_on_track(self, position):
+        test_track_mask = pygame.mask.from_surface(self.track_mask, 50)
+        pole_mask = pygame.mask.from_surface(pygame.Surface((10,16)), 50)
+        return  test_track_mask.overlap(pole_mask, (round(position[0]),round(position[1])))
+
+
     def blit_obstacles(self, race_started):
         #Display an oil spill
         if self.oil_spill_position is None:
@@ -411,7 +441,108 @@ class Track:
             self.water_spill_position = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
         if self.grease_spill_position is None:
             self.grease_spill_position = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
+
         if race_started:
             game_display.blit(oil_spill_image,self.oil_spill_position)
             game_display.blit(water_spill_image,self.water_spill_position)
             game_display.blit(grease_spill_image,self.grease_spill_position)
+
+        #Display poles
+        if self.poles_gate_index is None:
+            self.poles_gate_index = self.get_random_poles_position()
+            ext_x = self.external_gate_points[self.poles_gate_index][0] - 5
+            ext_y = self.external_gate_points[self.poles_gate_index][1] - 8
+            int_x = self.internal_gate_points[self.poles_gate_index][0] - 5
+            int_y = self.internal_gate_points[self.poles_gate_index][1] - 8
+
+            #test if pole is on track, if not move it closer to the opposite gate point
+            if self.test_pole_on_track((int_x,int_y)):
+                move_x = 0
+                move_y = 0
+                while self.test_pole_on_track((int_x,int_y)):
+                    diff_x = ext_x - int_x
+                    diff_y = ext_y - int_y
+                    #move according to the most distant coordinate
+                    if abs(diff_x)>=(abs(diff_y)):
+                        if diff_x>0:
+                            move_x=1
+                        elif diff_x<0:
+                            move_x=-1
+                    else:
+                        if diff_y>0:
+                            move_y=1
+                        elif diff_y<0:
+                            move_y=-1
+                    int_x+=move_x
+                    int_y+=move_y
+                int_x+=move_x*3
+                int_y+=move_y*3
+
+            if self.test_pole_on_track((ext_x,ext_y)):
+                move_x = 0
+                move_y = 0
+                while self.test_pole_on_track((ext_x,ext_y)):
+                    diff_x = int_x - ext_x
+                    diff_y = int_y - ext_y
+                    #move according to the most distant coordinate
+                    if abs(diff_x)>=(abs(diff_y)):
+                        if diff_x>0:
+                            move_x=1
+                        elif diff_x<0:
+                            move_x=-1
+                    else:
+                        if diff_y>0:
+                            move_y=1
+                        elif diff_y<0:
+                            move_y=-1
+                    ext_x+=move_x
+                    ext_y+=move_y
+                ext_x+=move_x*15
+                ext_y+=move_y*15
+            self.external_pole_position = (ext_x,ext_y)
+            self.internal_pole_position = (int_x,int_y)
+            self.middle_pole_position = ((ext_x+int_x)/2,(ext_y+int_y)/2)
+
+        if self.poles_timer is None:
+            self.poles_timer =  pygame.time.get_ticks()
+            self.poles_frame_indexes = [0,0,0]
+            self.poles_moving_index = 0
+            self.poles_popping_down = False
+            self.poles_popping_up = True
+        if race_started:
+            now =  pygame.time.get_ticks()
+            if now >=self.poles_timer:
+                if self.poles_popping_up:
+                    #Animate the popping up of the active pole
+                    self.poles_frame_indexes[self.poles_moving_index]+=1
+                    self.poles_timer = now +100
+                    if self.poles_frame_indexes[self.poles_moving_index]>3:
+                        #Pole fully popped up wait to pop down
+                        self.poles_frame_indexes[self.poles_moving_index]=3
+                        self.poles_timer = now + poles_stay_up_duration
+                        self.poles_popping_up = False
+                        self.poles_popping_down = True
+                elif self.poles_popping_down:
+                    #Animate the popping down of the active pole
+                    self.poles_frame_indexes[self.poles_moving_index]-=1
+                    self.poles_timer = now +100
+                    if self.poles_frame_indexes[self.poles_moving_index]<0:
+                        #Pole fully popped up - move to the next pole and wait
+                        self.poles_frame_indexes[self.poles_moving_index]=0
+                        self.poles_timer = now + poles_pop_up_interval
+                        self.poles_popping_up = True
+                        self.poles_popping_down = False
+                        self.poles_moving_index+=1
+                        if self.poles_moving_index>2:
+                            self.poles_moving_index = 0
+
+            game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
+            game_display.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
+            game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
+            self.track_mask = self.base_mask.copy()
+            if self.poles_frame_indexes[0]>0:
+                self.track_mask.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
+            if self.poles_frame_indexes[1]:
+                self.track_mask.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
+            if self.poles_frame_indexes[2]:
+                self.track_mask.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
