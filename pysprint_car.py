@@ -210,6 +210,9 @@ class Car:
         self.side_colliding_other_car = None
         self.on_spill = False
         self.hitting_cone = False
+        self.on_tornado = False
+        self.tornado_index = 0
+        self.pole_bumping = False
         self.vertical_helicopter = False
         self.bumping_vector_initialized = False
         self.bumping_vertical = False
@@ -481,6 +484,13 @@ class Car:
         if self.x_vector==0 and self.y_vector==0 and self.speed>0:
             #Wrong situation: reset to default vector
             self.calculate_vector_from_sprite()
+
+    def calculate_pole_vector(self,track: pysprint_tracks.Track):
+        if not self.bumping_vector_initialized:
+            self.x_vector = -self.x_vector
+            self.y_vector = -self.y_vector
+            self.bumping_vector_initialized = True
+
 
     def calculate_bumping_vector(self,track: pysprint_tracks.Track):
         if not self.bumping_vector_initialized:
@@ -772,9 +782,23 @@ class Car:
         if not position is None:
             spill_mask = pygame.mask.from_surface(image, 50)
             car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
-            x_test = 0
-            y_test = 0
             return  spill_mask.overlap(car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
+        else:
+            return False
+
+    def test_pole(self, track: pysprint_tracks.Track, position, frame_index):
+        if not position is None:
+            pole_mask = pygame.mask.from_surface(pysprint_tracks.poles_frames[frame_index], 50)
+            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+            return  pole_mask.overlap(car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
+        else:
+            return False
+
+    def test_tornado(self, track: pysprint_tracks.Track):
+        if not track.tornado_position is None:
+            tornado_mask = pygame.mask.from_surface(pysprint_tracks.tornado_frames[track.tornado_frame_index], 50)
+            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+            return  tornado_mask.overlap(car_mask, (round(self.x_position-track.tornado_position[0]),round(self.y_position-track.tornado_position[1])))
         else:
             return False
 
@@ -922,12 +946,49 @@ class Car:
         else:
             return False
 
+    def detect_tornado(self, track: pysprint_tracks.Track):
+        if self.test_tornado(track):
+            if not self.on_tornado:
+                self.init_tornado_loop()
+                return True
+        return False
+
+    def detect_poles(self, track: pysprint_tracks.Track):
+        position_to_test = None
+        frame_index = None
+        if track.poles_frame_indexes[0]>0:
+            position_to_test = track.external_pole_position
+            frame_index = track.poles_frame_indexes[0]
+        if track.poles_frame_indexes[1]:
+            position_to_test = track.middle_pole_position
+            frame_index = track.poles_frame_indexes[1]
+        if track.poles_frame_indexes[2]:
+            position_to_test = track.internal_pole_position
+            frame_index = track.poles_frame_indexes[2]
+        if self.test_pole(track,position_to_test,frame_index):
+            self.init_pole_loop(track,position_to_test)
+            return True
+        return False
+
+
+
     def detect_cones(self, track: pysprint_tracks.Track):
         cone_hit = self.test_cones(track)
         if cone_hit>=0:
             self.init_cone_loop(track.traffic_cones_positions[cone_hit])
             track.traffic_cones_positions.pop(cone_hit)
 
+    def init_pole_loop(self,track,position):
+        if self.speed<self.speed_max*0.9:
+            self.set_bumping(True)
+            self.speed = self.bump_speed
+            self.animation_index = 0
+            self.x_intersect = position[0]
+            self.y_intersect = position[1]
+            self.pole_bumping = True
+            self.collision_time = pygame.time.get_ticks()
+        else:
+            self.init_crash_loop(position)
 
     def init_cone_loop(self,cone_hit):
         self.set_bumping(True)
@@ -936,6 +997,13 @@ class Car:
         self.animation_index = 0
         self.x_intersect = cone_hit[0]
         self.y_intersect = cone_hit[1]
+        self.collision_time = pygame.time.get_ticks()
+
+    def init_tornado_loop(self):
+        self.set_spinning(True)
+        self.speed = self.speed_max *0.6
+        self.animation_index = 0
+        self.tornado_index = 0
         self.collision_time = pygame.time.get_ticks()
 
     def init_oil_spill_loop(self):
@@ -1062,6 +1130,8 @@ class Car:
 
     def end_spinning_loop(self):
         self.spinning = False
+        if self.on_tornado:
+            self.on_tornado = False
 
     def update_position(self, track: pysprint_tracks.Track, cars):
         if self.crashing:
@@ -1078,6 +1148,8 @@ class Car:
                 #Calculate Vector - Bumping
                 if self.side_colliding_offender or self.side_colliding_victim:
                     self.calculate_side_colliding_vector(self.side_colliding_other_car)
+                elif self.pole_bumping:
+                    self.calculate_pole_vector(track)
                 else:
                     self.calculate_bumping_vector(track)
 
@@ -1091,11 +1163,16 @@ class Car:
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status
             self.rotating = False
-            #Check for all spills
-            self.on_spill = self.detect_spills(track)
+            #Check for Tornado - priority behaviour over spills
+            self.on_tornado = self.detect_tornado(track)
+            if not self.on_tornado:
+                #Check for all spills
+                self.on_spill = self.detect_spills(track)
             #check for Traffic Cones
             self.detect_cones(track)
-            if not self.on_spill:
+            #Check for Poles
+            self.detect_poles(track)
+            if not self.on_spill and not self.on_tornado:
                 #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
                 if self.speed > 0:
                     self.detect_collision(track)
@@ -1251,12 +1328,19 @@ class Car:
             print('{} - Increment Spin Frame'.format(pygame.time.get_ticks()))
         #Spin the car
         self.animation_index+=1
+        self.tornado_index+=1
         if self.animation_index <17:
             self.sprite_angle+=1
             if self.sprite_angle >=16:
                 self.sprite_angle-=16
         else:
-            self.end_spinning_loop()
+            if not self.on_tornado:
+                self.end_spinning_loop()
+            else:
+                #1 fullrotation and a quarter when hitting a tornado
+                if self.tornado_index >20:
+                    self.end_spinning_loop()
+
 
     def display_bump_cloud(self):
         if DEBUG_BUMP or DEBUG__CAR_COLLISION:

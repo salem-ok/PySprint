@@ -118,7 +118,11 @@ race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').conve
 pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
 pysprint_tracks.traffic_cone_shade = pygame.image.load('Assets/TrafficConeShade.png').convert_alpha()
 
-
+#Tornado Frames:
+pysprint_tracks.tornado_frames = {
+    0:pygame.image.load('Assets/TornadoFrame0.png').convert_alpha(),
+    1:pygame.image.load('Assets/TornadoFrame1.png').convert_alpha()
+}
 #Poles Frames:
 pysprint_tracks.poles_frames = {
     0:pygame.image.load('Assets/PoleFrame0.png').convert_alpha(),
@@ -1716,7 +1720,7 @@ def game_loop():
                         track.blit_bonus(False)
                         for car in cars:
                             car.blit(track, False)
-                        track.blit_overlay()
+                        track.blit_overlay(False)
                         for car in cars:
                             car.blit(track, True)
                         print_get_ready()
@@ -1948,7 +1952,7 @@ def game_loop():
                                 game_display.blit(checkered_flag_frames[animation_index],track.flag_anchor)
                             for car in cars:
                                 car.blit(track, False)
-                            track.blit_overlay()
+                            track.blit_overlay(True)
                             for car in cars:
                                 car.blit(track, True)
                             for car in cars:

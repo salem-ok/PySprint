@@ -27,6 +27,9 @@ grease_spill_image = None
 traffic_cone = None
 traffic_cone_shade = None
 
+#Tornado
+tornado_frames = None
+
 #Bonus Frames
 bonus_frames = None
 bonus_shade_frames = None
@@ -39,7 +42,7 @@ tiny_font = None
 poles_frames = None
 poles_gate = None
 poles_pop_up_interval = 900
-poles_stay_up_duration = 1300
+poles_stay_up_duration = 1800
 
 #Max and min random time for a gate to be closed or open
 max_random_time = 3000
@@ -113,6 +116,12 @@ class Track:
         self.middle_pole_position = None
         #Traffic Cones
         self.traffic_cones_positions = None
+        #All static Obstacles Gates
+        self.obstacle_gates = []
+        #Tornado
+        self.tornado_position = None
+        self.tornado_timer = None
+        self.tornado_frame_index = None
 
     def load_track_definition(self, filename):
         with open(filename) as track_file:
@@ -323,11 +332,38 @@ class Track:
         game_display.blit(surf,(0,0))
 
 
-    def blit_overlay(self):
+    def blit_overlay(self, race_started):
         surf = self.track_overlay.copy()
         if not self.road_gates_anchors is None:
             for i in range(0, len(self.road_gates_anchors)):
                 surf.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+
+        #Display Tornado
+        if self.tornado_position is None:
+            self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
+            self.tornado_frame_index = 0
+            self.tornado_timer = pygame.time.get_ticks()
+        if race_started:
+            now =  pygame.time.get_ticks()
+            if now >=self.tornado_timer:
+                if self.tornado_frame_index == 0:
+                    self.tornado_frame_index = 1
+                else:
+                    self.tornado_frame_index = 0
+                rand_x = random.randint(self.tornado_position[0]-5,self.tornado_position[0]+5)
+                if rand_x >= self.track_mask.get_width()-tornado_frames[0].get_width():
+                    rand_x = self.tornado_position[0] - 5
+                if rand_x < 0:
+                    rand_x = 0
+                rand_y = random.randint(self.tornado_position[1]-5,self.tornado_position[1]+5)
+                if rand_y >= self.track_mask.get_height()-tornado_frames[0].get_height():
+                    rand_y = self.tornado_position[1] - 5
+                if rand_y<0:
+                    rand_y = 0
+                self.tornado_position = (rand_x,rand_y)
+                self.tornado_timer = now + 50
+            surf.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
+
         game_display.blit(surf,(0,0))
 
     def update_track_mask(self):
@@ -344,35 +380,80 @@ class Track:
 
         return random_gate
 
-    def get_random_position(self, height, width):
-        #Pick a gate at random and place the bonus randomly on the gate
-        random_gate = random.randint(0, len(self.external_gate_points)-1)
+    def test_object_on_track(self, position, width, height):
+        test_track_mask = pygame.mask.from_surface(self.track_mask, 50)
+        object_mask = pygame.mask.from_surface(pygame.Surface((width,height)), 50)
+        return  test_track_mask.overlap(object_mask, (round(position[0]),round(position[1])))
 
-        if self.external_gate_points[random_gate][0]<self.internal_gate_points[random_gate][0]:
-            min_x  = self.external_gate_points[random_gate][0]
-            max_x = self.internal_gate_points[random_gate][0]
+
+    def get_random_position(self, height, width):
+        #Pick a gate at random and place the object randomly on the gate
+        free_gate = False
+        while not free_gate:
+            random_gate = random.randint(0, len(self.external_gate_points)-1)
+            free_gate = True
+            for gate_index in self.obstacle_gates:
+                if random_gate == gate_index:
+                    free_gate=False
+        self.obstacle_gates.append(random_gate)
+
+        ext_x = round(self.external_gate_points[random_gate][0] - (width/2))
+        ext_y = round(self.external_gate_points[random_gate][1] - (height/2))
+        int_x = round(self.internal_gate_points[random_gate][0] - (width/2))
+        int_y = round(self.internal_gate_points[random_gate][1] - (height/2))
+
+        if ext_x<int_x:
+            min_x  = ext_x
+            max_x = int_x
         else:
-            min_x  = self.internal_gate_points[random_gate][0]
-            max_x = self.external_gate_points[random_gate][0]
+            min_x  = int_x
+            max_x = ext_x
 
         random_x = random.randint(min_x,max_x)
-        if random_x + width > max_x:
-            random_x = self.internal_gate_points[random_gate][0] - (width+3)
-        elif random_x < min_x:
-            random_x = min_x + 15
 
-        if self.external_gate_points[random_gate][1]<self.internal_gate_points[random_gate][1]:
-            min_y  = self.external_gate_points[random_gate][1]
-            max_y = self.internal_gate_points[random_gate][1]
+        if ext_y<int_y:
+            min_y  = ext_y
+            max_y = int_y
         else:
-            min_y  = self.internal_gate_points[random_gate][1]
-            max_y = self.external_gate_points[random_gate][1]
-
+            min_y  = int_y
+            max_y = ext_y
         random_y = random.randint(min_y,max_y)
-        if random_y + height > max_y:
-            random_y = self.internal_gate_points[random_gate][0] - (height+2)
-        elif random_y < min_y:
-            random_y = min_y + 15
+
+        #test if object is on track, if not move it closer to the most distant gate point
+        if self.test_object_on_track((random_x,random_y),width,height):
+            move_x = 0
+            move_y = 0
+            while self.test_object_on_track((random_x,random_y),width,height):
+                diff_max_x = max_x - random_x
+                diff_min_x = min_x - random_x
+                if abs(diff_max_x)>=abs(diff_min_x):
+                    diff_x = diff_max_x
+                else:
+                    diff_x = diff_min_x
+
+                diff_max_y = max_y - random_y
+                diff_min_y = min_y - random_y
+                if abs(diff_max_y)>=abs(diff_min_y):
+                    diff_y = diff_max_y
+                else:
+                    diff_y = diff_min_y
+
+                #move according to the most distant coordinate
+                if abs(diff_x)>=(abs(diff_y)):
+                    if diff_x>0:
+                        move_x=1
+                    elif diff_x<0:
+                        move_x=-1
+                else:
+                    if diff_y>0:
+                        move_y=1
+                    elif diff_y<0:
+                        move_y=-1
+                random_x+=move_x
+                random_y+=move_y
+
+            random_x+=move_x*3
+            random_y+=move_y*3
 
         return (random_x,random_y)
 
@@ -441,7 +522,9 @@ class Track:
     def blit_obstacles(self, race_started):
         #Display poles
         if self.poles_gate_index is None:
-            self.poles_gate_index = self.get_random_poles_position()
+            #self.poles_gate_index = self.get_random_poles_position()
+            self.poles_gate_index = 2
+            self.obstacle_gates.append(self.poles_gate_index)
             ext_x = self.external_gate_points[self.poles_gate_index][0] - 5
             ext_y = self.external_gate_points[self.poles_gate_index][1] - 8
             int_x = self.internal_gate_points[self.poles_gate_index][0] - 5
@@ -531,14 +614,6 @@ class Track:
             game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
             game_display.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
             game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
-            self.track_mask = self.base_mask.copy()
-            if self.poles_frame_indexes[0]>0:
-                self.track_mask.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
-            if self.poles_frame_indexes[1]:
-                self.track_mask.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
-            if self.poles_frame_indexes[2]:
-                self.track_mask.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
-
 
         #Display spills
         if self.oil_spill_position is None:
