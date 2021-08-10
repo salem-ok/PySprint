@@ -1,6 +1,7 @@
 #pysprint_car.py
 from typing import DefaultDict
 from numpy import True_, angle, select
+from numpy.lib.type_check import _is_type_dispatcher
 import pygame
 from pygame import Surface, gfxdraw
 import math
@@ -24,7 +25,7 @@ display_width = None
 display_height = None
 dust_cloud_frames = None
 explosion_frames = None
-
+transparency = None
 
 class Car:
 
@@ -404,8 +405,12 @@ class Car:
         if self.speed == 0:
             self.decelerating = False
             if self.bumping:
-                #Stop Bumping routine once speed down to 0
-                self.end_bump_loop()
+                #Stop Bumping routine once speed down to 0 unless hittign a cone in whihc case we let the dust cloud settle before ending the loop
+                if not self.hitting_cone:
+                    self.end_bump_loop()
+                else:
+                    if self.animation_index >= len(dust_cloud_frames):
+                        self.end_bump_loop()
 
     def search_border_side(self, polygon_border, bumping):
         if polygon_border is None:
@@ -738,19 +743,23 @@ class Car:
                                 print('Side Colllision: {}-sprite:{}-front:{} - {}-sprite:{}-front:{} - ({},{}) - ({},{})'.format(cars[i].color_text,cars[i].sprite_angle,other_front_collision,self.color_text,self.sprite_angle,front_collision,collision[0],collision[1],other_collision[0],other_collision[1]))
                             if not front_collision == other_front_collision:
                                 if other_front_collision:
-                                    if not self.side_colliding_victim:
-                                        self.init_side_car_collision_victim_loop(cars[i], collision)
-                                    if not cars[i].side_colliding_offender:
-                                        cars[i].init_side_car_collision_offender_loop(self, collision)
-                                    if DEBUG__CAR_COLLISION:
-                                        print('Side Colllision: Victim: {} - Offender: {}'.format(self.color_text,cars[i].color_text))
+                                    #Side collisions between drones are excluded
+                                    if not(self.is_drone and cars[i].is_drone):
+                                        if not self.side_colliding_victim:
+                                            self.init_side_car_collision_victim_loop(cars[i], collision)
+                                        if not cars[i].side_colliding_offender:
+                                            cars[i].init_side_car_collision_offender_loop(self, collision)
+                                        if DEBUG__CAR_COLLISION:
+                                            print('Side Colllision: Victim: {} - Offender: {}'.format(self.color_text,cars[i].color_text))
                                 else:
-                                    if not self.side_colliding_offender:
-                                        self.init_side_car_collision_offender_loop(cars[i], collision)
-                                    if not cars[i].side_colliding_victim:
-                                        cars[i].init_side_car_collision_victim_loop(self, collision)
-                                    if DEBUG__CAR_COLLISION:
-                                        print('Side Colllision: Victim: {} - Offender: {}'.format(cars[i].color_text,self.color_text))
+                                    #Side collisions between drones are excluded
+                                    if not(self.is_drone and cars[i].is_drone):
+                                        if not self.side_colliding_offender:
+                                            self.init_side_car_collision_offender_loop(cars[i], collision)
+                                        if not cars[i].side_colliding_victim:
+                                            cars[i].init_side_car_collision_victim_loop(self, collision)
+                                        if DEBUG__CAR_COLLISION:
+                                            print('Side Colllision: Victim: {} - Offender: {}'.format(cars[i].color_text,self.color_text))
 
     def get_simulation_vector(self):
         x_test = 0
@@ -931,20 +940,23 @@ class Car:
                 return False
 
     def detect_spills(self, track: pysprint_tracks.Track):
-        if self.test_spill(pysprint_tracks.oil_spill_image,track.oil_spill_position):
-            if not self.on_spill:
-                self.init_oil_spill_loop()
-            return True
-        elif self.test_spill(pysprint_tracks.water_spill_image,track.water_spill_position):
-            if not self.on_spill:
-                self.init_water_spill_loop()
-            return True
-        elif self.test_spill(pysprint_tracks.grease_spill_image,track.grease_spill_position):
-            if not self.on_spill:
-                self.init_grease_spill_loop()
-            return True
-        else:
-            return False
+        if track.display_oil_spill:
+            if self.test_spill(pysprint_tracks.oil_spill_image,track.oil_spill_position):
+                if not self.on_spill:
+                    self.init_oil_spill_loop()
+                return True
+        if track.display_water_spill:
+            if self.test_spill(pysprint_tracks.water_spill_image,track.water_spill_position):
+                if not self.on_spill:
+                    self.init_water_spill_loop()
+                return True
+        if track.display_grease_spill:
+            if self.test_spill(pysprint_tracks.grease_spill_image,track.grease_spill_position):
+                if not self.on_spill:
+                    self.init_grease_spill_loop()
+                return True
+
+        return False
 
     def detect_tornado(self, track: pysprint_tracks.Track):
         if self.test_tornado(track):
@@ -1001,14 +1013,16 @@ class Car:
 
     def init_tornado_loop(self):
         self.set_spinning(True)
-        self.speed = self.speed_max *0.6
+        self.speed = self.player_speed *0.5
+        self.deceleration_step = self.player_deceleration_step * 0.5
         self.animation_index = 0
         self.tornado_index = 0
         self.collision_time = pygame.time.get_ticks()
 
     def init_oil_spill_loop(self):
         self.set_spinning(True)
-        self.speed = self.speed_max *0.6
+        self.speed = self.player_speed *0.5
+        self.deceleration_step = self.player_deceleration_step * 0.5
         self.animation_index = 0
         self.collision_time = pygame.time.get_ticks()
 
@@ -1017,7 +1031,11 @@ class Car:
 
     def init_grease_spill_loop(self):
         self.set_spinning(True)
-        self.speed = self.speed_max *0.4
+        if self.is_drone:
+            self.speed = self.speed_max *0.5
+        else:
+            self.speed = self.speed_max *0.3
+        self.deceleration_step = self.drone_deceleration_step
         self.animation_index = 0
         self.collision_time = pygame.time.get_ticks()
 
@@ -1132,6 +1150,10 @@ class Car:
         self.spinning = False
         if self.on_tornado:
             self.on_tornado = False
+        if self.is_drone:
+            self.deceleration_step = self.drone_deceleration_step
+        else:
+            self.deceleration_step = self.player_deceleration_step
 
     def update_position(self, track: pysprint_tracks.Track, cars):
         if self.crashing:
@@ -1163,15 +1185,18 @@ class Car:
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status
             self.rotating = False
-            #Check for Tornado - priority behaviour over spills
-            self.on_tornado = self.detect_tornado(track)
+            if track.display_tornado:
+                #Check for Tornado - priority behaviour over spills
+                self.on_tornado = self.detect_tornado(track)
             if not self.on_tornado:
                 #Check for all spills
                 self.on_spill = self.detect_spills(track)
-            #check for Traffic Cones
-            self.detect_cones(track)
-            #Check for Poles
-            self.detect_poles(track)
+            if track.display_cones:
+                #check for Traffic Cones
+                self.detect_cones(track)
+            if track.display_pole:
+                #Check for Poles
+                self.detect_poles(track)
             if not self.on_spill and not self.on_tornado:
                 #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
                 if self.speed > 0:
@@ -1185,9 +1210,13 @@ class Car:
                         intersect_point = self.test_collision(track,False)
                         self.init_crash_loop(intersect_point)
                     if self.bumping:
-                        #Force end of Bump Routine if car is not moving unless we hit a cone
+                        #Stop Bumping routine once speed down to 0 unless hittign a cone in whihc case we let the dust cloud settle before ending the loop
                         if not self.hitting_cone:
                             self.end_bump_loop()
+                        else:
+                            if self.animation_index >= len(dust_cloud_frames):
+                                self.end_bump_loop()
+
         else:
             #Car is not moving anymore
             self.x_vector = 0
@@ -1405,15 +1434,64 @@ class Car:
                 if track.road_gates_frames_index[new_next_gate[0]] == 4:
                     self.next_gate = new_next_gate
                     self.shortcut_gates_crossed = []
+    def test_vector_track_collision(self, track, new_next_gate):
+        midpOint_modifier = self.get_mid_point_modifier()
+        #Eliminate cases where the Vector is impossible to follow, i.e. collidign with teh track mask
+        #Gate index is a tuple means we deal witha an open gate shortcut
+        test_next_mid_point = ((track.external_gate_points[new_next_gate][0] + track.internal_gate_points[new_next_gate][0]) / midpOint_modifier, (track.external_gate_points[new_next_gate][1] + track.internal_gate_points[new_next_gate][1]) / midpOint_modifier)
+        test_ideal_vector = (round(test_next_mid_point[0] - self.x_position), round(test_next_mid_point[1] - self.y_position))
+        #drawing a transparent surface and blit the vector and checking if it collides with the Circuit mask
+        # if test_ideal_vector[0] == 0:
+        #     test_ideal_vector = (1,test_ideal_vector[1])
+        # elif test_ideal_vector[1] ==0:
+        #     test_ideal_vector = (test_ideal_vector[0],1)
+
+        # if test_ideal_vector[0]*test_ideal_vector[1] > 0:
+        #     line_start = (0,0)
+        #     line_end = (abs(test_ideal_vector[0]),abs(test_ideal_vector[1]))
+        # else:
+        #     line_start = (0,abs(test_ideal_vector[1]))
+        #     line_end = (abs(test_ideal_vector[0]),0)
+
+        # vector_surf = pygame.Surface((abs(test_ideal_vector[0]),abs(test_ideal_vector[1])))
+        # vector_surf.fill((0,0,0))
+        # vector_surf.set_colorkey((0,0,0))
+        line_start = (round(self.x_position), round(self.y_position))
+        line_end = (round(self.x_position) + test_ideal_vector[0], round(self.y_position) + test_ideal_vector[1])
+        vector_surf = transparency.copy()
+        gfxdraw.line(vector_surf, line_start[0], line_start[1], line_end[0], line_end[1], (255,255,255))
+
+        track_mask = pygame.mask.from_surface(track.track_mask, 50)
+        vector_mask = pygame.mask.from_surface(vector_surf, 50)
+
+        # offset_x = round(self.x_position)
+        # offset_y = round(self.y_position)
+        # if test_ideal_vector[0]<0:
+        #     offset_x += test_ideal_vector[0]
+        # if test_ideal_vector[1]<0:
+        #     offset_y += test_ideal_vector[1]
+
+        return track_mask.overlap(vector_mask, (0,0))
+
+
+    def get_mid_point_modifier(self):
+        return 2 * (1 + (self.drone_personality_modifiers[self.drone_personality]-1) / 8)
 
     def calculate_ideal_vector(self, track: pysprint_tracks.Track, actual_gate_step):
-        new_next_gate = track.find_progress_gate((self.x_position, self.y_position),actual_gate_step, self.next_gate)
+        new_next_gate = track.find_progress_gate((self.x_position, self.y_position),actual_gate_step, self.next_gate, self)
+
+        #Midpoint modifier: Normal personality aime for the exact middle of the gate, prudent and aggressive symetrically outcentered
+        midpOint_modifier = self.get_mid_point_modifier()
+
         #Gate is a tuple we deal with an open gate shortcut
         if type(new_next_gate) is tuple:
             self.validate_next_tuple(track,new_next_gate)
 
         if not type(new_next_gate) is tuple:
+            old_next_gate = new_next_gate
             new_next_gate += actual_gate_step
+            if new_next_gate>=len(track.external_gate_points):
+                new_next_gate-= len(track.external_gate_points)
             if self.next_gate is None:
                 self.next_gate = new_next_gate
             else:
@@ -1423,22 +1501,27 @@ class Car:
                         self.next_gate = track.external_ai_gates_shortcuts[self.next_gate[0]][0][1]
                         self.shortcut_gates_crossed = None
                 else:
-                    #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
-                    if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) > len(track.external_gate_points) - (actual_gate_step+1):
-                        self.next_gate+=actual_gate_step
+                    if self.test_vector_track_collision(track,new_next_gate):
+                        self.next_gate=old_next_gate
                     else:
-                        #Eliminate cases where the AI is tempte to cut the roundabout
-                        if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
+                        #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
+                        if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) > len(track.external_gate_points) - (actual_gate_step+1):
                             self.next_gate+=actual_gate_step
                         else:
-                            #Eliminate edge cases where the new next gate is behind the previous next next gate
-                            if new_next_gate >= self.next_gate:
-                                self.next_gate = new_next_gate
+                            #Eliminate cases where the AI is tempte to cut the roundabout
+                            if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
+                                self.next_gate+=actual_gate_step
+                            else:
+                                #Eliminate edge cases where the new next gate is behind the previous next next gate
+                                #Except if teh previous next gate have a vector that collides with the track mask
+                                if new_next_gate >= self.next_gate:
+                                    self.next_gate = new_next_gate
+                                else:
+                                    if self.test_vector_track_collision(track,self.next_gate):
+                                        self.next_gate = new_next_gate
+
                     if self.next_gate >= len(track.external_gate_points):
                         self.next_gate -= len(track.external_gate_points)
-
-        #Midpoint modifier: Normal personality aime for the exact middle of the gate, prudent and aggressive symetrically outcentered
-        midpOint_modifier = 2 * (1 + (self.drone_personality_modifiers[self.drone_personality]-1) / 8)
 
         #Gate index is a tuple means we deal witha an open gate shortcut
         if type(self.next_gate) is tuple:
@@ -1497,7 +1580,7 @@ class Car:
             else:
                 self.decelerate()
         else:
-            # If Vectr angle is too wide review te next gate
+            #If Vector angle is too wide review te next gate
             if (cosine_angle > (180-self.turning_angle_threshold)):
                 i = 1
                 while (abs(angle) < self.turning_angle_threshold*1.5) and (i<5):
@@ -1509,7 +1592,7 @@ class Car:
                     cosine_angle =self.get_cosine()
                     i+=1
                     self.rotate(angle > 0)
-                #Search for next gates failes, try previous gates
+                #Search for next gates fails, try previous gates
                 if i>=5:
                     i = 1
                     while (abs(angle) < self.turning_angle_threshold*1.5) and (i<5):

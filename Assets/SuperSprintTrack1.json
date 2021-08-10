@@ -1,5 +1,7 @@
 {
     "track_number": 1,
+    "difficulty_level": "Easy",
+    "wrenches":0,
     "background_filename": "Assets/SuperSprintTrack1.png",
     "mask_filename": "Assets/SuperSprintTrack1Mask.png",
     "overlay_filename": "Assets/SuperSprintTrack1OverLay.png",

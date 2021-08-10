@@ -99,6 +99,7 @@ score_top_left_red = (321,0)
 score_top_left_yellow = (481,0)
 
 #Load Assets
+pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
 tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
 pysprint_tracks.tiny_font = tiny_font
 small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
@@ -1641,6 +1642,7 @@ def initialize_tracks():
         tracks.append(track5)
         tracks.append(track7)
 
+
 def game_loop():
 
     game_exit = False
@@ -1662,6 +1664,7 @@ def game_loop():
         key_pressed = -1
         if not race_finished:
             track_index = 0
+            race_counter = 0
             key_pressed = display_loading_screen(False)
             #Attract mode
             while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
@@ -1690,6 +1693,7 @@ def game_loop():
                 if nb_drones < 4:
                     track = tracks[track_index]
                     track_index += 1
+                    race_counter += 1
                     if track_index>= len(tracks):
                         track_index = 0
 
@@ -1711,7 +1715,8 @@ def game_loop():
                     wave_up = True
                     flag_waved = False
                     podium_displayed = False
-
+                    #Generate Obstacles and traps
+                    track.init_obstacles(race_counter)
 
                     get_ready_time  = pygame.time.get_ticks()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
@@ -2079,6 +2084,9 @@ def game_loop():
                                                 cars[ranking[j]].end_game()
                                 screen_fadeout()
                                 race_finished = True
+                else:
+                    #Game Over, we start againt at difficulty zero
+                    race_counter = 0
             else:
                 game_exit = True
         else:
