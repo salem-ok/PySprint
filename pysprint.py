@@ -20,6 +20,8 @@ pysprint_tracks.display_width = 640
 pysprint_tracks.display_height = 400
 
 
+
+
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
 
@@ -55,7 +57,7 @@ DEBUG_CRASH = False
 # pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
+DEBUG_AI = True
 DISABLE_DRONES = False
 
 #Flag Events
@@ -100,6 +102,10 @@ score_top_left_yellow = (481,0)
 
 #Load Assets
 pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
+pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
+pysprint_car.vector_surf.fill((0,0,0))
+pysprint_car.vector_surf.set_colorkey((0,0,0))
+
 tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
 pysprint_tracks.tiny_font = tiny_font
 small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
@@ -118,6 +124,7 @@ race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').conve
 #Traffic Cone
 pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
 pysprint_tracks.traffic_cone_shade = pygame.image.load('Assets/TrafficConeShade.png').convert_alpha()
+pysprint_tracks.traffic_cone_mask =  pygame.mask.from_surface(pysprint_tracks.traffic_cone, 50)
 
 #Tornado Frames:
 pysprint_tracks.tornado_frames = {
@@ -134,8 +141,11 @@ pysprint_tracks.poles_frames = {
 
 #Spills
 pysprint_tracks.oil_spill_image = pygame.image.load('Assets/OilSpill.png').convert_alpha()
+pysprint_tracks.oil_spill_mask = pygame.mask.from_surface(pysprint_tracks.oil_spill_image, 50)
 pysprint_tracks.water_spill_image = pygame.image.load('Assets/WaterSpill.png').convert_alpha()
+pysprint_tracks.water_spill_mask = pygame.mask.from_surface(pysprint_tracks.water_spill_image, 50)
 pysprint_tracks.grease_spill_image = pygame.image.load('Assets/GreaseSpill.png').convert_alpha()
+pysprint_tracks.grease_spill_mask = pygame.mask.from_surface(pysprint_tracks.grease_spill_image, 50)
 
 #Bonus Frames:
 pysprint_tracks.bonus_frames = {

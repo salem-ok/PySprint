@@ -7,6 +7,7 @@ import pygame
 from pygame import Surface, gfxdraw
 import pysprint_car
 
+DEBUG_OBSTACLES = True
 
 #Track 1 Setup
 track1_json_filename = 'Assets/SuperSprintTrack1.json'
@@ -24,13 +25,18 @@ track7_json_filename = 'Assets/SuperSprintTrack7.json'
 oil_spill_image = None
 water_spill_image = None
 grease_spill_image = None
+oil_spill_mask = None
+water_spill_mask = None
+grease_spill_mask = None
 
 #Traffic Cone
 traffic_cone = None
+traffic_cone_mask = None
 traffic_cone_shade = None
 
 #Tornado
 tornado_frames = None
+tornado_mask = None
 
 #Bonus Frames
 bonus_frames = None
@@ -45,7 +51,6 @@ poles_frames = None
 poles_gate = None
 poles_pop_up_interval = 900
 poles_stay_up_duration = 1800
-
 #Max and min random time for a gate to be closed or open
 max_random_time = 3000
 min_random_time = 2000
@@ -71,6 +76,7 @@ class Track:
         self.background = None
         self.base_mask = None
         self.track_mask = None
+        self.track_mask_mask = None
         self.track_overlay = None
         self.first_car_start_position = None
         self.flag_anchor = None
@@ -123,6 +129,7 @@ class Track:
         self.poles_frame_indexes = None
         self.poles_moving_index = None
         self.poles_gate_index = None
+        self.pole_mask = None
         self.external_pole_position = None
         self.internal_pole_position = None
         self.middle_pole_position = None
@@ -134,6 +141,7 @@ class Track:
         self.tornado_position = None
         self.tornado_timer = None
         self.tornado_frame_index = None
+        self.tornado_mask = None
 
     def load_track_definition(self, filename):
         with open(filename) as track_file:
@@ -365,6 +373,7 @@ class Track:
                 self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
                 self.tornado_frame_index = 0
                 self.tornado_timer = pygame.time.get_ticks()
+                self.tornado_mask = pygame.mask.from_surface(tornado_frames[self.tornado_frame_index], 50)
             if race_started:
                 now =  pygame.time.get_ticks()
                 if now >=self.tornado_timer:
@@ -383,7 +392,8 @@ class Track:
                     if rand_y<0:
                         rand_y = 0
                     self.tornado_position = (rand_x,rand_y)
-                    self.tornado_timer = now + 50
+                    self.tornado_timer = now + 100
+                self.tornado_mask = pygame.mask.from_surface(tornado_frames[self.tornado_frame_index], 50)
                 surf.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
 
         game_display.blit(surf,(0,0))
@@ -393,6 +403,7 @@ class Track:
         if not self.road_gates_anchors is None:
             for i in range(0, len(self.road_gates_anchors)):
                 self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+        self.track_mask_mask = pygame.mask.from_surface(self.track_mask, 50)
 
     def get_random_poles_position(self):
         #Pick a gate at random where teh gate is more than 40 pixels long
@@ -403,9 +414,8 @@ class Track:
         return random_gate
 
     def test_object_on_track(self, position, width, height):
-        test_track_mask = pygame.mask.from_surface(self.track_mask, 50)
         object_mask = pygame.mask.from_surface(pygame.Surface((width,height)), 50)
-        return  test_track_mask.overlap(object_mask, (round(position[0]),round(position[1])))
+        return  self.track_mask_mask.overlap(object_mask, (round(position[0]),round(position[1])))
 
 
     def get_random_position(self, height, width, force_gate = None):
@@ -539,9 +549,8 @@ class Track:
                 game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)
 
     def test_pole_on_track(self, position):
-        test_track_mask = pygame.mask.from_surface(self.track_mask, 50)
         pole_mask = pygame.mask.from_surface(pygame.Surface((10,16)), 50)
-        return  test_track_mask.overlap(pole_mask, (round(position[0]),round(position[1])))
+        return  self.track_mask_mask.overlap(pole_mask, (round(position[0]),round(position[1])))
 
     def init_obstacles(self, race_counter):
         #Determine the number of obstacles
@@ -609,6 +618,15 @@ class Track:
                 self.display_cones = True
             if self.display_cones:
                 self.cones_count = random.randint(3,nb_cones_max)
+
+        if DEBUG_OBSTACLES:
+            self.display_pole = True
+            self.display_tornado = True
+            self.display_oil_spill = True
+            self.display_grease_spill = True
+            self.display_water_spill = True
+            self.display_cones = True
+            self.cones_count = 16
 
     def blit_obstacles(self, race_started):
 
@@ -701,6 +719,15 @@ class Track:
                             self.poles_moving_index+=1
                             if self.poles_moving_index>2:
                                 self.poles_moving_index = 0
+
+                self.pole_mask = pygame.mask.from_surface(poles_frames[0], 50)
+                if self.poles_frame_indexes[0]>0:
+                    self.pole_mask = pygame.mask.from_surface(poles_frames[self.poles_frame_indexes[0]], 50)
+                if self.poles_frame_indexes[1]:
+                    self.pole_mask = pygame.mask.from_surface(poles_frames[self.poles_frame_indexes[1]], 50)
+                if self.poles_frame_indexes[2]:
+                    self.pole_mask = pygame.mask.from_surface(poles_frames[self.poles_frame_indexes[2]], 50)
+
 
                 game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
                 game_display.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)

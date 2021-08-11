@@ -1,6 +1,6 @@
 #pysprint_car.py
 from typing import DefaultDict
-from numpy import True_, angle, select
+from numpy import True_, angle, result_type, select
 from numpy.lib.type_check import _is_type_dispatcher
 import pygame
 from pygame import Surface, gfxdraw
@@ -18,7 +18,7 @@ DEBUG_COLLISION = False
 DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-DEBUG_AI = False
+DEBUG_AI = True
 
 race_laps = None
 display_width = None
@@ -26,6 +26,7 @@ display_height = None
 dust_cloud_frames = None
 explosion_frames = None
 transparency = None
+vector_surf = None
 
 class Car:
 
@@ -161,6 +162,7 @@ class Car:
         self.x_position = 0
         self.y_position = 0
         self.sprite_angle = 12
+        self.car_mask = None
         self.angle = 12
         self.speed = 0
         self.a_intersect_side = (0, 0)
@@ -684,13 +686,11 @@ class Car:
 
 
     def test_car_collisions(self, cars):
-        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
-
         for i in range(0,len(cars)):
             #Check collision with other cars
             if not cars[i].color_text==self.color_text:
-                other_car_mask = pygame.mask.from_surface(cars[i].sprites[cars[i].sprite_angle], 50)
-                collision = other_car_mask.overlap(car_mask, (round(self.x_position-cars[i].x_position),round(self.y_position-cars[i].y_position)))
+                other_car_mask = cars[i].car_mask
+                collision = other_car_mask.overlap(self.car_mask, (round(self.x_position-cars[i].x_position),round(self.y_position-cars[i].y_position)))
                 if collision:
                     #Determine relative position of each car to determine the effect of the collision
                     angle_delta = self.sprite_angle - cars[i].sprite_angle
@@ -702,7 +702,7 @@ class Car:
                             self.init_frontal_car_collision_loop()
                             cars[i].init_frontal_car_collision_loop()
                     ##No Collision: sprite angles are equal or close (+/- 2 step)
-                    elif abs(angle_delta) <= 2 or abs(angle_delta) >=14:
+                    elif abs(angle_delta) <= 3 or abs(angle_delta) >=14:
                         if DEBUG__CAR_COLLISION:
                             print('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                     #Sprites angle is equidisant from right angles and cars opposite directions
@@ -732,7 +732,7 @@ class Car:
                                 if collision[1]>=self.front_area[cars[i].sprite_angle][0][1] and collision[1]<=self.front_area[cars[i].sprite_angle][1][1]:
                                     other_front_collision = True
                             front_collision = False
-                            other_collision = car_mask.overlap(other_car_mask, (round(cars[i].x_position-self.x_position),round(cars[i].y_position-self.y_position)))
+                            other_collision = self.car_mask.overlap(other_car_mask, (round(cars[i].x_position-self.x_position),round(cars[i].y_position-self.y_position)))
                             if other_collision:
                                 if other_collision[0]>=self.front_area[self.sprite_angle][0][0] and other_collision[0]<=self.front_area[self.sprite_angle][1][0]:
                                     if other_collision[1]>=self.front_area[self.sprite_angle][0][1] and other_collision[1]<=self.front_area[self.sprite_angle][1][1]:
@@ -780,60 +780,47 @@ class Car:
     def test_bonus(self, track: pysprint_tracks.Track):
         if track.bonus_frame_index >=0:
             bonus_mask = pygame.mask.from_surface(pysprint_tracks.bonus_frames[track.bonus_frame_index], 50)
-            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
             x_test = 0
             y_test = 0
-            return  bonus_mask.overlap(car_mask, (round(self.x_position-track.bonus_position[0]),round(self.y_position-track.bonus_position[1])))
+            return  bonus_mask.overlap(self.car_mask, (round(self.x_position-track.bonus_position[0]),round(self.y_position-track.bonus_position[1])))
         else:
             return False
 
-    def test_spill(self,image, position):
+    def test_spill(self,spill_mask, position):
         if not position is None:
-            spill_mask = pygame.mask.from_surface(image, 50)
-            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
-            return  spill_mask.overlap(car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
+            return  spill_mask.overlap(self.car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
         else:
             return False
 
-    def test_pole(self, track: pysprint_tracks.Track, position, frame_index):
+    def test_pole(self, track: pysprint_tracks.Track, position,):
         if not position is None:
-            pole_mask = pygame.mask.from_surface(pysprint_tracks.poles_frames[frame_index], 50)
-            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
-            return  pole_mask.overlap(car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
+            return  track.pole_mask.overlap(self.car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
         else:
             return False
 
     def test_tornado(self, track: pysprint_tracks.Track):
         if not track.tornado_position is None:
-            tornado_mask = pygame.mask.from_surface(pysprint_tracks.tornado_frames[track.tornado_frame_index], 50)
-            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
-            return  tornado_mask.overlap(car_mask, (round(self.x_position-track.tornado_position[0]),round(self.y_position-track.tornado_position[1])))
+            return  track.tornado_mask.overlap(self.car_mask, (round(self.x_position-track.tornado_position[0]),round(self.y_position-track.tornado_position[1])))
         else:
             return False
 
     def test_cones(self, track: pysprint_tracks.Track):
         if not track.traffic_cones_positions is None:
-            cone_mask = pygame.mask.from_surface(pysprint_tracks.traffic_cone, 50)
-            car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
             for i in range(0,len(track.traffic_cones_positions)):
-                if cone_mask.overlap(car_mask, (round(self.x_position-track.traffic_cones_positions[i][0]),round(self.y_position-track.traffic_cones_positions[i][1]))):
+                if pysprint_tracks.traffic_cone_mask.overlap(self.car_mask, (round(self.x_position-track.traffic_cones_positions[i][0]),round(self.y_position-track.traffic_cones_positions[i][1]))):
                     return i
         return -1
 
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
-        track_mask = pygame.mask.from_surface(track.track_mask, 50)
-        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
         x_test = 0
         y_test = 0
         if simulate_next_step:
             result = self.get_simulation_vector()
             x_test = result[0]
             y_test = result[1]
-        return track_mask.overlap(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
+        return track.track_mask_mask.overlap(self.car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
 
     def test_collision_area(self, track: pysprint_tracks.Track, simulate_next_step):
-        track_mask = pygame.mask.from_surface(track.track_mask, 50)
-        car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
         x_test = 0
         y_test = 0
         if simulate_next_step:
@@ -848,7 +835,7 @@ class Car:
                 if self.y_vector < 0:
                     y_test = -self.vector_simulation_length
 
-        return track_mask.overlap_area(car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
+        return track.track_mask_mask.overlap_area(self.car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
 
 
     def calculate_crashing_vector(self,track: pysprint_tracks.Track):
@@ -941,17 +928,17 @@ class Car:
 
     def detect_spills(self, track: pysprint_tracks.Track):
         if track.display_oil_spill:
-            if self.test_spill(pysprint_tracks.oil_spill_image,track.oil_spill_position):
+            if self.test_spill(pysprint_tracks.oil_spill_mask,track.oil_spill_position):
                 if not self.on_spill:
                     self.init_oil_spill_loop()
                 return True
         if track.display_water_spill:
-            if self.test_spill(pysprint_tracks.water_spill_image,track.water_spill_position):
+            if self.test_spill(pysprint_tracks.water_spill_mask,track.water_spill_position):
                 if not self.on_spill:
                     self.init_water_spill_loop()
                 return True
         if track.display_grease_spill:
-            if self.test_spill(pysprint_tracks.grease_spill_image,track.grease_spill_position):
+            if self.test_spill(pysprint_tracks.grease_spill_mask,track.grease_spill_position):
                 if not self.on_spill:
                     self.init_grease_spill_loop()
                 return True
@@ -967,17 +954,13 @@ class Car:
 
     def detect_poles(self, track: pysprint_tracks.Track):
         position_to_test = None
-        frame_index = None
         if track.poles_frame_indexes[0]>0:
             position_to_test = track.external_pole_position
-            frame_index = track.poles_frame_indexes[0]
         if track.poles_frame_indexes[1]:
             position_to_test = track.middle_pole_position
-            frame_index = track.poles_frame_indexes[1]
         if track.poles_frame_indexes[2]:
             position_to_test = track.internal_pole_position
-            frame_index = track.poles_frame_indexes[2]
-        if self.test_pole(track,position_to_test,frame_index):
+        if self.test_pole(track,position_to_test):
             self.init_pole_loop(track,position_to_test)
             return True
         return False
@@ -991,7 +974,7 @@ class Car:
             track.traffic_cones_positions.pop(cone_hit)
 
     def init_pole_loop(self,track,position):
-        if self.speed<self.speed_max*0.9:
+        if self.speed<self.speed_max:
             self.set_bumping(True)
             self.speed = self.bump_speed
             self.animation_index = 0
@@ -1322,11 +1305,12 @@ class Car:
             self.update_position(track, cars)
 
     def blit(self, track: pysprint_tracks.Track, overlay_blitted):
-        #Cars are blited under teh overlay to be hidden but not dust clouds, explisions and the helicopter
+        #Cars are blited under the overlay to be hidden but not dust clouds, explisions and the helicopter
         if not overlay_blitted:
             #Car is not visible durign explosion
             if not self.crashing:
                 game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
+                self.car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
 
             if DEBUG_AI:
                 if self.is_drone:
@@ -1353,8 +1337,6 @@ class Car:
                     game_display.blit(self.helicopter_frames[self.helicopter_index], (self.helicopter_x, self.helicopter_y))
 
     def display_spinning(self):
-        if DEBUG__CAR_COLLISION:
-            print('{} - Increment Spin Frame'.format(pygame.time.get_ticks()))
         #Spin the car
         self.animation_index+=1
         self.tornado_index+=1
@@ -1430,48 +1412,35 @@ class Car:
         else:
             #Check if previous gate is close to the "shortcut trigger gate" for the shortcut thta has been detected
             if abs(self.next_gate - track.external_ai_gates_shortcuts[new_next_gate[0]][0][0])<2:
-                #check if teh gate is open, if not, continue on track and ignor shortcut
+                #check if the gate is open, if not, continue on track and ignore shortcut
                 if track.road_gates_frames_index[new_next_gate[0]] == 4:
                     self.next_gate = new_next_gate
                     self.shortcut_gates_crossed = []
-    def test_vector_track_collision(self, track, new_next_gate):
+        #Test is vector collides with Track - if collision, ignore shortcuts and find the next normal track gate
+        if type(self.next_gate) is tuple:
+            if self.test_vector_track_collision(track,self.next_gate):
+                self.next_gate = track.find_progress_gate((self.x_position, self.y_position))
+
+
+    def test_vector_track_collision(self, track: pysprint_tracks.Track, new_next_gate):
         midpOint_modifier = self.get_mid_point_modifier()
-        #Eliminate cases where the Vector is impossible to follow, i.e. collidign with teh track mask
+        #Eliminate cases where the Vector is impossible to follow, i.e. collidign with the track mask
         #Gate index is a tuple means we deal witha an open gate shortcut
-        test_next_mid_point = ((track.external_gate_points[new_next_gate][0] + track.internal_gate_points[new_next_gate][0]) / midpOint_modifier, (track.external_gate_points[new_next_gate][1] + track.internal_gate_points[new_next_gate][1]) / midpOint_modifier)
+        if type(new_next_gate) is tuple:
+            test_next_mid_point = ((track.external_ai_gates_shortcuts[new_next_gate[0]][new_next_gate[1]][0] + track.internal_ai_gates_shortcuts[new_next_gate[0]][new_next_gate[1]][0])/ 2, (track.external_ai_gates_shortcuts[new_next_gate[0]][new_next_gate[1]][1] + track.internal_ai_gates_shortcuts[new_next_gate[0]][new_next_gate[1]][1])/ 2)
+        else:
+            test_next_mid_point = ((track.external_gate_points[new_next_gate][0] + track.internal_gate_points[new_next_gate][0]) / midpOint_modifier, (track.external_gate_points[new_next_gate][1] + track.internal_gate_points[new_next_gate][1]) / midpOint_modifier)
+
         test_ideal_vector = (round(test_next_mid_point[0] - self.x_position), round(test_next_mid_point[1] - self.y_position))
         #drawing a transparent surface and blit the vector and checking if it collides with the Circuit mask
-        # if test_ideal_vector[0] == 0:
-        #     test_ideal_vector = (1,test_ideal_vector[1])
-        # elif test_ideal_vector[1] ==0:
-        #     test_ideal_vector = (test_ideal_vector[0],1)
-
-        # if test_ideal_vector[0]*test_ideal_vector[1] > 0:
-        #     line_start = (0,0)
-        #     line_end = (abs(test_ideal_vector[0]),abs(test_ideal_vector[1]))
-        # else:
-        #     line_start = (0,abs(test_ideal_vector[1]))
-        #     line_end = (abs(test_ideal_vector[0]),0)
-
-        # vector_surf = pygame.Surface((abs(test_ideal_vector[0]),abs(test_ideal_vector[1])))
-        # vector_surf.fill((0,0,0))
-        # vector_surf.set_colorkey((0,0,0))
+        vector_surf.fill((0,0,0))
         line_start = (round(self.x_position), round(self.y_position))
         line_end = (round(self.x_position) + test_ideal_vector[0], round(self.y_position) + test_ideal_vector[1])
-        vector_surf = transparency.copy()
+
         gfxdraw.line(vector_surf, line_start[0], line_start[1], line_end[0], line_end[1], (255,255,255))
 
-        track_mask = pygame.mask.from_surface(track.track_mask, 50)
         vector_mask = pygame.mask.from_surface(vector_surf, 50)
-
-        # offset_x = round(self.x_position)
-        # offset_y = round(self.y_position)
-        # if test_ideal_vector[0]<0:
-        #     offset_x += test_ideal_vector[0]
-        # if test_ideal_vector[1]<0:
-        #     offset_y += test_ideal_vector[1]
-
-        return track_mask.overlap(vector_mask, (0,0))
+        return track.track_mask_mask.overlap(vector_mask, (0,0))
 
 
     def get_mid_point_modifier(self):
@@ -1501,24 +1470,24 @@ class Car:
                         self.next_gate = track.external_ai_gates_shortcuts[self.next_gate[0]][0][1]
                         self.shortcut_gates_crossed = None
                 else:
-                    if self.test_vector_track_collision(track,new_next_gate):
-                        self.next_gate=old_next_gate
+                    #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
+                    if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) > len(track.external_gate_points) - (actual_gate_step+1):
+                        self.next_gate+=actual_gate_step
                     else:
-                        #Eliminate edge cases where a gate is detected on another part of the circuit, i.e further than the actual next gate
-                        if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) > len(track.external_gate_points) - (actual_gate_step+1):
+                        #Eliminate cases where the AI is tempte to cut the roundabout
+                        if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
                             self.next_gate+=actual_gate_step
                         else:
-                            #Eliminate cases where the AI is tempte to cut the roundabout
-                            if abs(new_next_gate - self.next_gate) > (actual_gate_step+1) and abs(new_next_gate - self.next_gate) < 6:
-                                self.next_gate+=actual_gate_step
-                            else:
-                                #Eliminate edge cases where the new next gate is behind the previous next next gate
-                                #Except if teh previous next gate have a vector that collides with the track mask
-                                if new_next_gate >= self.next_gate:
-                                    self.next_gate = new_next_gate
+                            #Eliminate edge cases where the new next gate is behind the previous next next gate
+                            #Except if the previous next gate have a vector that collides with the track mask
+                            if new_next_gate >= self.next_gate:
+                                if self.test_vector_track_collision(track,new_next_gate):
+                                    self.next_gate=old_next_gate
                                 else:
-                                    if self.test_vector_track_collision(track,self.next_gate):
-                                        self.next_gate = new_next_gate
+                                    self.next_gate = new_next_gate
+                            else:
+                                if self.test_vector_track_collision(track,self.next_gate):
+                                    self.next_gate = new_next_gate
 
                     if self.next_gate >= len(track.external_gate_points):
                         self.next_gate -= len(track.external_gate_points)
