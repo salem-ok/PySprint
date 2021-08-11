@@ -7,7 +7,7 @@ import pygame
 from pygame import Surface, gfxdraw
 import pysprint_car
 
-DEBUG_OBSTACLES = True
+DEBUG_OBSTACLES = False
 
 #Track 1 Setup
 track1_json_filename = 'Assets/SuperSprintTrack1.json'

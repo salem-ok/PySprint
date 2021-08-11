@@ -18,7 +18,7 @@ DEBUG_COLLISION = False
 DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
-DEBUG_AI = True
+DEBUG_AI = False
 
 race_laps = None
 display_width = None
