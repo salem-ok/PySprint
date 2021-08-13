@@ -15,13 +15,13 @@ import pysprint_tracks
 game_display = None
 DEBUG_FINISH = False
 DEBUG_COLLISION = False
-DEBUG__CAR_COLLISION = True
+DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = True
 DEBUG_CRASH = False
 DEBUG_AI = False
 
 #Timer during which 2 cars which collided can't collide again
-car_collision_grace_period = 1000
+car_collision_grace_period = 500
 
 
 race_laps = None
@@ -77,12 +77,13 @@ class Car:
 
 
     #30FPS Default Settings
-    player_rotation_step = .26
+    player_rotation_step = .28#.26
     player_acceleration_step = 0.18
-    player_deceleration_step = 0.2
+    player_deceleration_step = 0.1#0.2
     player_bump_decelaration_step = 0.3
     player__bump_speed = 4
     player_speed = 8
+    player_skidding_weight = 3
 
     #AI Default Characteristics
     drone_personalities = [
@@ -98,6 +99,7 @@ class Car:
     drone_bump_decelaration_step = 0.3#0.3
     drone_bump_speed = 4#2
     drone_speed = 4#6
+    drone_skidding_weight = 2
     turning_angle_threshold = 20
     gate_step = 1#2
 
@@ -198,6 +200,7 @@ class Car:
         self.acceleration_step = 0.13
         self.deceleration_step = 0.2
         self.bump_decelaration_step = 0.3
+        self.skidding_weight = 2
 
         self.drone_personality = 1
 
@@ -369,6 +372,7 @@ class Car:
         self.acceleration_step = self.player_acceleration_step
         self.deceleration_step = self.player_deceleration_step
         self.bump_decelaration_step = self.player_bump_decelaration_step
+        self.skidding_weight = self.player_skidding_weight
 
     def end_game(self):
         self.game_over = True
@@ -380,6 +384,7 @@ class Car:
         self.acceleration_step = self.drone_acceleration_step
         self.deceleration_step = self.drone_deceleration_step
         self.bump_decelaration_step = self.drone_bump_decelaration_step
+        self.skidding_weight = self.drone_skidding_weight
 
     def rotate(self, left):
         self.rotating = True
@@ -490,12 +495,22 @@ class Car:
         self.x_vector = self.x_vector * self.angle_vector_sign[self.sprite_angle][0]
 
     def calculate_skidding_vector(self):
-        #Start Skidding - Ignore current Rotation sprite, update speed and use previous Angle and sign
-        if not self.y_vector == 0:
-            self.y_vector = self.y_vector * abs(self.speed * self.sin_angle) / abs(self.y_vector)
+        #Start Skidding
+        # v0.1 - Ignore current Rotation sprite, update speed and use previous Angle and sign
+        # v0.11 - Incorporate the spinte angle in the skidding vector if rotating
+        skidding_x = self.x_vector
+        skidding_y = self.y_vector
+        skidding_angle = self.sin_angle
+        if not skidding_y == 0:
+            skidding_y = skidding_y * abs(self.speed * skidding_angle) / abs(self.y_vector)
 
-        if not self.x_vector == 0:
-            self.x_vector = self.x_vector * math.sqrt(abs(self.speed*self.speed-self.y_vector*self.y_vector))  / abs(self.x_vector)
+        if not skidding_x == 0:
+            skidding_x = skidding_x * math.sqrt(abs(self.speed*self.speed-skidding_y*skidding_y))  / abs(skidding_x)
+
+        self.calculate_vector_from_sprite()
+        self.x_vector = (self.x_vector + skidding_x*self.skidding_weight)/(self.skidding_weight+1)
+        self.y_vector = (self.y_vector + skidding_y*self.skidding_weight)/(self.skidding_weight+1)
+        self.sin_angle = (self.sin_angle + skidding_angle*2)/3
 
         if self.x_vector==0 and self.y_vector==0 and self.speed>0:
             #Wrong situation: reset to default vector
@@ -716,16 +731,16 @@ class Car:
                                 self.init_frontal_car_collision_loop(cars[i])
                                 cars[i].init_frontal_car_collision_loop(self)
                         ##No Collision: sprite angles are equal or close (+/- 2 step)
-                        elif abs(angle_delta) <= 3 or abs(angle_delta) >=14:
+                        elif abs(angle_delta) <= 2 or abs(angle_delta) >=13:
                             if DEBUG__CAR_COLLISION:
                                 print('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                         #Sprites angle is equidisant from right angles and cars opposite directions
-                        elif (abs(angle_delta)==6) or (abs(angle_delta)==10) and ((self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone)):
-                            #If cars are at high speed, force spinning (if one of them is not a drone, as drones are almost always at max speed)
-                            if DEBUG__CAR_COLLISION:
-                                print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                            self.init_frontal_car_collision_loop(cars[i])
-                            cars[i].init_frontal_car_collision_loop(self)
+                        # elif (abs(angle_delta)==6) or (abs(angle_delta)==10) and ((self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone)):
+                        #     #If cars are at high speed, force spinning (if one of them is not a drone, as drones are almost always at max speed)
+                        #     if DEBUG__CAR_COLLISION:
+                        #         print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                        #     self.init_frontal_car_collision_loop(cars[i])
+                        #     cars[i].init_frontal_car_collision_loop(self)
                         else:
                             ##Side Collision
                             #Check if the other car's front area is touching
@@ -733,13 +748,13 @@ class Car:
                             if (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone) and (abs(angle_delta)==5) or (abs(angle_delta)==11):
                                 #If cars are at high speed, force spinning when angle is open (if one of them is not a drone, as drones are almost always at max speed)
                                 if DEBUG__CAR_COLLISION:
-                                    print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                                    print('High Speed Colllision (open angle): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                                 self.init_frontal_car_collision_loop(cars[i])
                                 cars[i].init_frontal_car_collision_loop(self)
                             elif (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (abs(angle_delta)==3) or (abs(angle_delta)==13):
                                 #If cars are at high speed, ignore when angle is closed
                                 if DEBUG__CAR_COLLISION:
-                                    print('No Colllision (Drone involved): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                                    print('No Colllision (high speed-closed angle"): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                             else:
                                 other_front_collision = False
                                 if collision[0]>=self.front_area[cars[i].sprite_angle][0][0] and collision[0]<=self.front_area[cars[i].sprite_angle][1][0]:
@@ -1168,9 +1183,9 @@ class Car:
                 #Calculate Vector - Accelarating means No skidding
                 self.calculate_vector_from_sprite()
             else:
-                if not self.rotating:
-                    #Calculate Vector - Skidding
-                    self.calculate_skidding_vector()
+                #if not self.rotating:
+                #Calculate Vector - Skidding
+                self.calculate_skidding_vector()
             if self.bumping:
                 #Calculate Vector - Bumping
                 if self.side_colliding_offender or self.side_colliding_victim:

@@ -11,7 +11,7 @@ import json
 pygame.init()
 pygame.joystick.init()
 
-version = "0.1"
+version = "0.11"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
@@ -1559,6 +1559,7 @@ def activate_cars():
                             car.deceleration_step = car.drone_deceleration_step * car.drone__invert_personality_modifiers[i]
                             car.bump_decelaration_step = car.drone_bump_speed * car.drone__invert_personality_modifiers[i]
                             car.turning_angle_threshold = car.turning_angle_threshold * car.drone_personality_modifiers[i]
+                            car.skidding_weight = car.drone_skidding_weight
                             car.crash_certainty_treshold += 5
                             personalities[i]=-1
                             unmodified = False
