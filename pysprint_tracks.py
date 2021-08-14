@@ -3,14 +3,17 @@ import math
 import json
 import random
 from numpy.lib.index_tricks import _fill_diagonal_dispatcher
+from numpy.lib.polynomial import poly
 import pygame
-from pygame import Surface, gfxdraw
-import pysprint_car
+from pygame import Surface, gfxdraw, draw
 
 DEBUG_OBSTACLES = False
 
 #Track 1 Setup
 track1_json_filename = 'Assets/SuperSprintTrack1.json'
+
+#Track 2 Setup
+track2_json_filename = 'Assets/SuperSprintTrack2.json'
 
 #Track 3 Setup
 track3_json_filename = 'Assets/SuperSprintTrack3.json'
@@ -62,6 +65,7 @@ road_gate_frames = None
 road_gate_mask_frames = None
 road_gate_shade_frames = None
 
+
 def calculate_distance(point1,point2):
     return math.sqrt( ((point1[0]-point2[0])**2)+((point1[1]-point2[1])**2))
 
@@ -100,6 +104,9 @@ class Track:
         self.road_gates_frames_index = []
         self.road_gates_timers = []
         self.road_gates_opening = []
+        #Ramps
+        self.ramp_gates = None
+        self.ramps = []
         #When timer = next event time open or close the gate depending on status
         self.external_ai_gates_shortcuts = None
         self.internal_ai_gates_shortcuts = None
@@ -175,7 +182,22 @@ class Track:
             self.external_ai_gates_shortcuts = track_json["external_ai_gates_shortcuts"]
         if "internal_ai_gates_shortcuts" in track_json:
             self.internal_ai_gates_shortcuts = track_json["internal_ai_gates_shortcuts"]
-
+        if "ramp_gates" in track_json:
+            self.ramp_gates = track_json["ramp_gates"]
+            for ramp in self.ramp_gates:
+                new_ramp = []
+                for polygon in ramp:
+                    gate_points = []
+                    for gate in polygon:
+                        gate_points.append(self.external_gate_points[gate])
+                        gate_points.append(self.internal_gate_points[gate])
+                    ramp_surf = pygame.Surface((display_width,display_height))
+                    ramp_surf.fill((0,0,0))
+                    ramp_surf.set_colorkey((0,0,0))
+                    pygame.draw.polygon(ramp_surf,(255,255,255),gate_points)
+                    ramp_mask = pygame.mask.from_surface(ramp_surf, 50)
+                    new_ramp.append(ramp_mask)
+                self.ramps.append(new_ramp)
 
 
     def find_gate_point(self, position, gate_points):

@@ -1,6 +1,6 @@
 import pygame
 import pygame.display
-from pygame import gfxdraw
+from pygame import gfxdraw, init
 import numpy as np
 import pysprint_car
 import pysprint_tracks
@@ -57,7 +57,7 @@ DEBUG_CRASH = False
 # pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
+DEBUG_AI = True
 DISABLE_DRONES = False
 
 #Flag Events
@@ -105,6 +105,7 @@ pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert
 pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
 pysprint_car.vector_surf.fill((0,0,0))
 pysprint_car.vector_surf.set_colorkey((0,0,0))
+
 
 tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
 pysprint_tracks.tiny_font = tiny_font
@@ -1619,40 +1620,21 @@ def activate_cars():
 
 
 
+def init_track(filename):
+        track = pysprint_tracks.Track()
+        track.load_track_definition(filename)
+        track.background = pygame.image.load(track.background_filename)
+        track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
+        track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
+        track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
+        tracks.append(track)
+
 def initialize_tracks():
-        track1 = pysprint_tracks.Track()
-        track1.load_track_definition(pysprint_tracks.track1_json_filename)
-        track1.background = pygame.image.load(track1.background_filename)
-        track1.base_mask = pygame.image.load(track1.track_mask_filename).convert_alpha()
-        track1.track_overlay = pygame.image.load(track1.overlay_filename).convert_alpha()
-        track1.finish_line = pygame.Rect(track1.finish_line_rect[0], track1.finish_line_rect[1], track1.finish_line_rect[2], track1.finish_line_rect[3])
-
-        track3 = pysprint_tracks.Track()
-        track3.load_track_definition(pysprint_tracks.track3_json_filename)
-        track3.background = pygame.image.load(track3.background_filename)
-        track3.base_mask = pygame.image.load(track3.track_mask_filename).convert_alpha()
-        track3.track_overlay = pygame.image.load(track3.overlay_filename).convert_alpha()
-        track3.finish_line = pygame.Rect(track3.finish_line_rect[0], track3.finish_line_rect[1], track3.finish_line_rect[2], track3.finish_line_rect[3])
-
-        track5 = pysprint_tracks.Track()
-        track5.load_track_definition(pysprint_tracks.track5_json_filename)
-        track5.background = pygame.image.load(track5.background_filename)
-        track5.base_mask = pygame.image.load(track5.track_mask_filename).convert_alpha()
-        track5.track_overlay = pygame.image.load(track5.overlay_filename).convert_alpha()
-        track5.finish_line = pygame.Rect(track5.finish_line_rect[0], track5.finish_line_rect[1], track5.finish_line_rect[2], track5.finish_line_rect[3])
-
-        track7 = pysprint_tracks.Track()
-        track7.load_track_definition(pysprint_tracks.track7_json_filename)
-        track7.background = pygame.image.load(track7.background_filename)
-        track7.base_mask = pygame.image.load(track7.track_mask_filename).convert_alpha()
-        track7.track_overlay = pygame.image.load(track7.overlay_filename).convert_alpha()
-        track7.finish_line = pygame.Rect(track7.finish_line_rect[0], track7.finish_line_rect[1], track7.finish_line_rect[2], track7.finish_line_rect[3])
-
-        tracks.append(track1)
-        tracks.append(track3)
-        tracks.append(track5)
-        tracks.append(track7)
-
+        init_track(pysprint_tracks.track2_json_filename)
+        init_track(pysprint_tracks.track1_json_filename)
+        init_track(pysprint_tracks.track3_json_filename)
+        init_track(pysprint_tracks.track5_json_filename)
+        init_track(pysprint_tracks.track7_json_filename)
 
 def game_loop():
 

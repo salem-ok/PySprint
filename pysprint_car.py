@@ -16,9 +16,11 @@ game_display = None
 DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG__CAR_COLLISION = False
-DEBUG_BUMP = True
+DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
+DEBUG_GATE_TRACKING = False
+DEBUG_RAMPS = True
 
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500
@@ -182,6 +184,7 @@ class Car:
         self.ideal_vector = None
         self.next_mid_point = None
         self.next_gate = None
+        self.last_past_gate = None
 
         #Mechanics
         #Car Controls
@@ -225,6 +228,7 @@ class Car:
         self.on_tornado = False
         self.tornado_index = 0
         self.pole_bumping = False
+        self.on_ramp = False
         self.vertical_helicopter = False
         self.bumping_vector_initialized = False
         self.bumping_vertical = False
@@ -275,6 +279,7 @@ class Car:
         self.mandatory_gates_crossed = []
         self.shortcut_gates_crossed = []
         self.next_gate = None
+        self.last_past_gate = None
         self.progress_gate = -1
         self.ideal_vector = None
         self.next_mid_point = None
@@ -881,12 +886,12 @@ class Car:
                 print('Car stuck outside of borders at ({},{}) - Repositionning'.format(self.x_position, self.y_position))
             self.y_vector = 0
             self.x_vector = 0
-            if self.progress_gate is None:
+            if self.last_past_gate is None:
                 self.x_position = track.first_car_start_position[0]
                 self.y_position = track.first_car_start_position[1]
             else:
-                self.x_position = (track.external_gate_points[self.progress_gate][0] + track.internal_gate_points[self.progress_gate][0])/ 2
-                self.y_position = (track.external_gate_points[self.progress_gate][1] + track.internal_gate_points[self.progress_gate][1])/ 2
+                self.x_position = (track.external_gate_points[self.last_past_gate][0] + track.internal_gate_points[self.last_past_gate][0])/ 2
+                self.y_position = (track.external_gate_points[self.last_past_gate][1] + track.internal_gate_points[self.last_past_gate][1])/ 2
         else:
             result = self.get_simulation_vector()
             self.x_position = round(self.x_position+result[0])
@@ -1198,6 +1203,8 @@ class Car:
         #Update Car Offset
         self.x_position += self.x_vector
         self.y_position += self.y_vector
+        #Update Gate progress
+        self.check_passed_gate(track)
         #If car runs on Bonus, increase score
         if self.test_bonus(track):
             self.score+=int(track.bonus_value)
@@ -1205,6 +1212,7 @@ class Car:
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status
             self.rotating = False
+            self.test_on_ramp(track)
             if track.display_tornado:
                 #Check for Tornado - priority behaviour over spills
                 self.on_tornado = self.detect_tornado(track)
@@ -1263,21 +1271,47 @@ class Car:
                         self.shortcut_gates_crossed.append(next_gate_to_test)
 
 
-    def test_mandatory_gates(self, track: pysprint_tracks.Track):
-        if track.mandatory_gates is None:
+    def check_passed_gate(self, track: pysprint_tracks.Track):
+        #Check whcih is the next Mandatory gate to cross and add it as crossed if collision if not already added
+        if self.last_past_gate is None:
+                next_gate = 0
+        else:
+            next_gate = self.last_past_gate + 1
+        if next_gate >= len(track.internal_gate_points):
+            next_gate -= len(track.internal_gate_points)
+        gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0])+1, abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1])+1)
+        sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
+        if sprite_rect.colliderect(gate_rect):
+            #if gate is passed
+            self.last_past_gate = next_gate
+            if not track.mandatory_gates is None:
+                #Check if the next gate is a next Mandatory gate to cross and add it as crossed if collision if not already added
+                if next_gate in track.mandatory_gates:
+                    if len(track.mandatory_gates) > len(self.mandatory_gates_crossed):
+                        self.mandatory_gates_crossed.append(next_gate)
+        if DEBUG_GATE_TRACKING:
+            print('{} - Last_passed gate = {} - mandatory:{}'.format(self.color_text,self.last_past_gate, self.mandatory_gates_crossed))
+
+    def test_on_ramp(self, track: pysprint_tracks.Track):
+        #Check if car is on a ramp, via collision with track ramp polygons
+        self.on_ramp = False
+        if self.last_past_gate is None:
+            return
+        if track.ramp_gates is None:
             return
         else:
-            if len(track.mandatory_gates) > len(self.mandatory_gates_crossed):
-                #Check whcih is the next Mandatory gate to cross and add it as crossed if collision if not already added
-                next_gate = track.mandatory_gates[len(self.mandatory_gates_crossed)]
-                gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0])+1, abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1])+1)
-                sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
-                if sprite_rect.colliderect(gate_rect):
-                    #if gate is passed
-                    self.mandatory_gates_crossed.append(next_gate)
+            for i in range(0, len(track.ramps)):
+                for j in range(0,len(track.ramps[i])):
+                    #only test for teh pologon if tha last past gate is on of teh ramp gate or the immediate successor or predecessor
+                    if (self.last_past_gate >= (track.ramp_gates[i][j][0] - 1)) and (self.last_past_gate <= (track.ramp_gates[i][j][len(track.ramp_gates[i][j])-1] + 1)):
+                        ramp_mask = track.ramps[i][j]
+                        if ramp_mask.overlap(self.car_mask, (round(self.x_position),round(self.y_position))):
+                            if DEBUG_RAMPS:
+                                print('{} - on ramp {} - polygon {}'.format(self.color_text,i,j))
+                            self.on_ramp = True
+
 
     def test_finish_line(self, track: pysprint_tracks.Track):
-        self.test_mandatory_gates(track)
         #Detect if car collides with Finish line in the expected direction
         sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
         if sprite_rect.colliderect(track.finish_line):
@@ -1296,6 +1330,7 @@ class Car:
                                 full_lap = True
                                 #reset Gates tracker for the next lap
                                 self.mandatory_gates_crossed.clear()
+                                self.last_past_gate = None
                         if full_lap:
                             finish_time = pygame.time.get_ticks()
                             self.lap_times[self.lap_count] = finish_time - self.current_lap_start
@@ -1345,7 +1380,8 @@ class Car:
 
     def blit(self, track: pysprint_tracks.Track, overlay_blitted):
         #Cars are blited under the overlay to be hidden but not dust clouds, explisions and the helicopter
-        if not overlay_blitted:
+        #cars are blitted ontop of the overlay if on a Ramp
+        if not overlay_blitted or self.on_ramp:
             #Car is not visible durign explosion
             if not self.crashing:
                 game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
