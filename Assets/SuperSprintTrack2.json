@@ -4,6 +4,7 @@
     "wrenches": 0,
     "background_filename": "Assets/SuperSprintTrack2.png",
     "mask_filename": "Assets/SuperSprintTrack2Mask.png",
+    "upper_mask_filename": "Assets/SuperSprintTrack2UpperMask.png",
     "overlay_filename": "Assets/SuperSprintTrack2Overlay.png",
     "finish_line_rect": [
         436,

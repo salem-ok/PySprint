@@ -58,7 +58,7 @@ DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
 DEBUG_AI = True
-DISABLE_DRONES = False
+DISABLE_DRONES = True
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1625,6 +1625,9 @@ def init_track(filename):
         track.load_track_definition(filename)
         track.background = pygame.image.load(track.background_filename)
         track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
+        if not track.track_upper_mask_filename is None:
+            track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
+            track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
         track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
         track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
         tracks.append(track)
@@ -1752,10 +1755,10 @@ def game_loop():
                                                 car.decelerate()
 
                                             if pygame.key.get_pressed()[car.left_key]:
-                                                car.rotate(True)
+                                                car.rotate(True,track)
 
                                             if pygame.key.get_pressed()[car.right_key]:
-                                                car.rotate(False)
+                                                car.rotate(False,track)
                                         else:
                                             buttons = car.joystick.get_numbuttons()
                                             button_pressed = False
@@ -1792,10 +1795,10 @@ def game_loop():
                                                     right_pressed = True
 
                                             if left_pressed:
-                                                car.rotate(True)
+                                                car.rotate(True,track)
                                             else:
                                                 if right_pressed:
-                                                    car.rotate(False)
+                                                    car.rotate(False,track)
                                 else:
                                     car.decelerate()
                             trace_frame_time("Checked Key input", frame_start)
@@ -1815,9 +1818,9 @@ def game_loop():
                                                     if event.key == car.accelerate_key:
                                                         car.accelerate()
                                                     if event.key == car.left_key:
-                                                        car.rotate(True)
+                                                        car.rotate(True, track)
                                                     if event.key == car.right_key:
-                                                        car.rotate(False)
+                                                        car.rotate(False, track)
                                     else:
                                         car.decelerate()
                                 #Draw Green Flag at Race Start

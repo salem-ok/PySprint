@@ -8,6 +8,7 @@ import pygame
 from pygame import Surface, gfxdraw, draw
 
 DEBUG_OBSTACLES = False
+DEBUG_RAMPS = True
 
 #Track 1 Setup
 track1_json_filename = 'Assets/SuperSprintTrack1.json'
@@ -76,11 +77,14 @@ class Track:
         self.wrenches = None
         self.background_filename = None
         self.track_mask_filename = None
+        self.track_upper_mask_filename = None
         self.overlay_filename =  None
         self.background = None
         self.base_mask = None
         self.track_mask = None
         self.track_mask_mask = None
+        self.track_upper_mask = None
+        self.track_upper_mask_mask = None
         self.track_overlay = None
         self.first_car_start_position = None
         self.flag_anchor = None
@@ -106,7 +110,8 @@ class Track:
         self.road_gates_opening = []
         #Ramps
         self.ramp_gates = None
-        self.ramps = []
+        self.ramp_masks = []
+        self.ramp_surfs = []
         #When timer = next event time open or close the gate depending on status
         self.external_ai_gates_shortcuts = None
         self.internal_ai_gates_shortcuts = None
@@ -159,6 +164,8 @@ class Track:
         self.wrenches = track_json["wrenches"]
         self.background_filename = track_json["background_filename"]
         self.track_mask_filename = track_json["mask_filename"]
+        if "upper_mask_filename" in track_json:
+            self.track_upper_mask_filename = track_json["upper_mask_filename"]
         self.overlay_filename =  track_json["overlay_filename"]
 
         self.first_car_start_position = track_json["first_car_start_position"]
@@ -188,16 +195,22 @@ class Track:
                 new_ramp = []
                 for polygon in ramp:
                     gate_points = []
-                    for gate in polygon:
-                        gate_points.append(self.external_gate_points[gate])
-                        gate_points.append(self.internal_gate_points[gate])
+                    i = 0
+                    while i<len(polygon):
+                        gate_points.append(self.external_gate_points[polygon[i]])
+                        i+=1
+                    i = len(polygon) - 1
+                    while i>=0:
+                        gate_points.append(self.internal_gate_points[polygon[i]])
+                        i-=1
                     ramp_surf = pygame.Surface((display_width,display_height))
                     ramp_surf.fill((0,0,0))
                     ramp_surf.set_colorkey((0,0,0))
-                    pygame.draw.polygon(ramp_surf,(255,255,255),gate_points)
+                    pygame.draw.polygon(ramp_surf,(34,170,102),gate_points)
                     ramp_mask = pygame.mask.from_surface(ramp_surf, 50)
                     new_ramp.append(ramp_mask)
-                self.ramps.append(new_ramp)
+                    self.ramp_surfs.append(ramp_surf)
+                self.ramp_masks.append(new_ramp)
 
 
     def find_gate_point(self, position, gate_points):
@@ -417,7 +430,9 @@ class Track:
                     self.tornado_timer = now + 100
                 self.tornado_mask = pygame.mask.from_surface(tornado_frames[self.tornado_frame_index], 50)
                 surf.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
-
+        if DEBUG_RAMPS:
+            for ramp in self.ramp_surfs:
+                surf.blit(ramp,(0,0))
         game_display.blit(surf,(0,0))
 
     def update_track_mask(self):
