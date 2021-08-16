@@ -1098,8 +1098,8 @@ def display_start_race_screen():
                                 axes = car.joystick.get_numaxes()
                                 for i in range(axes):
                                     axis = car.joystick.get_axis(i)
-                                    #Ignoring any axis beyong the first 2 which should be analog stick X
-                                    #Any axis beyong that is probably an analog shoulder button
+                                    #Ignoring any axis beyond the first 2 which should be analog stick X
+                                    #Any axis beyond that is probably an analog shoulder button
                                     if i < 2:
                                         if axis < 0 and axis < -0.5:
                                             left_pressed = True
@@ -1740,7 +1740,7 @@ def game_loop():
                             podium_displayed = True
                         else:
                             for car in cars:
-                                if car.bumping or car.spinning or race_finish:
+                                if car.bumping or car.spinning or race_finish or car.jumping:
                                     car.ignore_controls = True
                                 if not car.ignore_controls:
                                     if car.is_drone:
@@ -1777,8 +1777,8 @@ def game_loop():
                                             axes = car.joystick.get_numaxes()
                                             for i in range(axes):
                                                 axis = car.joystick.get_axis(i)
-                                                #Ignoring any axis beyong the first 2 which should be analog stick X
-                                                #Any axis beyong that is probably an analog shoulder button
+                                                #Ignoring any axis beyond the first 2 which should be analog stick X
+                                                #Any axis beyond that is probably an analog shoulder button
                                                 if i < 2:
                                                     if axis < 0 and axis < -0.5:
                                                         left_pressed = True
@@ -1800,7 +1800,8 @@ def game_loop():
                                                 if right_pressed:
                                                     car.rotate(False,track)
                                 else:
-                                    car.decelerate()
+                                    if not car.jumping:
+                                        car.decelerate()
                             trace_frame_time("Checked Key input", frame_start)
                             for event in pygame.event.get():
                                 if event.type == pygame.QUIT: # If user clicked close.
@@ -1822,7 +1823,8 @@ def game_loop():
                                                     if event.key == car.right_key:
                                                         car.rotate(False, track)
                                     else:
-                                        car.decelerate()
+                                        if not car.jumping:
+                                            car.decelerate()
                                 #Draw Green Flag at Race Start
                                 if event.type == GREENFLAG:
                                     if DEBUG_FLAG:
@@ -1896,7 +1898,7 @@ def game_loop():
                                     car.display_spinning()
                                     car.collision_time = current_ticks
                                 #Draw Dust Cloud
-                                if car.bumping and (current_ticks - car.collision_time) >= car.bump_animation_timer:
+                                if (car.bumping or car.landing) and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
                                         print('{} - Bump Timer triggerred'.format(current_ticks))
                                     car.display_bump_cloud()
