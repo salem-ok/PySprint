@@ -26,6 +26,8 @@ DEBUG_RAMPS = True
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500
 
+#Gravity for Jump Trajectory
+gravity = -9.81
 
 race_laps = None
 display_width = None
@@ -186,6 +188,10 @@ class Car:
         self.next_mid_point = None
         self.next_gate = None
         self.furthest_past_gate = None
+        #Velocity for Jump trajectory
+        self.jump_angle = None
+        self.vx = None
+        self.vy = None
 
         #Mechanics
         #Car Controls
@@ -233,7 +239,11 @@ class Car:
         self.current_ramp_poly = None
         self.previous_ramp_poly = None
         self.jumping = False
+        self.jump_start_timer = None
+        self.take_off = False
+        self.mid_air = False
         self.landing = False
+        self.touch_down = False
         self.vertical_helicopter = False
         self.bumping_vector_initialized = False
         self.bumping_vertical = False
@@ -412,13 +422,14 @@ class Car:
         if self.sprite_angle == 16:
             self.sprite_angle = 0
         if self.on_ramp:
-            self.fix_sprinte_angle_on_ramp(track)
+            self.fix_sprite_angle_on_ramp(track)
     def accelerate(self):
         self.decelerating = False
-        if self.speed < self.speed_max:
-            self.speed += self.acceleration_step
-            if self.speed >= self.speed_max:
-                self.max_speed_reached = pygame.time.get_ticks()
+        if not self.mid_air and not self.take_off:
+            if self.speed < self.speed_max:
+                self.speed += self.acceleration_step
+                if self.speed >= self.speed_max:
+                    self.max_speed_reached = pygame.time.get_ticks()
 
     def decelerate(self):
         self.decelerating = True
@@ -507,7 +518,15 @@ class Car:
         self.x_vector = self.x_vector * self.angle_vector_sign[self.sprite_angle][0]
 
     def calculate_jumping_vector(self,track: pysprint_tracks.Track):
+        # dt = 0.02#(pygame.time.get_ticks() - self.jump_start_timer)/1000
+        # self.x_vector = self.vx * dt
+        # self.y_vector = - self.vy * dt
+        # self.vy = self.vy - 0.5 * gravity * dt
+        # if DEBUG_RAMPS:
+        #     print('(x,y): ({},{})  vector({},{}) - vx:{} - vy:{}'.format(self.x_position,self.y_position,self.x_vector,self.y_vector,self.vx,self.vy))
         self.calculate_vector_from_sprite()
+
+
 
     def calculate_skidding_vector(self):
         #Start Skidding
@@ -1154,7 +1173,7 @@ class Car:
         self.animation_index = 0
         self.helicopter_index = 0
 
-    def fix_sprinte_angle_on_ramp(self, track: pysprint_tracks.Track):
+    def fix_sprite_angle_on_ramp(self, track: pysprint_tracks.Track):
         #Shift carfrom Horizontal or vertical positions when on ramp
         if track.internal_gate_points[track.ramp_gates[self.current_ramp_poly[0]][self.current_ramp_poly[1]][0]][0] > track.internal_gate_points[track.ramp_gates[self.current_ramp_poly[0]][self.current_ramp_poly[1]][len(track.ramp_gates[self.current_ramp_poly[0]][self.current_ramp_poly[1]])-1]][0]:
             #ramp going from right to left - Shifting car clockwise if on the upwards ramp (first polygon), counter closckwise if on the downwards ramp (last polygon)
@@ -1197,8 +1216,6 @@ class Car:
                 if self.sprite_angle == 12:
                     self.sprite_angle = 13
 
-
-
     def init_entering_ramp(self, track: pysprint_tracks.Track, ramp_index,polygon_index):
         self.previous_ramp_poly = self.current_ramp_poly
         self.current_ramp_poly = (ramp_index,polygon_index)
@@ -1211,50 +1228,48 @@ class Car:
             #Entering middle polygon i.e. jumping
             self.init_jump_loop(track)
         else:
-            if track.internal_gate_points[track.ramp_gates[ramp_index][polygon_index][0]][0] > track.internal_gate_points[track.ramp_gates[ramp_index][polygon_index][len(track.ramp_gates[ramp_index][polygon_index])-1]][0]:
-            #ramp going from right to left - Shifting car clockwise
-                if self.current_ramp_poly[1] == 0:
-                    self.sprite_angle += 1
+            if not self.landing:
+                if track.internal_gate_points[track.ramp_gates[ramp_index][polygon_index][0]][0] > track.internal_gate_points[track.ramp_gates[ramp_index][polygon_index][len(track.ramp_gates[ramp_index][polygon_index])-1]][0]:
+                #ramp going from right to left - Shifting car clockwise
+                    if self.current_ramp_poly[1] == 0:
+                        self.sprite_angle += 1
+                    else:
+                        self.sprite_angle -= 1
                 else:
-                    self.sprite_angle -= 1
-            else:
-            #ramp going from left to right - shifting car conter-clockwise
-                if self.current_ramp_poly[1] == 0:
-                    self.sprite_angle -= 1
-                else:
-                    self.sprite_angle += 1
-            self.fix_sprinte_angle_on_ramp(track)
+                #ramp going from left to right - shifting car conter-clockwise
+                    if self.current_ramp_poly[1] == 0:
+                        self.sprite_angle -= 1
+                    else:
+                        self.sprite_angle += 1
+                self.fix_sprite_angle_on_ramp(track)
 
     def init_leaving_ramp(self, track: pysprint_tracks.Track):
         self.previous_ramp_poly = self.current_ramp_poly
         self.current_ramp_poly = None
+        self.on_ramp = False
         if DEBUG_RAMPS:
             if self.current_ramp_poly is None:
                 print('{} - Leaving (ramp,poly): ({},{})'.format(self.color_text,self.previous_ramp_poly[0],self.previous_ramp_poly[1]))
-
-        if self.previous_ramp_poly[1] == 1:
-            #if leaving the jump polygon
-            self.end_jump_loop()
-        else:
-            if track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][0]][0]>track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][len(track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]])-1]][0]:
-            #ramp going from right to left - Shifting car clockwise if leaving downard ramp, counter-clockwise if leavint the upward ramp
-                if self.previous_ramp_poly[1] == 2:
-                    self.sprite_angle += 1
-                else:
-                    self.sprite_angle -= 1
+        if track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][0]][0]>track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][len(track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]])-1]][0]:
+        #ramp going from right to left - Shifting car clockwise if leaving downard ramp, counter-clockwise if leavint the upward ramp
+            if self.previous_ramp_poly[1] == 2:
+                self.sprite_angle += 1
             else:
-            #ramp going from left to right  - Shifting car counter clockwise if leaving downard ramp, clockwise if leaving the upward ramp
-                if self.current_ramp_poly[1] == 2:
-                    self.sprite_angle -= 1
-                else:
-                    self.sprite_angle += 1
+                self.sprite_angle -= 1
+        else:
+        #ramp going from left to right  - Shifting car counter clockwise if leaving downard ramp, clockwise if leaving the upward ramp
+            if self.current_ramp_poly[1] == 2:
+                self.sprite_angle -= 1
+            else:
+                self.sprite_angle += 1
 
     def init_jump_loop(self, track: pysprint_tracks.Track):
+        self.jump_start_timer = pygame.time.get_ticks()
         self.jumping = True
+        self.take_off = True
         if DEBUG_RAMPS:
             print('{} - Jumping (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
         self.ignore_controls = True
-        self.decelerating = False
         if track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][0]][0] > track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][len(track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]])-1]][0]:
         #ramp going from right to left - Shifting car clockwise
             if self.previous_ramp_poly[1] == 0:
@@ -1267,11 +1282,17 @@ class Car:
                 self.sprite_angle -= 1
             else:
                 self.sprite_angle += 1
-        self.fix_sprinte_angle_on_ramp(track)
+        self.fix_sprite_angle_on_ramp(track)
+        self.jump_angle = abs(self.sprite_angle*22.5-90)
+        self.vx = 20*self.speed * math.cos(math.radians(self.jump_angle))
+        self.vy = 20*self.speed * math.sin(math.radians(self.jump_angle))
+
 
     def init_mid_air(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
             print('{} - Init Mid-Air'.format(self.color_text))
+        self.take_off = False
+        self.mid_air = True
         self.ignore_controls = True
         self.decelerating = False
         #force the car to horizontal position
@@ -1285,29 +1306,30 @@ class Car:
     def init_landing(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
             print('{} - Init Landing'.format(self.color_text))
+        self.landing = True
+        self.mid_air = False
         self.ignore_controls = True
         self.decelerating = False
         #force the car to the angle fo the landing ramp
         if track.internal_gate_points[track.ramp_gates[self.current_ramp_poly[0]][self.current_ramp_poly[1]][0]][0]>track.internal_gate_points[track.ramp_gates[self.current_ramp_poly[0]][self.current_ramp_poly[1]][len(track.ramp_gates[self.current_ramp_poly[0]][self.current_ramp_poly[1]])-1]][0]:
         #ramp going from right to left
-            self.sprite_angle  = 10
+            self.sprite_angle  = 11
         else:
         #ramp going from left to right
-            self.sprite_angle = 6
+            self.sprite_angle = 5
 
-    def end_landing(self):
-        self.landing = False
-        if DEBUG_RAMPS:
-            print('{} - Ending Landing'.format(self.color_text))
 
     def end_jump_loop(self):
         self.jumping = False
+        self.landing = False
+        self.touch_down = True
         if DEBUG_RAMPS:
             print('{} - Ending Jump (ramp,poly): ({},{})'.format(self.color_text,self.previous_ramp_poly[0],self.previous_ramp_poly[1]))
         self.ignore_controls = False
-        self.landing = True
         self.collision_time = pygame.time.get_ticks()
         self.animation_index = 0
+        self.x_intersect = self.x_position
+        self.y_intersect = self.y_position
 
 
     def end_bump_loop(self):
@@ -1400,12 +1422,12 @@ class Car:
                 #If the car is not stopped Detect Track Borders. If not let it rotate over the edges & ignore collisions
                 if self.speed > 0:
                     #ignore obstacles and collisons while the car is mid-air
-                    if not (self.jumping and not self.landing):
+                    if not self.jumping and not self.landing and not self.mid_air and not self.take_off:
                         self.detect_collision(track)
                         if not self.car_collision():
                             self.test_car_collisions(cars)
                 else:
-                    if not (self.jumping and not self.landing):
+                    if not self.jumping and not self.landing and not self.mid_air and not self.take_off:
                         #If car is not moving, check for colision area size. Force crash
                         area = self.test_collision_area(track,False)
                         if area>self.collision_area_threshold:
@@ -1420,9 +1442,6 @@ class Car:
                                     self.end_bump_loop()
                                 if self.animation_index >= len(dust_cloud_frames):
                                     self.end_bump_loop()
-            if self.landing:
-                if self.animation_index >= len(dust_cloud_frames):
-                    self.end_landing()
         else:
             #Car is not moving anymore
             self.x_vector = 0
@@ -1485,6 +1504,8 @@ class Car:
     def test_on_ramp(self, track: pysprint_tracks.Track):
         #Check if car is on a ramp, via collision with track ramp polygons
         was_on_ramp = self.on_ramp
+        if DEBUG_RAMPS and self.on_ramp:
+            print("Before test on Ramp Sprite Angle:{}".format(self.sprite_angle))
         if self.last_passed_gate is None:
             return
         if track.ramp_gates is None:
@@ -1511,12 +1532,12 @@ class Car:
                         self.init_entering_ramp(track, ramps_found[0][0],ramps_found[0][1])
                     else:
                         #If jumping and intersecting with only the middle poly: we are mid-air
-                        if self.jumping and self.current_ramp_poly[1]==1:
+                        if self.jumping and self.current_ramp_poly[1]==1 and not self.mid_air and not self.landing:
                             self.init_mid_air(track)
                         else:
                             if not self.previous_ramp_poly is None:
-                                if self.previous_ramp_poly[1]==1:
-                                #We are now fully landed on the second ramp fatre being mid-air
+                                if self.previous_ramp_poly[1]==1 and self.landing:
+                                #We are now fully landed on the second ramp after being mid-air
                                     self.end_jump_loop()
                         if not (self.current_ramp_poly[0]==ramps_found[0][0] and self.current_ramp_poly[1]==ramps_found[0][1]):
                             self.init_entering_ramp(track, ramps_found[0][0],ramps_found[0][1])
@@ -1525,7 +1546,7 @@ class Car:
                     if not self.jumping and (self.previous_ramp_poly is None):
                         self.init_entering_ramp(track, ramps_found[0][0],1)
                     else:
-                        if self.jumping and (self.previous_ramp_poly[1]==1):
+                        if self.mid_air:
                             self.init_landing(track)
                         else:
                             if self.jumping:
@@ -1536,6 +1557,8 @@ class Car:
                                 else:
                                     if self.previous_ramp_poly[1]==1:
                                         self.init_entering_ramp(track, ramps_found[0][0],ramps_found[0][1])
+        if DEBUG_RAMPS and self.on_ramp:
+            print("After test on Ramp Sprite Angle:{}".format(self.sprite_angle))
 
 
     def test_finish_line(self, track: pysprint_tracks.Track):
@@ -1630,7 +1653,7 @@ class Car:
 
         if overlay_blitted:
             #Blit Dust Cloud if Bumping
-            if self.bumping or self.landing:
+            if self.bumping or self.touch_down:
                 if DEBUG_BUMP:
                     print('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
                 if self.animation_index <= 4:

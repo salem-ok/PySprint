@@ -8,7 +8,7 @@ import pygame
 from pygame import Surface, gfxdraw, draw
 
 DEBUG_OBSTACLES = False
-DEBUG_RAMPS = True
+DEBUG_RAMPS = False
 
 #Track 1 Setup
 track1_json_filename = 'Assets/SuperSprintTrack1.json'

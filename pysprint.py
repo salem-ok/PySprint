@@ -1898,7 +1898,7 @@ def game_loop():
                                     car.display_spinning()
                                     car.collision_time = current_ticks
                                 #Draw Dust Cloud
-                                if (car.bumping or car.landing) and (current_ticks - car.collision_time) >= car.bump_animation_timer:
+                                if (car.bumping or car.touch_down) and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
                                         print('{} - Bump Timer triggerred'.format(current_ticks))
                                     car.display_bump_cloud()
