@@ -57,8 +57,8 @@ DEBUG_CRASH = False
 # pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = True
-DISABLE_DRONES = False
+DEBUG_AI = False
+DISABLE_DRONES = True
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1945,6 +1945,13 @@ def game_loop():
                             track.blit_background(True)
                             track.blit_obstacles(True)
                             track.blit_bonus(True)
+                            for car in cars:
+                                car.blit(track, False)
+                            track.blit_overlay(True)
+                            for car in cars:
+                                car.blit(track, True)
+                            for car in cars:
+                                draw_score(car, track)
                             if race_start:
                                 game_display.blit(green_flag_frames[animation_index],track.flag_anchor)
 
@@ -1953,13 +1960,6 @@ def game_loop():
 
                             if race_finish and not flag_waved:
                                 game_display.blit(checkered_flag_frames[animation_index],track.flag_anchor)
-                            for car in cars:
-                                car.blit(track, False)
-                            track.blit_overlay(True)
-                            for car in cars:
-                                car.blit(track, True)
-                            for car in cars:
-                                draw_score(car, track)
 
                             if DEBUG_AI:
                                 for i in range(0,len(track.external_gate_points),1):
