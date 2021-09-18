@@ -528,21 +528,19 @@ class Car:
 
         sine_angle = self.get_sine((sprite_x_vector,sprite_y_vector), new_vector)
         if DEBUG_RAMPS:
-            print('sine:{}'.format(sine_angle))
+            print('sine:{} - sprite_angle = {}'.format(sine_angle,self.sprite_angle))
 
         if (sine_angle > self.turning_angle_threshold) or ( sine_angle < -self.turning_angle_threshold):
-            if sine_angle > 0:
+            if sine_angle < 0:
                 self.sprite_angle-=1
                 if self.sprite_angle<0:
                     self.sprite_angle+=16
-                if DEBUG_RAMPS:
-                    print ('Turning Left')
             else:
                 self.sprite_angle+=1
                 if self.sprite_angle>=16:
                     self.sprite_angle-=16
-                if DEBUG_RAMPS:
-                    print ('Turning Right')
+        if DEBUG_RAMPS:
+            print('Sprite_angle = {}'.format(sine_angle,self.sprite_angle))
 
 
     def calculate_jumping_vector(self,track: pysprint_tracks.Track):
@@ -551,11 +549,11 @@ class Car:
     def calculate_falling_vector(self,track: pysprint_tracks.Track):
         #dt = 0.02
         dt = (pygame.time.get_ticks() - self.fall_start_timer)/5000
-        new_vector = (self.vx * dt, -self.vy * dt)
+        new_vector = (self.vx * dt, self.vy * dt)
         self.calculate_sprite_from_vector(new_vector)
         self.x_vector = new_vector[0]
         self.y_vector = new_vector[1]
-        self.vy = self.vy - 0.5 * gravity * dt
+        self.vy = self.vy + 0.5 * gravity * dt
         if DEBUG_RAMPS:
             print('(x,y): ({},{})  vector({},{}) - vx:{} - vy:{}'.format(self.x_position,self.y_position,self.x_vector,self.y_vector,self.vx,self.vy))
 
@@ -949,6 +947,16 @@ class Car:
         self.x_position = (track.external_gate_points[new_position_gate][0] + track.internal_gate_points[new_position_gate][0])/ 2
         self.y_position = (track.external_gate_points[new_position_gate][1] + track.internal_gate_points[new_position_gate][1])/ 2
 
+        if track.internal_gate_points[track.ramp_gates[self.current_ramp_poly[0]][0][0]][0] > track.internal_gate_points[track.ramp_gates[self.current_ramp_poly[0]][0][len(track.ramp_gates[self.current_ramp_poly[0]][0])-1]][0]:
+        #ramp going from right to left - Shifting car clockwise
+            self.sprite_angle = 12
+        else:
+        #ramp going from left to right - shifting car conter-clockwise
+            self.sprite_angle = 4
+
+
+
+
 
     def calculate_crashing_vector(self,track: pysprint_tracks.Track):
 
@@ -1329,14 +1337,7 @@ class Car:
     def init_jump_loop(self, track: pysprint_tracks.Track):
         #Force crash if speed under threshold
         if self.speed<self.drone_speed:
-            if track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][0]][0] > track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][len(track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]])-1]][0]:
-                #ramp going from right to left
-                dx = -20
-            else:
-                dx = 20
-            dy = 55
-            #self.init_crash_loop((self.x_position+dx,self.y_position+dy))
-            self.init_falling_loop(track, dx,dy)
+            self.init_falling_loop(track)
         else:
             if track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][0]][0] > track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][len(track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]])-1]][0]:
                 #ramp going from right to left
@@ -1345,13 +1346,7 @@ class Car:
                 correct_angle = 2
             #Fall if angle is not the correct angle
             if abs(self.sprite_angle-correct_angle)>1:
-                if correct_angle ==14:
-                    dx = -(20 + self.speed * 10)
-                else:
-                    dx = 50 + self.speed * 7
-                dy = 100 + self.speed * 10
-                #self.init_crash_loop((self.x_position+dx,self.y_position+dy))
-                self.init_falling_loop(track, dx,dy)
+                self.init_falling_loop(track)
             else:
                 self.jumping = True
                 self.take_off = True
@@ -1406,18 +1401,22 @@ class Car:
         #ramp going from left to right
             self.sprite_angle = 5
 
-    def init_falling_loop(self, track: pysprint_tracks.Track, dx, dy):
+    def init_falling_loop(self, track: pysprint_tracks.Track):
         self.falling = True
         self.ignore_controls = True
         self.fall_angle = abs(self.sprite_angle*22.5-90)
         self.vx = 20*self.speed * math.cos(math.radians(self.fall_angle))
         self.vy = 20*self.speed * math.sin(math.radians(self.fall_angle))
         self.fall_start_timer = pygame.time.get_ticks()
+        if DEBUG_RAMPS:
+            print('{} - Falling'.format(self.color_text))
 
     def end_fall_loop(self):
         self.falling = False
         self.fall_start_timer = None
         #Leave cotrols ignored as fall is followed by a crash
+        if DEBUG_RAMPS:
+            print('{} - End Falling Loop'.format(self.color_text))
 
 
 
@@ -1965,8 +1964,8 @@ class Car:
             return 0
         else:
             factor = (original_vector[0] * vector_to_compare[1] - original_vector[1] * vector_to_compare[0])/(cross_product)
-            if factor > 1.00000000000000011 and factor < 1.000011:
-                factor = 1
+            if abs(factor) > 1.00000000000000011 and abs(factor) < 1.000011:
+                factor = 1 * factor/abs(factor)
             return -math.degrees(math.asin(factor))
 
 
