@@ -145,7 +145,7 @@ def create_track_file(filename,external_borders_map,internal_borders_map, second
         json.dump(track_json, track_file)
 
 
-create_track_file(filename,external_borders_map,internal_borders_map, secondary_internal_borders_map,external_gate_points_map,internal_gate_points_map,gates_to_remove)
+#create_track_file(filename,external_borders_map,internal_borders_map, secondary_internal_borders_map,external_gate_points_map,internal_gate_points_map,gates_to_remove)
 
 # #Tweak Track 1 file
 
@@ -225,6 +225,11 @@ def insert_gates(filename, to_add):
 
     with open(filename,"w") as track_file:
         json.dump(track_json, track_file)
+
+
+to_modify = [(23,358,111,292,109)]
+modify_gates(pysprint_tracks.track2_json_filename, to_modify)
+
 
 #to_modify = [(38,553,240,503,240),(39,569,212,513,212),(40,569,170,513,170)]
 #modify_gates(pysprint_tracks.track5_json_filename, to_modify)

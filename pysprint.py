@@ -57,8 +57,8 @@ DEBUG_CRASH = False
 # pysprint_car.DEBUG_CRASH = DEBUG_CRASH
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
-DISABLE_DRONES = True
+DEBUG_AI = True
+DISABLE_DRONES = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
