@@ -7,7 +7,7 @@ import pygame
 from pygame import Surface, gfxdraw
 import math
 import random
-from pygame.constants import CONTROLLER_AXIS_RIGHTX
+#from pygame.constants import CONTROLLER_AXIS_RIGHTX
 
 from pygame.key import name
 from pygame.mask import from_threshold
@@ -21,7 +21,7 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
 DEBUG_GATE_TRACKING = False
-DEBUG_RAMPS = True
+DEBUG_RAMPS = False
 
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500
