@@ -58,7 +58,7 @@ DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
 DEBUG_AI = False
-DISABLE_DRONES = True
+DISABLE_DRONES = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT

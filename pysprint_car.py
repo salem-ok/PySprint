@@ -1676,9 +1676,13 @@ class Car:
                         if ramp_mask.overlap(self.car_mask, (round(self.x_position),round(self.y_position))):
                             ramps_found.append((i,j))
             if len(ramps_found)==0:
-                self.on_ramp = False
-                if was_on_ramp and not self.falling:
-                    self.init_leaving_ramp(track)
+                if was_on_ramp:
+                    if self.jumping and not self.mid_air:
+                        self.init_mid_air(track)
+                    else:
+                        if not self.falling and not self.mid_air:
+                            self.on_ramp = False
+                            self.init_leaving_ramp(track)
             else:
                 if len(ramps_found)==1:
                     #car intersects with one polygon only
