@@ -55,8 +55,8 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
-DISABLE_DRONES = False
+DEBUG_AI = True
+DISABLE_DRONES = True
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1631,6 +1631,8 @@ def init_track(filename):
         tracks.append(track)
 
 def initialize_tracks():
+        init_track(pysprint_tracks.track4_json_filename)
+
         init_track(pysprint_tracks.track1_json_filename)
         init_track(pysprint_tracks.track2_json_filename)
         init_track(pysprint_tracks.track3_json_filename)
