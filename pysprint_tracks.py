@@ -115,6 +115,10 @@ class Track:
         self.ramp_gates = None
         self.ramp_masks = []
         self.ramp_surfs = []
+        #Bridges
+        self.bridge_gates = None
+        self.bridge_masks = []
+        self.bridge_surfs = []
         #When timer = next event time open or close the gate depending on status
         self.external_ai_gates_shortcuts = None
         self.internal_ai_gates_shortcuts = None
@@ -214,6 +218,28 @@ class Track:
                     new_ramp.append(ramp_mask)
                     self.ramp_surfs.append(ramp_surf)
                 self.ramp_masks.append(new_ramp)
+        if "bridge_gates" in track_json:
+            self.bridge_gates = track_json["bridge_gates"]
+            for bridge in self.bridge_gates:
+                new_bridge = []
+                for polygon in bridge:
+                    gate_points = []
+                    i = 0
+                    while i<len(polygon):
+                        gate_points.append(self.external_gate_points[polygon[i]])
+                        i+=1
+                    i = len(polygon) - 1
+                    while i>=0:
+                        gate_points.append(self.internal_gate_points[polygon[i]])
+                        i-=1
+                    bridge_surf = pygame.Surface((display_width,display_height))
+                    bridge_surf.fill((0,0,0))
+                    bridge_surf.set_colorkey((0,0,0))
+                    pygame.draw.polygon(bridge_surf,(34,170,102),gate_points)
+                    bridge_mask = pygame.mask.from_surface(bridge_surf, 50)
+                    new_bridge.append(bridge_mask)
+                    self.bridge_surfs.append(bridge_surf)
+                self.bridge_masks.append(new_bridge)
 
 
     def find_gate_point(self, position, gate_points):
@@ -436,6 +462,8 @@ class Track:
         if DEBUG_RAMPS:
             for ramp in self.ramp_surfs:
                 surf.blit(ramp,(0,0))
+            for bridge in self.bridge_surfs:
+                surf.blit(bridge,(0,0))
         game_display.blit(surf,(0,0))
 
     def update_track_mask(self):

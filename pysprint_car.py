@@ -237,6 +237,8 @@ class Car:
         self.tornado_index = 0
         self.pole_bumping = False
         self.on_ramp = False
+        self.on_bridge = False
+        self.current_bridge_poly = None
         self.current_ramp_poly = None
         self.previous_ramp_poly = None
         self.jumping = False
@@ -306,6 +308,14 @@ class Car:
             lap = 0
         self.best_lap = 0
         self.previous_score_increment = 0
+        self.on_bridge = False
+        self.on_ramp = False
+        self.jumping = False
+        self.mid_air = False
+        self.landing = False
+        self.previous_ramp_poly = None
+        self.current_ramp_poly = None
+        self.current_bridge_poly = None
 
 
 
@@ -911,7 +921,7 @@ class Car:
             result = self.get_simulation_vector()
             x_test = result[0]
             y_test = result[1]
-        if self.on_ramp:
+        if self.on_ramp or self.on_bridge:
             return track.track_upper_mask_mask.overlap(self.car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
         else:
             return track.track_mask_mask.overlap(self.car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
@@ -931,7 +941,7 @@ class Car:
                 if self.y_vector < 0:
                     y_test = -self.vector_simulation_length
 
-        if self.on_ramp:
+        if self.on_ramp or self.on_bridge:
             return track.track_upper_mask_mask.overlap_area(self.car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
         else:
             return track.track_mask_mask.overlap_area(self.car_mask, ((round(self.x_position+x_test), round(self.y_position+y_test))))
@@ -1348,6 +1358,19 @@ class Car:
         self.jumping = False
 
 
+
+    def init_entering_bridge(self, track: pysprint_tracks.Track, bridge_index):
+        self.current_bridge_poly = bridge_index
+        self.on_bridge = True
+
+    def init_leaving_bridge(self, track: pysprint_tracks.Track):
+        if DEBUG_RAMPS:
+            print('{} - Leaving (bridge): ({})'.format(self.color_text,self.current_bridge_poly))
+        self.current_bridge_poly = None
+        self.on_bridge = False
+
+
+
     def init_jump_loop(self, track: pysprint_tracks.Track):
         #Force crash if speed under threshold
         if not self.is_drone and self.speed<self.drone_speed:
@@ -1551,6 +1574,7 @@ class Car:
             #Reset Rotation Flag to match Key Pressed Status
             self.rotating = False
             self.test_on_ramp(track)
+            self.test_on_bridge(track)
             #ignore obstacles and collisons while the car is mid-air
             if not (self.jumping and not self.landing and not self.falling):
                 if track.display_tornado:
@@ -1656,8 +1680,6 @@ class Car:
     def test_on_ramp(self, track: pysprint_tracks.Track):
         #Check if car is on a ramp, via collision with track ramp polygons
         was_on_ramp = self.on_ramp
-        # if DEBUG_RAMPS and self.on_ramp:
-        #     print("Before test on Ramp Sprite Angle:{}".format(self.sprite_angle))
         if self.last_passed_gate is None:
             return
         if self.most_recent_passed_gate is None:
@@ -1715,9 +1737,34 @@ class Car:
                                 else:
                                     if self.previous_ramp_poly[1]==1:
                                         self.init_entering_ramp(track, ramps_found[0][0],ramps_found[0][1])
-        # if DEBUG_RAMPS and self.on_ramp:
-        #     print("After test on Ramp Sprite Angle:{}".format(self.sprite_angle))
 
+
+    def test_on_bridge(self, track: pysprint_tracks.Track):
+        #Check if car is on a bridge, via collision with track bridge polygons
+        was_on_bridge = self.on_bridge
+        if self.last_passed_gate is None:
+            return
+        if self.most_recent_passed_gate is None:
+            return
+        if track.bridge_gates is None:
+            return
+        else:
+            bridges_found = []
+            for i in range(0, len(track.bridge_masks)):
+                # #only test for the polygon if the last past gates is on of the bridge gate or the immediate successor or predecessor
+                #only test for the polygon if the MOST RECENT gates is on of the bridge gate or the immediate successor or predecessor
+                if (self.most_recent_passed_gate >= (track.bridge_gates[i][0][0] - 1)) and (self.most_recent_passed_gate <= (track.bridge_gates[i][len(track.bridge_gates[i])-1][1] + 1)):
+                    for j in range(0,len(track.bridge_masks[i])):
+                        bridge_mask = track.bridge_masks[i][j]
+                        if bridge_mask.overlap(self.car_mask, (round(self.x_position),round(self.y_position))):
+                            bridges_found.append((i,j))
+            if len(bridges_found)==0:
+                if was_on_bridge:
+                    self.init_leaving_bridge(track)
+            else:
+                #car intersects with one polygon only for a bridge
+                if not was_on_bridge:
+                    self.init_entering_bridge(track, bridges_found[0][0])
 
     def test_finish_line(self, track: pysprint_tracks.Track):
         #Detect if car collides with Finish line in the expected direction
@@ -1798,7 +1845,7 @@ class Car:
     def blit(self, track: pysprint_tracks.Track, overlay_blitted):
         #Cars are blited under the overlay to be hidden but not dust clouds, explisions and the helicopter
         #cars are blitted ontop of the overlay if on a Ramp
-        if not overlay_blitted or self.on_ramp:
+        if not overlay_blitted or self.on_ramp or self.on_bridge:
             #Car is not visible durign explosion
             if not self.crashing:
                 game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
@@ -1932,7 +1979,7 @@ class Car:
         gfxdraw.line(vector_surf, line_start[0], line_start[1], line_end[0], line_end[1], (255,255,255))
 
         vector_mask = pygame.mask.from_surface(vector_surf, 50)
-        if self.on_ramp:
+        if self.on_ramp or self.on_bridge:
             return track.track_upper_mask_mask.overlap(vector_mask, (0,0))
         else:
             return track.track_mask_mask.overlap(vector_mask, (0,0))
@@ -1945,7 +1992,7 @@ class Car:
         new_next_gate = track.find_progress_gate((self.x_position, self.y_position),actual_gate_step, self.next_gate, self)
 
         #Midpoint modifier: Normal personality aime for the exact middle of the gate, prudent and aggressive symetrically outcentered
-        if self.on_ramp:
+        if self.on_ramp or self.on_bridge:
             midpOint_modifier = 2
         else:
             midpOint_modifier = self.get_mid_point_modifier()
