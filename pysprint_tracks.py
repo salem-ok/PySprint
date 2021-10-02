@@ -25,6 +25,9 @@ track4_json_filename = 'Assets/SuperSprintTrack4.json'
 #Track 5 Setup
 track5_json_filename = 'Assets/SuperSprintTrack5.json'
 
+#Track 6 Setup
+track6_json_filename = 'Assets/SuperSprintTrack6.json'
+
 #Track 7 Setup
 track7_json_filename = 'Assets/SuperSprintTrack7.json'
 
