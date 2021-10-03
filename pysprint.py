@@ -1631,12 +1631,12 @@ def init_track(filename):
         tracks.append(track)
 
 def initialize_tracks():
-        init_track(pysprint_tracks.track6_json_filename)
         init_track(pysprint_tracks.track1_json_filename)
         init_track(pysprint_tracks.track2_json_filename)
         init_track(pysprint_tracks.track3_json_filename)
         init_track(pysprint_tracks.track4_json_filename)
         init_track(pysprint_tracks.track5_json_filename)
+        init_track(pysprint_tracks.track6_json_filename)
         init_track(pysprint_tracks.track7_json_filename)
 
 def game_loop():
