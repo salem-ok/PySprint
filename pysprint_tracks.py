@@ -125,6 +125,10 @@ class Track:
         #When timer = next event time open or close the gate depending on status
         self.external_ai_gates_shortcuts = None
         self.internal_ai_gates_shortcuts = None
+        #Player Shortcuts
+        self.external_player_gates_shortcut = None
+        self.internal_player_gates_shortcut = None
+        self.player_shortcut_bookend_gates = None
         #Timer for Bonus display animation
         self.bonus_timer = None
         self.bonus_displayed = False
@@ -199,6 +203,36 @@ class Track:
             self.external_ai_gates_shortcuts = track_json["external_ai_gates_shortcuts"]
         if "internal_ai_gates_shortcuts" in track_json:
             self.internal_ai_gates_shortcuts = track_json["internal_ai_gates_shortcuts"]
+        if "external_player_gates_shortcut" in track_json:
+            self.external_player_gates_shortcut = track_json["external_player_gates_shortcut"]
+        if "internal_player_gates_shortcut" in track_json:
+            self.internal_player_gates_shortcut = track_json["internal_player_gates_shortcut"]
+
+        if "player_shortcut_ramp_gates" in track_json:
+            self.ramp_gates = track_json["player_shortcut_ramp_gates"]
+            for ramp in self.ramp_gates:
+                new_ramp = []
+                for polygon in ramp:
+                    gate_points = []
+                    i = 0
+                    while i<len(polygon):
+                        gate_points.append(self.external_player_gates_shortcut[polygon[i]])
+                        i+=1
+                    i = len(polygon) - 1
+                    while i>=0:
+                        gate_points.append(self.internal_player_gates_shortcut[polygon[i]])
+                        i-=1
+                    ramp_surf = pygame.Surface((display_width,display_height))
+                    ramp_surf.fill((0,0,0))
+                    ramp_surf.set_colorkey((0,0,0))
+                    pygame.draw.polygon(ramp_surf,(34,170,102),gate_points)
+                    ramp_mask = pygame.mask.from_surface(ramp_surf, 50)
+                    new_ramp.append(ramp_mask)
+                    self.ramp_surfs.append(ramp_surf)
+                self.ramp_masks.append(new_ramp)
+        if "player_shortcut_bookend_gates" in track_json:
+            self.player_shortcut_bookend_gates = track_json["player_shortcut_bookend_gates"]
+
         if "ramp_gates" in track_json:
             self.ramp_gates = track_json["ramp_gates"]
             for ramp in self.ramp_gates:
@@ -221,6 +255,7 @@ class Track:
                     new_ramp.append(ramp_mask)
                     self.ramp_surfs.append(ramp_surf)
                 self.ramp_masks.append(new_ramp)
+
         if "bridge_gates" in track_json:
             self.bridge_gates = track_json["bridge_gates"]
             for bridge in self.bridge_gates:

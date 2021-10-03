@@ -1961,7 +1961,10 @@ def game_loop():
                             if race_finish and not flag_waved:
                                 game_display.blit(checkered_flag_frames[animation_index],track.flag_anchor)
 
-                            if DEBUG_AI:
+                            # if last_lap:
+                            #     pysprint_tracks.DEBUG_RAMPS = True
+
+                            if DEBUG_AI: # or last_lap:
                                 for i in range(0,len(track.external_gate_points),1):
                                     gfxdraw.line(game_display,track.external_gate_points[i][0], track.external_gate_points[i][1], track.internal_gate_points[i][0], track.internal_gate_points[i][1], white_color)
                                     index_surf = small_font.render("{}".format(i), False, white_color)
@@ -1978,6 +1981,12 @@ def game_loop():
                                             index_surf = small_font.render("{}".format(j), False, shortcut_color)
                                             midpoint = ((track.external_ai_gates_shortcuts[i][j][0] + track.internal_ai_gates_shortcuts[i][j][0]) / 2, (track.external_ai_gates_shortcuts[i][j][1] + track.internal_ai_gates_shortcuts[i][j][1]) / 2)
                                             game_display.blit(index_surf, midpoint)
+                                if not track.external_player_gates_shortcut is None:
+                                    for i in range(0,len(track.external_player_gates_shortcut),1):
+                                        gfxdraw.line(game_display,track.external_player_gates_shortcut[i][0], track.external_player_gates_shortcut[i][1], track.internal_player_gates_shortcut[i][0], track.internal_player_gates_shortcut[i][1], white_color)
+                                        index_surf = small_font.render("{}".format(i), False, white_color)
+                                        midpoint = ((track.external_gate_points[i][0] + track.internal_gate_points[i][0]) / 2, (track.external_gate_points[i][1] + track.internal_gate_points[i][1]) / 2)
+                                        game_display.blit(index_surf, midpoint)
 
 
                             if DEBUG_BUMP or DEBUG_CRASH:
