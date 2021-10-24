@@ -21,7 +21,7 @@
         1
     ],
     "start_sprite_angle": 12,
-    "score_time_reference": 130,
+    "score_time_reference": 10.5,
     "complete_lap_score": 100,
     "finish_line_direction": -1,
     "mandatory_gates": [

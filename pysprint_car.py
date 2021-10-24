@@ -21,7 +21,7 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
 DEBUG_GATE_TRACKING = False
-DEBUG_RAMPS = False
+DEBUG_RAMPS = True
 
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500
@@ -1364,6 +1364,8 @@ class Car:
     def init_entering_bridge(self, track: pysprint_tracks.Track, bridge_index):
         self.current_bridge_poly = bridge_index
         self.on_bridge = True
+        if DEBUG_RAMPS:
+            print('{} - Entering (bridge): ({})'.format(self.color_text,self.current_bridge_poly))
 
     def init_leaving_bridge(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
@@ -1776,7 +1778,7 @@ class Car:
             for i in range(0, len(track.bridge_masks)):
                 # #only test for the polygon if the last past gates is on of the bridge gate or the immediate successor or predecessor
                 #only test for the polygon if the MOST RECENT gates is on of the bridge gate or the immediate successor or predecessor
-                if (self.most_recent_passed_gate >= (track.bridge_gates[i][0][0] - 1)) and (self.most_recent_passed_gate <= (track.bridge_gates[i][len(track.bridge_gates[i])-1][1] + 1)):
+                if (self.most_recent_passed_gate >= (track.bridge_gates[i][0][0] - 1)) and (self.most_recent_passed_gate <= (track.bridge_gates[i][0][len(track.bridge_gates[i][0])-1] + 1)):
                     for j in range(0,len(track.bridge_masks[i])):
                         bridge_mask = track.bridge_masks[i][j]
                         if bridge_mask.overlap(self.car_mask, (round(self.x_position),round(self.y_position))):

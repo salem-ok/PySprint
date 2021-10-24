@@ -55,7 +55,7 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
+DEBUG_AI = True
 DISABLE_DRONES = False
 
 #Flag Events
@@ -1631,6 +1631,10 @@ def init_track(filename):
         tracks.append(track)
 
 def initialize_tracks():
+
+        init_track(pysprint_tracks.track8_json_filename)
+
+
         init_track(pysprint_tracks.track1_json_filename)
         init_track(pysprint_tracks.track2_json_filename)
         init_track(pysprint_tracks.track3_json_filename)
