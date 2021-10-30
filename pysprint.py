@@ -11,7 +11,7 @@ import json
 pygame.init()
 pygame.joystick.init()
 
-version = "0.11"
+version = "0.19"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
@@ -55,7 +55,7 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = True
+DEBUG_AI = False
 DISABLE_DRONES = False
 
 #Flag Events
@@ -1632,9 +1632,6 @@ def init_track(filename):
 
 def initialize_tracks():
 
-        init_track(pysprint_tracks.track8_json_filename)
-
-
         init_track(pysprint_tracks.track1_json_filename)
         init_track(pysprint_tracks.track2_json_filename)
         init_track(pysprint_tracks.track3_json_filename)
@@ -1642,6 +1639,7 @@ def initialize_tracks():
         init_track(pysprint_tracks.track5_json_filename)
         init_track(pysprint_tracks.track6_json_filename)
         init_track(pysprint_tracks.track7_json_filename)
+        init_track(pysprint_tracks.track8_json_filename)
 
 def game_loop():
 

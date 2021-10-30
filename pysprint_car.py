@@ -21,7 +21,7 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
 DEBUG_GATE_TRACKING = False
-DEBUG_RAMPS = True
+DEBUG_RAMPS = False
 
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500
@@ -125,8 +125,8 @@ class Car:
     diagonal_detection_tolerance = 2
     vector_simulation_length = 10
     side_detection_tolerance = 7
-    max_speed_crash_threshold = 3000
-    collision_area_threshold = 75
+    max_speed_crash_threshold = 4000#3000
+    collision_area_threshold = 80#75
     #Threshold over which theer is a higher chance to crash
     speed_crash_probability_threshold = 0.85
     #% increase of probability to crash if condition is true
