@@ -14,13 +14,13 @@ from pygame.mask import from_threshold
 import pysprint_tracks
 
 game_display = None
-DEBUG_FINISH = True
+DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
-DEBUG_GATE_TRACKING = True
+DEBUG_GATE_TRACKING = False
 DEBUG_RAMPS = False
 
 #Timer during which 2 cars which collided can't collide again

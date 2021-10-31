@@ -55,8 +55,8 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = True
-DISABLE_DRONES = True
+DEBUG_AI = False
+DISABLE_DRONES = False
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1971,7 +1971,7 @@ def game_loop():
                             # if last_lap:
                             #     pysprint_tracks.DEBUG_RAMPS = True
 
-                            if DEBUG_AI: # or last_lap:
+                            if DEBUG_AI:# or last_lap:
                                 for i in range(0,len(track.external_gate_points),1):
                                     gfxdraw.line(game_display,track.external_gate_points[i][0], track.external_gate_points[i][1], track.internal_gate_points[i][0], track.internal_gate_points[i][1], white_color)
                                     index_surf = small_font.render("{}".format(i), False, white_color)
