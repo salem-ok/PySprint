@@ -14,13 +14,13 @@ from pygame.mask import from_threshold
 import pysprint_tracks
 
 game_display = None
-DEBUG_FINISH = False
+DEBUG_FINISH = True
 DEBUG_COLLISION = False
 DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_AI = False
-DEBUG_GATE_TRACKING = False
+DEBUG_GATE_TRACKING = True
 DEBUG_RAMPS = False
 
 #Timer during which 2 cars which collided can't collide again
@@ -1652,9 +1652,25 @@ class Car:
                         #if gate is passed
                         self.shortcut_gates_crossed.append(next_gate_to_test)
 
+    #Check if the next gate is a next Mandatory gate to cross and add it as crossed if collision if not already added
+
+    def check_mandatory_gate(self, gate_to_check, track: pysprint_tracks.Track):
+        if not track.mandatory_gates is None:
+            if gate_to_check in track.mandatory_gates:
+                if not gate_to_check in self.mandatory_gates_crossed:
+                    #Mandatory gates have to be passed in order - teh gate won't be granted if you haven't passed all the rpevious mandatory gates
+                    all_previous_mandatory_gates_passed = True
+                    for gate in track.mandatory_gates:
+                        if gate < gate_to_check and not gate in self.mandatory_gates_crossed:
+                                all_previous_mandatory_gates_passed = False
+
+                    if all_previous_mandatory_gates_passed and len(track.mandatory_gates) > len(self.mandatory_gates_crossed):
+                        self.mandatory_gates_crossed.append(gate_to_check)
+
 
     def check_passed_gate(self, track: pysprint_tracks.Track):
-        #Check whcih is the next Mandatory gate to cross and add it as crossed if collision if not already added
+
+        #Check if a gate is the next Mandatory gate to cross and add it as crossed if collision if not already added
         if self.furthest_past_gate is None:
                 next_gate = 0
         else:
@@ -1670,11 +1686,6 @@ class Car:
             if DEBUG_GATE_TRACKING and not self.is_drone:
                 print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate))
 
-            if not track.mandatory_gates is None:
-                #Check if the next gate is a next Mandatory gate to cross and add it as crossed if collision if not already added
-                if next_gate in track.mandatory_gates:
-                    if len(track.mandatory_gates) > len(self.mandatory_gates_crossed):
-                        self.mandatory_gates_crossed.append(next_gate)
         else:
             #Check if colliding with the closest gate to check for any other gate being passed than the next expected one (if driving aginst the race general direction)
             gate_to_check = track.find_progress_gate((self.x_position,self.y_position))
@@ -1685,6 +1696,19 @@ class Car:
                     #Only update last passed gate for closest gate adjacent to the next or previous gate
                     self.last_passed_gate = gate_to_check
                 self.most_recent_passed_gate = gate_to_check
+                if DEBUG_GATE_TRACKING and not self.is_drone:
+                    print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
+
+        #Check if colliding with any mandatory gate
+        for gate_to_check in track.mandatory_gates:
+            gate_rect = pygame.Rect(min(track.internal_gate_points[gate_to_check][0],track.external_gate_points[gate_to_check][0]), min(track.internal_gate_points[gate_to_check][1],track.external_gate_points[gate_to_check][1]), abs(track.internal_gate_points[gate_to_check][0]-track.external_gate_points[gate_to_check][0])+1, abs(track.internal_gate_points[gate_to_check][1]-track.external_gate_points[gate_to_check][1])+1)
+            if sprite_rect.colliderect(gate_rect):
+                #if gate is passed
+                if abs(gate_to_check-self.last_passed_gate)==1:
+                    #Only update last passed gate for closest gate adjacent to the next or previous gate
+                    self.last_passed_gate = gate_to_check
+                self.most_recent_passed_gate = gate_to_check
+                self.check_mandatory_gate(gate_to_check,track)
                 if DEBUG_GATE_TRACKING and not self.is_drone:
                     print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
 

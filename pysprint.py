@@ -55,8 +55,8 @@ DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
 DEBUG_FPS = False
-DEBUG_AI = False
-DISABLE_DRONES = False
+DEBUG_AI = True
+DISABLE_DRONES = True
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -1641,6 +1641,7 @@ def initialize_tracks():
         init_track(pysprint_tracks.track7_json_filename)
         init_track(pysprint_tracks.track8_json_filename)
 
+
 def game_loop():
 
     game_exit = False
@@ -1915,7 +1916,11 @@ def game_loop():
                             trace_frame_time("Managed all Events & Timers", frame_start)
 
                             for car in cars:
-                                car.draw(track,cars)
+                                if DISABLE_DRONES:
+                                    if not car.is_drone:
+                                        car.draw(track,cars)
+                                else:
+                                    car.draw(track,cars)
                                 trace_frame_time("Drawn car", frame_start)
                             if not race_finish and not race_start:
                                 for car in cars:
