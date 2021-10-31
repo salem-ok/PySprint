@@ -405,12 +405,12 @@ class Track:
                 return score
 
     def update_score_from_position(self, car):
-        index = self.find_progress_gate((car.x_position, car.y_position),car.gate_step)
+        if car.last_passed_gate is None:
+            return
+        index = car.last_passed_gate
         score_increment = 0
         if not type(index) is tuple:
             score_increment = math.ceil((car.lap_count+1) * (index/len(self.internal_borders))) * 30
-            if not car.is_drone:
-                car.progress_gate = index
         #Increment score if there has been progress wince last score increment
         if score_increment > car.previous_score_increment:
             car.score += score_increment - car.previous_score_increment
