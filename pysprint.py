@@ -54,7 +54,7 @@ FPS = 30
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
-DEBUG_FPS = False
+DEBUG_FPS = True
 DEBUG_AI = False
 DISABLE_DRONES = False
 

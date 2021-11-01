@@ -1699,8 +1699,9 @@ class Car:
                 if DEBUG_GATE_TRACKING and not self.is_drone:
                     print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
 
-        #Check if colliding with any mandatory gate
-        for gate_to_check in track.mandatory_gates:
+        #Check if colliding with the next mandatory gate
+        if len(self.mandatory_gates_crossed)<len(track.mandatory_gates):
+            gate_to_check = track.mandatory_gates[len(self.mandatory_gates_crossed)]
             gate_rect = pygame.Rect(min(track.internal_gate_points[gate_to_check][0],track.external_gate_points[gate_to_check][0]), min(track.internal_gate_points[gate_to_check][1],track.external_gate_points[gate_to_check][1]), abs(track.internal_gate_points[gate_to_check][0]-track.external_gate_points[gate_to_check][0])+1, abs(track.internal_gate_points[gate_to_check][1]-track.external_gate_points[gate_to_check][1])+1)
             if sprite_rect.colliderect(gate_rect):
                 #if gate is passed
