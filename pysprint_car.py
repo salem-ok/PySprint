@@ -1677,7 +1677,8 @@ class Car:
             next_gate = self.furthest_past_gate + 1
         if next_gate >= len(track.internal_gate_points):
             next_gate -= len(track.internal_gate_points)
-        gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0])+1, abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1])+1)
+        #gate_rect = pygame.Rect(min(track.internal_gate_points[next_gate][0],track.external_gate_points[next_gate][0]), min(track.internal_gate_points[next_gate][1],track.external_gate_points[next_gate][1]), abs(track.internal_gate_points[next_gate][0]-track.external_gate_points[next_gate][0])+1, abs(track.internal_gate_points[next_gate][1]-track.external_gate_points[next_gate][1])+1)
+        gate_rect = track.gate_surfs[next_gate]
         sprite_rect = pygame.Rect(self.x_position, self.y_position, self.sprites[self.sprite_angle].get_width(), self.sprites[self.sprite_angle].get_height())
         if sprite_rect.colliderect(gate_rect):
             #if gate is passed
@@ -1689,7 +1690,8 @@ class Car:
         else:
             #Check if colliding with the closest gate to check for any other gate being passed than the next expected one (if driving aginst the race general direction)
             gate_to_check = track.find_progress_gate((self.x_position,self.y_position))
-            gate_rect = pygame.Rect(min(track.internal_gate_points[gate_to_check][0],track.external_gate_points[gate_to_check][0]), min(track.internal_gate_points[gate_to_check][1],track.external_gate_points[gate_to_check][1]), abs(track.internal_gate_points[gate_to_check][0]-track.external_gate_points[gate_to_check][0])+1, abs(track.internal_gate_points[gate_to_check][1]-track.external_gate_points[gate_to_check][1])+1)
+            #gate_rect = pygame.Rect(min(track.internal_gate_points[gate_to_check][0],track.external_gate_points[gate_to_check][0]), min(track.internal_gate_points[gate_to_check][1],track.external_gate_points[gate_to_check][1]), abs(track.internal_gate_points[gate_to_check][0]-track.external_gate_points[gate_to_check][0])+1, abs(track.internal_gate_points[gate_to_check][1]-track.external_gate_points[gate_to_check][1])+1)
+            gate_rect = track.gate_surfs[gate_to_check]
             if sprite_rect.colliderect(gate_rect):
                 #if gate is passed
                 if abs(gate_to_check-self.last_passed_gate)==1:
@@ -1702,7 +1704,8 @@ class Car:
         #Check if colliding with the next mandatory gate
         if len(self.mandatory_gates_crossed)<len(track.mandatory_gates):
             gate_to_check = track.mandatory_gates[len(self.mandatory_gates_crossed)]
-            gate_rect = pygame.Rect(min(track.internal_gate_points[gate_to_check][0],track.external_gate_points[gate_to_check][0]), min(track.internal_gate_points[gate_to_check][1],track.external_gate_points[gate_to_check][1]), abs(track.internal_gate_points[gate_to_check][0]-track.external_gate_points[gate_to_check][0])+1, abs(track.internal_gate_points[gate_to_check][1]-track.external_gate_points[gate_to_check][1])+1)
+            #gate_rect = pygame.Rect(min(track.internal_gate_points[gate_to_check][0],track.external_gate_points[gate_to_check][0]), min(track.internal_gate_points[gate_to_check][1],track.external_gate_points[gate_to_check][1]), abs(track.internal_gate_points[gate_to_check][0]-track.external_gate_points[gate_to_check][0])+1, abs(track.internal_gate_points[gate_to_check][1]-track.external_gate_points[gate_to_check][1])+1)
+            gate_rect = track.gate_surfs[gate_to_check]
             if sprite_rect.colliderect(gate_rect):
                 #if gate is passed
                 if abs(gate_to_check-self.last_passed_gate)==1:

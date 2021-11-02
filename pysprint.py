@@ -54,7 +54,9 @@ FPS = 30
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
-DEBUG_FPS = True
+DISPLAY_FPS = True
+DEBUG_FPS = False
+DEBUG_FPS_DETAILED = False
 DEBUG_AI = False
 DISABLE_DRONES = False
 
@@ -1423,7 +1425,7 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
     game_display.blit(score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
 
 def trace_frame_time(trace_event, frame_start):
-    if DEBUG_FPS:
+    if DEBUG_FPS_DETAILED:
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
 
 def accelerate_pressed(key_pressed):
@@ -1732,6 +1734,9 @@ def game_loop():
 
 
                     race_start_time = pygame.time.get_ticks()
+                    avg_fps = []
+                    fps_refresh_time = race_start_time
+                    fps_surf = small_font.render(" FPS", False, white_color)
                     for car in cars:
                         car.current_lap_start = race_start_time
                     pygame.time.set_timer(GREENFLAG, 40)
@@ -2007,13 +2012,23 @@ def game_loop():
                                     index_surf = small_font.render("{}".format(i), False, white_color)
                                     game_display.blit(index_surf, (track.internal_borders[i][0], track.internal_borders[i][1]))
 
+                            frame_duration = pygame.time.get_ticks() - frame_start
+                            current_fps = round(1000/frame_duration)
+                            if DISPLAY_FPS:
+                                avg_fps.append(current_fps)
+                                if (pygame.time.get_ticks() - fps_refresh_time>500):
+                                    average_fps = round(sum(avg_fps)/(len(avg_fps)-1))
+                                    avg_fps.clear()
+                                    fps_refresh_time = pygame.time.get_ticks()
+                                    fps_surf = small_font.render("{} FPS".format(average_fps), False, white_color)
+                                game_display.blit(fps_surf, (565,385))
+
 
                             pygame.display.update()
                             trace_frame_time("Display Updated ", frame_start)
-                            frame_duration = pygame.time.get_ticks() - frame_start
-                            current_fps = round(1000/frame_duration)
                             if DEBUG_FPS:
-                                print(' Frame: {} - {} FPS'.format(frame_duration, current_fps))
+                                print(' Frame: {}ms - {} FPS'.format(frame_duration, current_fps))
+
                             clock.tick(FPS)
 
                             #Display Podium Screen

@@ -112,6 +112,8 @@ class Track:
         #External gate points
         self.external_gate_points = None
         self.internal_gate_points = None
+        self.gate_surfs = []
+        self.gate_masks = []
         #Track Opening Gates
         self.road_gates_anchors = None
         self.road_gates_frames_index = []
@@ -128,6 +130,8 @@ class Track:
         #When timer = next event time open or close the gate depending on status
         self.external_ai_gates_shortcuts = None
         self.internal_ai_gates_shortcuts = None
+        self.ai_gate_surfs = []
+        self.ai_gate_masks = []
         #Player Shortcuts
         self.external_player_gates_shortcut = None
         self.internal_player_gates_shortcut = None
@@ -196,8 +200,13 @@ class Track:
             self.secondary_internal_borders = track_json["secondary_internal_borders"]
         self.finish_line_rect = track_json["finish_line_rect"]
         self.finish_line_direction = track_json["finish_line_direction"]
+
         self.external_gate_points = track_json["external_gate_points"]
         self.internal_gate_points = track_json["internal_gate_points"]
+        for i in range(len(self.external_gate_points)):
+            self.gate_surfs.append(pygame.Rect(min(self.internal_gate_points[i][0],self.external_gate_points[i][0]), min(self.internal_gate_points[i][1],self.external_gate_points[i][1]), abs(self.internal_gate_points[i][0]-self.external_gate_points[i][0])+1, abs(self.internal_gate_points[i][1]-self.external_gate_points[i][1])+1))
+
+
         if "mandatory_gates" in track_json:
             self.mandatory_gates = track_json["mandatory_gates"]
         if "road_gates_anchors" in track_json:
