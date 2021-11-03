@@ -2014,9 +2014,9 @@ def game_loop():
 
                             frame_duration = pygame.time.get_ticks() - frame_start
                             current_fps = round(1000/frame_duration)
-                            if current_fps <= 50:
-                                pysprint_car.frame_rate_speed_modifier = 1 + (100/current_fps)/10
-                                pysprint_car.rotation_step_modifier =  1 + (100/current_fps)/12
+                            if current_fps <= 90:
+                                pysprint_car.frame_rate_speed_modifier = 1 + (100/current_fps)/11
+                                pysprint_car.rotation_step_modifier =  1 + (100/current_fps)/14
                             else:
                                 pysprint_car.frame_rate_speed_modifier = 1
                                 pysprint_car.rotation_step_modifier =  1
