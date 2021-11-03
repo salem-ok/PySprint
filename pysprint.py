@@ -2014,6 +2014,7 @@ def game_loop():
 
                             frame_duration = pygame.time.get_ticks() - frame_start
                             current_fps = round(1000/frame_duration)
+                            pysprint_car.frame_rate_speed_modifier = 100/current_fps
                             if DISPLAY_FPS:
                                 avg_fps.append(current_fps)
                                 if (pygame.time.get_ticks() - fps_refresh_time>500):

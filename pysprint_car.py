@@ -1,4 +1,4 @@
-#pysprint_car.py
+7#pysprint_car.py
 from typing import DefaultDict
 from numpy import True_, angle, result_type, select
 from numpy.lib.polynomial import poly
@@ -28,6 +28,9 @@ car_collision_grace_period = 500
 
 #Gravity for Jump Trajectory
 gravity = 30 #-9.81
+
+#Speed Modifier to get constant spped regardless of performance
+frame_rate_speed_modifier = 1
 
 race_laps = None
 display_width = None
@@ -1574,8 +1577,8 @@ class Car:
             if self.falling:
                 self.calculate_falling_vector(track)
         #Update Car Offset
-        self.x_position += self.x_vector
-        self.y_position += self.y_vector
+        self.x_position += self.x_vector * frame_rate_speed_modifier
+        self.y_position += self.y_vector * frame_rate_speed_modifier
         #Update Gate progress
         self.check_passed_gate(track)
         #If car runs on Bonus, increase score
