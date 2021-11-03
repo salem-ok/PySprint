@@ -29,8 +29,11 @@ car_collision_grace_period = 500
 #Gravity for Jump Trajectory
 gravity = 30 #-9.81
 
-#Speed Modifier to get constant spped regardless of performance
+#Speed Modifier to get constant speed regardless of performance
 frame_rate_speed_modifier = 1
+
+#Rotation Modifier to get constant rotation regardless of performance
+rotation_step_modifier = 1
 
 race_laps = None
 display_width = None
@@ -425,9 +428,9 @@ class Car:
     def rotate(self, left, track:pysprint_tracks.Track):
         self.rotating = True
         if left:
-            self.angle -= self.rotation_step
+            self.angle -= self.rotation_step * rotation_step_modifier
         else:
-            self.angle += self.rotation_step
+            self.angle += self.rotation_step * rotation_step_modifier
 
         if self.angle < 0:
             self.angle += 16
