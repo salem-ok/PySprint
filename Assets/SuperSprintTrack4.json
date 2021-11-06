@@ -1,11 +1,12 @@
 {
     "track_number": 4,
     "difficulty_level": "Medium",
-    "wrenches": 0,
+    "wrenches": 1,
     "background_filename": "Assets/SuperSprintTrack4.png",
     "mask_filename": "Assets/SuperSprintTrack4Mask.png",
     "upper_mask_filename": "Assets/SuperSprintTrack4UpperMask.png",
     "overlay_filename": "Assets/SuperSprintTrack4Overlay.png",
+    "thumbnail_filename": "Assets/SuperSprintTrack4ThumbNail.png",
     "finish_line_rect": [
         282,
         32,

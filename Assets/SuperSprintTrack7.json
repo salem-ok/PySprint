@@ -5,6 +5,7 @@
     "background_filename": "Assets/SuperSprintTrack7.png",
     "mask_filename": "Assets/SuperSprintTrack7Mask.png",
     "overlay_filename": "Assets/SuperSprintTrack7Overlay.png",
+    "thumbnail_filename": "Assets/SuperSprintTrack7ThumbNail.png",
     "finish_line_rect": [
         325,
         305,

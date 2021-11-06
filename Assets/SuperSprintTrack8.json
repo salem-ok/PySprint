@@ -6,6 +6,7 @@
     "mask_filename": "Assets/SuperSprintTrack8Mask.png",
     "upper_mask_filename": "Assets/SuperSprintTrack8UpperMask.png",
     "overlay_filename": "Assets/SuperSprintTrack8Overlay.png",
+    "thumbnail_filename": "Assets/SuperSprintTrack8ThumbNail.png",
     "finish_line_rect": [
         244,
         334,

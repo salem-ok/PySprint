@@ -121,6 +121,8 @@ start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').c
 high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
+checkered_background = pygame.image.load('Assets/CheckeredBackground.png').convert_alpha()
+
 
 #Traffic Cone
 pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
@@ -691,7 +693,6 @@ joystick_4  ={
 
 control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2, joystick_3, joystick_4]
 
-
 def screen_fadeout():
     for frame in range (0,len(transition_dots)):
         for i in range (0,40):
@@ -959,8 +960,9 @@ def print_start_race_text(seconds):
             print_press_acceltoplay(car.start_screen_text_position, car.main_color, seconds, car.game_over)
         else:
             print_prepare_to_race(car.start_screen_text_position, car.main_color)
-    skip_surf = small_font.render("PRESS SPACE TO SKIP", False, white_color)
-    game_display.blit(skip_surf, ((600 - skip_surf.get_width())/2, 385))
+    if not seconds == "":
+        skip_surf = small_font.render("PRESS SPACE TO SKIP", False, white_color)
+        game_display.blit(skip_surf, ((600 - skip_surf.get_width())/2, 385))
 
 def print_game_over_text():
     for car in cars:
@@ -1397,6 +1399,107 @@ def display_options():
         clock.tick(15)
     screen_fadeout()
 
+def display_track_selection():
+    screen_exit = False
+    track_index = 0
+    track_selection_background = checkered_background
+    screen_fadein(track_selection_background)
+    master_car_index = 0
+    for i in range(len(cars)):
+        if not cars[i].is_drone:
+            master_car_index = i
+            break
+    car = cars[master_car_index]
+    while not screen_exit:
+        if track_index<0:
+            track_index = len(tracks)-1
+        elif track_index>=len(tracks):
+            track_index = 0
+        track = tracks[track_index]
+        game_display.blit(track_selection_background, (0, 0))
+
+        print_start_race_text("")
+        game_display.blit(track.thumbnail,(185,115))
+        game_display.blit(big_shadow_font.render("SELECT TRACK", False, black_color), (218,90))
+        game_display.blit(big_font.render("SELECT TRACK", False, car.main_color), (218,90))
+
+        wrenches = ""
+        if track.wrenches>0:
+            wrenches = "- {} WRENCHES".format(track.wrenches)
+        surf = small_font.render("TRACK {} - {} {}".format(track.track_number,track.difficulty_level,wrenches), False, car.main_color)
+        shadow_surf = shadow_font.render("TRACK {} - {} {}".format(track.track_number,track.difficulty_level,wrenches), False, black_color)
+        game_display.blit(shadow_surf, (round((display_width-surf.get_width())/2),290))
+        game_display.blit(surf, (round((display_width-surf.get_width())/2),290))
+
+        pygame.display.update()
+
+        key_pressed = -1
+        left_pressed = False
+        right_pressed = False
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                screen_exit = True
+                return pygame.K_ESCAPE
+            if event.type == pygame.KEYDOWN:
+                key_pressed = event.key
+                if event.key == pygame.K_ESCAPE:
+                    screen_exit = True
+                    return pygame.K_ESCAPE
+                if event.key == car.left_key:
+                    left_pressed = True
+                if event.key == car.right_key:
+                    right_pressed = True
+
+        if not car.joystick is None:
+            axes = car.joystick.get_numaxes()
+            for i in range(axes):
+                axis = car.joystick.get_axis(i)
+                #Ignoring any axis beyond the first 2 which should be analog stick X
+                #Any axis beyond that is probably an analog shoulder button
+                if i < 2:
+                    if axis < 0 and axis < -0.5:
+                        left_pressed = True
+                    if axis > 0 and axis > 0.5:
+                        right_pressed = True
+
+            hats = car.joystick.get_numhats()
+            for i in range(hats):
+                hat = car.joystick.get_hat(i)
+                if hat[0] == -1:
+                    left_pressed = True
+
+                if hat[0] == 1:
+                    right_pressed = True
+
+        if left_pressed:
+            track_index-=1
+        else:
+            if right_pressed:
+                track_index+=1
+
+        #If other cars than the master press accelerate register game started
+        any_joystick_button_pressed()
+        if key_pressed >= 0:
+            accelerate_pressed(key_pressed)
+
+        #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Track is selected
+        if key_pressed == cars[master_car_index].accelerate_key:
+            screen_exit = True
+
+        if not cars[master_car_index].joystick is None:
+            joy = cars[master_car_index].joystick
+            buttons = joy.get_numbuttons()
+            for j in range(buttons):
+                button = joy.get_button(j)
+                if button == 1:
+                    screen_exit = True
+
+        clock.tick(15)
+    screen_fadeout()
+    return track_index
+
+
 def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
     track.update_score_from_position(car)
     #Car
@@ -1624,6 +1727,8 @@ def init_track(filename):
         track = pysprint_tracks.Track()
         track.load_track_definition(filename)
         track.background = pygame.image.load(track.background_filename)
+        if not track.thumbnail_filename is None:
+            track.thumbnail = pygame.image.load(track.thumbnail_filename)
         track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
         if not track.track_upper_mask_filename is None:
             track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
@@ -1657,6 +1762,7 @@ def game_loop():
     initialize_tracks()
     initialize_cars()
     track_index = 0
+    next_track = [2,4,6,0,7,1,5,3]
 
     mechanic_frames_list = [hammer_frames, saw_frames, head_scratch_frames, blow_frames]
     mechanic_index = random.randint(0,3)
@@ -1687,13 +1793,15 @@ def game_loop():
 
         if accelerate_pressed(key_pressed) or race_finished:
             #Initiate Race
+            if race_counter == 0:
+                track_index = display_track_selection()
             key_pressed = display_start_race_screen()
             if not key_pressed == pygame.K_ESCAPE:
                 race_finished = False
                 nb_drones = activate_cars()
                 if nb_drones < 4:
                     track = tracks[track_index]
-                    track_index += 1
+                    track_index = next_track[track_index]
                     race_counter += 1
                     if track_index>= len(tracks):
                         track_index = 0

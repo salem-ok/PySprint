@@ -88,6 +88,7 @@ class Track:
         self.track_mask_filename = None
         self.track_upper_mask_filename = None
         self.overlay_filename =  None
+        self.thumbnail_filename = None
         self.background = None
         self.base_mask = None
         self.track_mask = None
@@ -95,6 +96,7 @@ class Track:
         self.track_upper_mask = None
         self.track_upper_mask_mask = None
         self.track_overlay = None
+        self.thumbnail = None
         self.first_car_start_position = None
         self.flag_anchor = None
         self.track_number = None
@@ -188,6 +190,8 @@ class Track:
         if "upper_mask_filename" in track_json:
             self.track_upper_mask_filename = track_json["upper_mask_filename"]
         self.overlay_filename =  track_json["overlay_filename"]
+        if "thumbnail_filename" in track_json:
+            self.thumbnail_filename =  track_json["thumbnail_filename"]
 
         self.first_car_start_position = track_json["first_car_start_position"]
         self.flag_anchor = track_json["flag_anchor"]
