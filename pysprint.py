@@ -1,4 +1,5 @@
 import pygame
+from pygame import draw
 import pygame.display
 from pygame import gfxdraw, init
 import numpy as np
@@ -11,7 +12,7 @@ import json
 pygame.init()
 pygame.joystick.init()
 
-version = "0.19"
+version = "0.2"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
@@ -85,6 +86,12 @@ green_engine = (390, 284)
 yellow_engine = (390, 146)
 red_engine = (72, 284)
 
+blue_customization = (12, 202)
+green_customization = (330, 340)
+yellow_customization = (330, 202)
+red_customization = (12, 340)
+
+
 blue_thumb = (51, 120)
 green_thumb = (369, 258)
 yellow_thumb = (369, 120)
@@ -122,7 +129,8 @@ high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').conver
 lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
 checkered_background = pygame.image.load('Assets/CheckeredBackground.png').convert_alpha()
-
+item_screen = pygame.image.load('Assets/SuperSprintItemScreen.png').convert_alpha()
+selection_wheel = pygame.image.load('Assets/SelectionWheel.png').convert_alpha()
 
 #Traffic Cone
 pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
@@ -134,6 +142,11 @@ pysprint_tracks.tornado_frames = {
     0:pygame.image.load('Assets/TornadoFrame0.png').convert_alpha(),
     1:pygame.image.load('Assets/TornadoFrame1.png').convert_alpha()
 }
+pysprint_tracks.tornado_frames_masks = {
+    0:pygame.mask.from_surface(pysprint_tracks.tornado_frames[0], 50),
+    1:pygame.mask.from_surface(pysprint_tracks.tornado_frames[1], 50)
+}
+
 #Poles Frames:
 pysprint_tracks.poles_frames = {
     0:pygame.image.load('Assets/PoleFrame0.png').convert_alpha(),
@@ -141,6 +154,14 @@ pysprint_tracks.poles_frames = {
     2:pygame.image.load('Assets/PoleFrame2.png').convert_alpha(),
     3:pygame.image.load('Assets/PoleFrame3.png').convert_alpha()
 }
+
+pysprint_tracks.poles_frames_masks = {
+    0:pygame.mask.from_surface(pysprint_tracks.poles_frames[0], 50),
+    1:pygame.mask.from_surface(pysprint_tracks.poles_frames[1], 50),
+    2:pygame.mask.from_surface(pysprint_tracks.poles_frames[2], 50),
+    3:pygame.mask.from_surface(pysprint_tracks.poles_frames[3], 50)
+}
+
 
 #Spills
 pysprint_tracks.oil_spill_image = pygame.image.load('Assets/OilSpill.png').convert_alpha()
@@ -150,6 +171,26 @@ pysprint_tracks.water_spill_mask = pygame.mask.from_surface(pysprint_tracks.wate
 pysprint_tracks.grease_spill_image = pygame.image.load('Assets/GreaseSpill.png').convert_alpha()
 pysprint_tracks.grease_spill_mask = pygame.mask.from_surface(pysprint_tracks.grease_spill_image, 50)
 
+#Wrenches
+pysprint_tracks.wrench_image = pygame.image.load('Assets/Wrench.png').convert_alpha()
+pysprint_tracks.wrench_mask = pygame.mask.from_surface(pysprint_tracks.oil_spill_image, 50)
+
+wrench_count_sprites = {
+    0:pygame.image.load('Assets/0_WrenchCount.png').convert_alpha(),
+    1:pygame.image.load('Assets/1_WrenchCount.png').convert_alpha(),
+    2:pygame.image.load('Assets/2_WrenchCount.png').convert_alpha(),
+    3:pygame.image.load('Assets/3_WrenchCount.png').convert_alpha(),
+    3:pygame.image.load('Assets/3_WrenchCount.png').convert_alpha(),
+    4:pygame.image.load('Assets/4_WrenchCount.png').convert_alpha(),
+    5:pygame.image.load('Assets/5_WrenchCount.png').convert_alpha(),
+    6:pygame.image.load('Assets/6_WrenchCount.png').convert_alpha(),
+    7:pygame.image.load('Assets/7_WrenchCount.png').convert_alpha(),
+    8:pygame.image.load('Assets/8_WrenchCount.png').convert_alpha(),
+    9:pygame.image.load('Assets/9_WrenchCount.png').convert_alpha(),
+}
+
+
+
 #Bonus Frames:
 pysprint_tracks.bonus_frames = {
     0:pygame.image.load('Assets/BonusFrame0.png').convert_alpha(),
@@ -157,6 +198,15 @@ pysprint_tracks.bonus_frames = {
     2:pygame.image.load('Assets/BonusFrame2.png').convert_alpha(),
     3:pygame.image.load('Assets/BonusFrame3.png').convert_alpha()
 }
+
+pysprint_tracks.bonus_frames_masks = {
+    0:pygame.mask.from_surface(pysprint_tracks.bonus_frames[0], 50),
+    1:pygame.mask.from_surface(pysprint_tracks.bonus_frames[1], 50),
+    2:pygame.mask.from_surface(pysprint_tracks.bonus_frames[2], 50),
+    3:pygame.mask.from_surface(pysprint_tracks.bonus_frames[3], 50)
+}
+
+
 pysprint_tracks.bonus_shade_frames = {
     0:pygame.image.load('Assets/BonusFrame0Shade.png').convert_alpha(),
     1:pygame.image.load('Assets/BonusFrame1Shade.png').convert_alpha(),
@@ -529,6 +579,25 @@ blue_drone_sprites = {
         13:pygame.image.load('Assets/BlueCarDrone13.png').convert_alpha(),
         14:pygame.image.load('Assets/BlueCarDrone14.png').convert_alpha(),
         15:pygame.image.load('Assets/BlueCarDrone15.png').convert_alpha()
+}
+
+car_sprites_masks = {
+        0:pygame.mask.from_surface(blue_drone_sprites[0], 50),
+        1:pygame.mask.from_surface(blue_drone_sprites[1], 50),
+        2:pygame.mask.from_surface(blue_drone_sprites[2], 50),
+        3:pygame.mask.from_surface(blue_drone_sprites[3], 50),
+        4:pygame.mask.from_surface(blue_drone_sprites[4], 50),
+        5:pygame.mask.from_surface(blue_drone_sprites[5], 50),
+        6:pygame.mask.from_surface(blue_drone_sprites[6], 50),
+        7:pygame.mask.from_surface(blue_drone_sprites[7], 50),
+        8:pygame.mask.from_surface(blue_drone_sprites[8], 50),
+        9:pygame.mask.from_surface(blue_drone_sprites[9], 50),
+        10:pygame.mask.from_surface(blue_drone_sprites[10], 50),
+        11:pygame.mask.from_surface(blue_drone_sprites[11], 50),
+        12:pygame.mask.from_surface(blue_drone_sprites[12], 50),
+        13:pygame.mask.from_surface(blue_drone_sprites[13], 50),
+        14:pygame.mask.from_surface(blue_drone_sprites[14], 50),
+        15:pygame.mask.from_surface(blue_drone_sprites[15], 50)
 }
 
 blue_car_sprites = {
@@ -987,6 +1056,7 @@ def display_start_race_screen():
     for car in cars:
         game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
         car.prepare_to_race_counter = -1
+
         if car.game_over:
             game_over_screen = True
             if car.score > high_scores["high_scores"][len(high_scores["high_scores"])-1]["score"]:
@@ -1037,6 +1107,19 @@ def display_start_race_screen():
             game_display.blit(engine_idle[engine_idle_counter], car.start_screen_engine_position)
             if car.prepare_to_race_counter >0 and car.prepare_to_race_counter <= 11:
                 game_display.blit(prepare_to_race[car.prepare_to_race_counter], car.start_screen_thumb_position)
+            if not car.is_drone:
+                if car.super_traction >0 or car.turbo_acceleration >0 or car.higher_top_speed >0:
+                    cust_surf = small_font.render("CUSTOMIZED CAR INCLUDES", False, white_color)
+                    level_string = ""
+                    if car.super_traction >0:
+                        level_string = level_string + "TRACTION {} ".format(car.super_traction)
+                    if car.higher_top_speed >0:
+                        level_string = level_string + "SPEED {} ".format(car.higher_top_speed)
+                    if car.turbo_acceleration >0:
+                        level_string = level_string + "TURBO {} ".format(car.turbo_acceleration)
+                    level_surf = small_font.render(level_string, False, white_color)
+                    game_display.blit(cust_surf,car.customization_string_position)
+                    game_display.blit(level_surf,(car.customization_string_position[0], car.customization_string_position[1]+15))
 
         pygame.display.update()
         key_pressed = -1
@@ -1500,8 +1583,238 @@ def display_track_selection():
     return track_index
 
 
+def display_car_item_selection(car:pysprint_car.Car):
+    screen_exit = False
+    selected_item = 3
+    item_frame_positions = [(12,127),(12,253),(334,253),(334,127)]
+    selection_wheel_angles = [90,180,270,0]
+    wheel_angle = selection_wheel_angles[selected_item]
+    white_background = pygame.Surface((display_width,display_height))
+    white_background.fill(white_color)
+
+    selected_item_background = pygame.Surface((294,106))
+    selected_item_background.fill(car.main_color)
+
+    car_item_background = pygame.Surface((display_width,display_height))
+    car_item_background.blit(white_background,(0,0))
+    car_item_background.blit(item_screen,(0,0))
+
+    surf_numbers = {
+        1:small_font.render("1", False, white_color),
+        2:small_font.render("2", False, white_color),
+        3:small_font.render("3", False, white_color),
+        4:small_font.render("4", False, white_color),
+        5:small_font.render("5", False, white_color)
+    }
+
+    surf_selected_numbers = {
+        1:small_font.render("1", False, car.main_color),
+        2:small_font.render("2", False, car.main_color),
+        3:small_font.render("3", False, car.main_color),
+        4:small_font.render("4", False, car.main_color),
+        5:small_font.render("5", False, car.main_color)
+    }
+
+    screen_fadein(car_item_background)
+    blink_timer = pygame.time.get_ticks()
+    flash_selection = True
+    selection_confirmed = False
+    grant_item_counter = -1
+    grant_item_timer = -1
+    while not screen_exit:
+        car_item_background.blit(white_background,(0,0))
+
+        if pygame.time.get_ticks()-blink_timer>=200:
+            flash_selection = not flash_selection
+        if flash_selection:
+            car_item_background.blit(selected_item_background,item_frame_positions[selected_item])
+
+        if car.higher_top_speed==5:
+            car_item_background.blit(selected_item_background,item_frame_positions[3])
+        if car.super_traction==5:
+            car_item_background.blit(selected_item_background,item_frame_positions[0])
+        if car.turbo_acceleration==5:
+            car_item_background.blit(selected_item_background,item_frame_positions[1])
+
+        if selection_confirmed:
+            car_item_background.blit(selected_item_background,item_frame_positions[selected_item])
+
+        car_item_background.blit(item_screen,(0,0))
+
+        game_display.blit(car_item_background, (0, 0))
+        wheel_surf = pygame.transform.rotate(selection_wheel,selection_wheel_angles[selected_item])
+        game_display.blit(wheel_surf,(278,203))
+
+        if selection_confirmed:
+            if grant_item_counter==0:
+                grant_item_timer = pygame.time.get_ticks()
+                grant_item_counter+=1
+            else:
+                if pygame.time.get_ticks()-grant_item_timer>=500:
+                    grant_item_counter+=1
+                    grant_item_timer = pygame.time.get_ticks()
+                    if grant_item_counter>=1:
+                        car.wrench_count-=1
+                        if selected_item==2:
+                            car.score+=1000
+            if grant_item_counter>4:
+                screen_exit = True
+
+        surf = big_font.render("{} CAR".format(car.color_text), False, car.main_color)
+        shadow_surf = big_shadow_font.render("{} CAR".format(car.color_text), False, black_color)
+        game_display.blit(shadow_surf, (round((display_width-surf.get_width())/2),65))
+        game_display.blit(surf, (round((display_width-surf.get_width())/2),65))
+
+        surf  = big_font.render("SELECT AN ITEM FOR YOUR CAR", False, car.main_color)
+        shadow_surf  = big_shadow_font.render("SELECT AN ITEM FOR YOUR CAR", False, black_color)
+        game_display.blit(shadow_surf, (round((display_width-surf.get_width())/2),90))
+        game_display.blit(surf, (round((display_width-surf.get_width())/2),90))
+
+        surf  = big_font.render("SUPER", False, white_color)
+        shadow_surf  = big_shadow_font.render("SUPER", False, black_color)
+        game_display.blit(shadow_surf, (30,148))
+        game_display.blit(surf, (30,148))
+        surf  = big_font.render("TRACTION", False, white_color)
+        shadow_surf  = big_shadow_font.render("TRACTION", False, black_color)
+        game_display.blit(shadow_surf, (30,173))
+        game_display.blit(surf, (30,173))
+
+        for i in range (1,6):
+            if car.super_traction>=i:
+                game_display.blit(surf_selected_numbers[i],(100 + 23*i,210))
+            else:
+                game_display.blit(surf_numbers[i],(100 + 23 * i,210))
+
+
+
+        surf  = big_font.render("TURBO", False, white_color)
+        shadow_surf  = big_shadow_font.render("TURBO", False, black_color)
+        game_display.blit(shadow_surf, (30,274))
+        game_display.blit(surf, (30,274))
+        surf  = big_font.render("ACCELERATION", False, white_color)
+        shadow_surf  = big_shadow_font.render("ACCELERATION", False, black_color)
+        game_display.blit(shadow_surf, (30,299))
+        game_display.blit(surf, (30,299))
+
+        for i in range (1,6):
+            if car.turbo_acceleration>=i:
+                game_display.blit(surf_selected_numbers[i],(100 + 23*i,336))
+            else:
+                game_display.blit(surf_numbers[i],(100 + 23 * i,336))
+
+
+        surf  = big_font.render("HIGHER", False, white_color)
+        shadow_surf  = big_shadow_font.render("HIGHER", False, black_color)
+        game_display.blit(shadow_surf, (412,148))
+        game_display.blit(surf, (412,148))
+        surf  = big_font.render("TOP SPEED", False, white_color)
+        shadow_surf  = big_shadow_font.render("TOP SPEED", False, black_color)
+        game_display.blit(shadow_surf, (412,173))
+        game_display.blit(surf, (412,173))
+
+        for i in range (1,6):
+            if car.higher_top_speed>=i:
+                game_display.blit(surf_selected_numbers[i],(485 + 23*i,210))
+            else:
+                game_display.blit(surf_numbers[i],(485 + 23 * i,210))
+
+
+        surf  = big_font.render("INCREASE", False, white_color)
+        shadow_surf  = big_shadow_font.render("INCREASE", False, black_color)
+        game_display.blit(shadow_surf, (412,274))
+        game_display.blit(surf, (412,274))
+        surf  = big_font.render("SCORE", False, white_color)
+        shadow_surf  = big_shadow_font.render("SCORE", False, black_color)
+        game_display.blit(shadow_surf, (412,299))
+        game_display.blit(surf, (412,299))
+
+        surf  = small_font.render("LEVEL", False, white_color)
+        game_display.blit(surf, (27,210))
+        game_display.blit(surf, (27,336))
+        game_display.blit(surf, (412,210))
+        draw_score(car,None)
+
+
+
+        pygame.display.update()
+
+        key_pressed = -1
+        left_pressed = False
+        right_pressed = False
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                screen_exit = True
+                return pygame.K_ESCAPE
+            if event.type == pygame.KEYDOWN:
+                key_pressed = event.key
+                if event.key == pygame.K_ESCAPE:
+                    screen_exit = True
+                    return pygame.K_ESCAPE
+                if event.key == car.left_key:
+                    left_pressed = True
+                if event.key == car.right_key:
+                    right_pressed = True
+        if not selection_confirmed:
+            if not car.joystick is None:
+                axes = car.joystick.get_numaxes()
+                for i in range(axes):
+                    axis = car.joystick.get_axis(i)
+                    #Ignoring any axis beyond the first 2 which should be analog stick X
+                    #Any axis beyond that is probably an analog shoulder button
+                    if i < 2:
+                        if axis < 0 and axis < -0.5:
+                            left_pressed = True
+                        if axis > 0 and axis > 0.5:
+                            right_pressed = True
+
+                hats = car.joystick.get_numhats()
+                for i in range(hats):
+                    hat = car.joystick.get_hat(i)
+                    if hat[0] == -1:
+                        left_pressed = True
+
+                    if hat[0] == 1:
+                        right_pressed = True
+
+            if left_pressed:
+                selected_item+=1
+            else:
+                if right_pressed:
+                    selected_item-=1
+            if selected_item >3:
+                selected_item = 0
+            if selected_item <0:
+                selected_item = 3
+            #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Track is selected
+            if key_pressed == car.accelerate_key:
+                selection_confirmed = True
+
+            if not car.joystick is None:
+                joy = car.joystick
+                buttons = joy.get_numbuttons()
+                for j in range(buttons):
+                    button = joy.get_button(j)
+                    if button == 1:
+                        selection_confirmed = True
+            if selection_confirmed:
+                grant_item_counter = 0
+                if selected_item ==0:
+                    if car.super_traction<5:
+                        car.super_traction+=1
+                if selected_item ==1:
+                    if car.turbo_acceleration<5:
+                        car.turbo_acceleration+=1
+                if selected_item ==3:
+                    if car.higher_top_speed<5:
+                        car.higher_top_speed+=1
+        clock.tick(15)
+    screen_fadeout()
+
+
 def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
-    track.update_score_from_position(car)
+    if not track is None:
+        track.update_score_from_position(car)
     #Car
     if car.is_drone:
         score_surf = small_font.render("DRONE", False, car.main_color)
@@ -1509,6 +1822,13 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
     else:
         score_surf = small_font.render("CAR", False, car.main_color)
         shadow_score_surf = shadow_font.render("CAR", False, black_color)
+        #Wrenches
+        game_display.blit(pysprint_tracks.wrench_image, (car.score_top_left[0] + 50,car.score_top_left[1]))
+        wrench_index = car.wrench_count
+        if car.wrench_count > 9:
+            wrench_index = 9
+        game_display.blit(wrench_count_sprites[wrench_index], (car.score_top_left[0] + 80,car.score_top_left[1]))
+
     game_display.blit(shadow_score_surf, car.score_top_left)
     game_display.blit(score_surf, car.score_top_left)
     #Lap
@@ -1526,6 +1846,9 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
     shadow_score_surf = big_shadow_font.render("{}".format(car.lap_count), False, black_color)
     game_display.blit(shadow_score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
     game_display.blit(score_surf, (car.score_top_left[0] + 111, car.score_top_left[1] + 15))
+
+
+
 
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS_DETAILED:
@@ -1561,6 +1884,7 @@ def get_progress(car):
 def initialize_cars():
     for i in range(0,4):
         car = pysprint_car.Car()
+        car.sprites_masks = car_sprites_masks
         cars.append(car)
 
     #Initiate Cars as Drones.
@@ -1581,6 +1905,12 @@ def initialize_cars():
     cars[1].start_screen_engine_position = green_engine
     cars[2].start_screen_engine_position = yellow_engine
     cars[3].start_screen_engine_position = red_engine
+
+    cars[0].customization_string_position = blue_customization
+    cars[1].customization_string_position = green_customization
+    cars[2].customization_string_position = yellow_customization
+    cars[3].customization_string_position = red_customization
+
 
     cars[0].start_screen_thumb_position = blue_thumb
     cars[1].start_screen_thumb_position = green_thumb
@@ -1795,6 +2125,14 @@ def game_loop():
             #Initiate Race
             if race_counter == 0:
                 track_index = display_track_selection()
+                for car in cars:
+                    if not car.is_drone:
+                        car.wrench_count = tracks[track_index].wrenches
+            for car in cars:
+                if not car.is_drone:
+                    while car.wrench_count>=4:
+                        display_car_item_selection(car)
+
             key_pressed = display_start_race_screen()
             if not key_pressed == pygame.K_ESCAPE:
                 race_finished = False
@@ -1814,7 +2152,7 @@ def game_loop():
                         cars[i].y_position = track.first_car_start_position[1] + i * 15
                         cars[i].sprite_angle = track.start_sprite_angle
                         cars[i].angle = track.start_sprite_angle
-                        cars[i].reset_racing_status()
+                        cars[i].reset_racing_status(race_counter)
 
                     race_start = True
                     last_lap = False
@@ -1832,6 +2170,7 @@ def game_loop():
                         track.blit_background(False)
                         track.blit_obstacles(False)
                         track.blit_bonus(False)
+                        track.blit_wrench(False)
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay(False)
@@ -2065,6 +2404,7 @@ def game_loop():
                             track.blit_background(True)
                             track.blit_obstacles(True)
                             track.blit_bonus(True)
+                            track.blit_wrench(True)
                             for car in cars:
                                 car.blit(track, False)
                             track.blit_overlay(True)

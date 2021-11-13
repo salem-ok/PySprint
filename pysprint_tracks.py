@@ -42,6 +42,13 @@ oil_spill_mask = None
 water_spill_mask = None
 grease_spill_mask = None
 
+#Wrench
+wrench_image = None
+wrench_mask = None
+wrench_position = None
+wrench_display_interval = 6000
+wrench_display_duration = 15000
+
 #Traffic Cone
 traffic_cone = None
 traffic_cone_mask = None
@@ -49,10 +56,12 @@ traffic_cone_shade = None
 
 #Tornado
 tornado_frames = None
+tornado_frames_masks = None
 tornado_mask = None
 
 #Bonus Frames
 bonus_frames = None
+bonus_frames_masks = None
 bonus_shade_frames = None
 bonus_position = None
 bonus_display_interval = 6000
@@ -61,6 +70,7 @@ tiny_font = None
 
 #Poles Frames
 poles_frames = None
+poles_frames_masks = None
 poles_gate = None
 poles_pop_up_interval = 900
 poles_stay_up_duration = 1800
@@ -145,6 +155,10 @@ class Track:
         self.bonus_frame_index = None
         self.bonus_value = None
         self.bonus_position = None
+        #Timer for Wrench display
+        self.wrench_timer = None
+        self.wrench_displayed = False
+        self.wrench_position = None
         #Obstacles
         self.display_pole = False
         self.display_tornado = False
@@ -424,7 +438,7 @@ class Track:
         score_increment = 0
         if not type(index) is tuple:
             score_increment = math.ceil((car.lap_count+1) * (index/len(self.internal_borders))) * 30
-        #Increment score if there has been progress wince last score increment
+        #Increment score if there has been progress since last score increment
         if score_increment > car.previous_score_increment:
             car.score += score_increment - car.previous_score_increment
             car.previous_score_increment = score_increment
@@ -491,7 +505,7 @@ class Track:
                 self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
                 self.tornado_frame_index = 0
                 self.tornado_timer = pygame.time.get_ticks()
-                self.tornado_mask = pygame.mask.from_surface(tornado_frames[self.tornado_frame_index], 50)
+                self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
             if race_started:
                 now =  pygame.time.get_ticks()
                 if now >=self.tornado_timer:
@@ -511,7 +525,7 @@ class Track:
                         rand_y = 0
                     self.tornado_position = (rand_x,rand_y)
                     self.tornado_timer = now + 100
-                self.tornado_mask = pygame.mask.from_surface(tornado_frames[self.tornado_frame_index], 50)
+                self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
                 surf.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
         if DEBUG_RAMPS:
             for ramp in self.ramp_surfs:
@@ -669,6 +683,31 @@ class Track:
             game_display.blit(bonus_value_surf,(self.bonus_position[0]+1,self.bonus_position[1]+3))
             if self.bonus_frame_index<=2:
                 game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)
+
+
+    def hide_wrench(self):
+        self.wrench_displayed = False
+        self.wrench_timer = pygame.time.get_ticks() + wrench_display_interval
+
+    def blit_wrench(self, race_started):
+        #Initialize timer for bonus
+        if self.wrench_timer is None:
+            self.hide_wrench()
+        if race_started:
+            now = pygame.time.get_ticks()
+            #if timer is reached: if Wrench displayed = False the we display the wrench if not we hide it.
+            if now >=self.wrench_timer:
+                if self.wrench_displayed:
+                    #Now we hide the wrench
+                    self.hide_wrench()
+                else:
+                    #Now we display the wrench
+                    self.wrench_position = self.get_random_position(12,26)
+                    self.wrench_displayed = True
+                    self.wrench_timer = now + wrench_display_interval
+            if self.wrench_displayed:
+                game_display.blit(wrench_image,self.wrench_position)
+
 
     def test_pole_on_track(self, position):
         pole_mask = pygame.mask.from_surface(pygame.Surface((10,16)), 50)
@@ -842,13 +881,13 @@ class Track:
                             if self.poles_moving_index>2:
                                 self.poles_moving_index = 0
 
-                self.pole_mask = pygame.mask.from_surface(poles_frames[0], 50)
+                self.pole_mask = poles_frames_masks[0]
                 if self.poles_frame_indexes[0]>0:
-                    self.pole_mask = pygame.mask.from_surface(poles_frames[self.poles_frame_indexes[0]], 50)
+                    self.pole_mask = poles_frames_masks[self.poles_frame_indexes[0]]
                 if self.poles_frame_indexes[1]:
-                    self.pole_mask = pygame.mask.from_surface(poles_frames[self.poles_frame_indexes[1]], 50)
+                    self.pole_mask = poles_frames_masks[self.poles_frame_indexes[1]]
                 if self.poles_frame_indexes[2]:
-                    self.pole_mask = pygame.mask.from_surface(poles_frames[self.poles_frame_indexes[2]], 50)
+                    self.pole_mask = poles_frames_masks[self.poles_frame_indexes[2]]
 
 
                 game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)

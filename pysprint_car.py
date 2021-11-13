@@ -88,12 +88,12 @@ class Car:
 
 
     #30FPS Default Settings
-    player_rotation_step = .28#.26
-    player_acceleration_step = 0.18
-    player_deceleration_step = 0.1#0.2
+    player_rotation_step = .26#.28
+    player_acceleration_step = 0.17#0.18
+    player_deceleration_step = 0.15#0.1
     player_bump_decelaration_step = 0.3
     player__bump_speed = 4
-    player_speed = 8
+    player_speed = 7.5#8
     player_skidding_weight = 3
 
     #AI Default Characteristics
@@ -105,11 +105,11 @@ class Car:
     drone_personality_modifiers = [0.9,1,1.1]
     drone__invert_personality_modifiers = [1.1,1,0.9]
     drone_rotation_step = 0.4#.4
-    drone_acceleration_step = 0.18#0.18
+    drone_acceleration_step = 0.17#0.18
     drone_deceleration_step = 0.4#0.4
     drone_bump_decelaration_step = 0.3#0.3
     drone_bump_speed = 4#2
-    drone_speed = 4#6
+    drone_speed = 3#6
     drone_skidding_weight = 2
     turning_angle_threshold = 20
     gate_step = 1#2
@@ -150,6 +150,7 @@ class Car:
         self.secondary_color = None
         self.color_text = ""
         self.sprites = None
+        self.sprites_masks = None
         self.first_car = None
         self.second_car = None
         self.third_car = None
@@ -157,6 +158,7 @@ class Car:
         self.start_screen_engine_position = None
         self.start_screen_thumb_position = None
         self.start_screen_text_position = None
+        self.customization_string_position = None
         self.score_top_left = None
         self.prepare_to_race_counter = -1
 
@@ -165,6 +167,7 @@ class Car:
 
         #Score
         self.score = 0
+        self.wrench_count = 0
         self.game_over = False
         self.enter_high_score = False
         self.enter_best_lap = False
@@ -217,6 +220,11 @@ class Car:
         self.deceleration_step = 0.2
         self.bump_decelaration_step = 0.3
         self.skidding_weight = 2
+
+        self.super_traction = 0
+        self.turbo_acceleration = 0
+        self.higher_top_speed = 0
+
 
         self.drone_personality = 1
 
@@ -277,7 +285,7 @@ class Car:
     def car_collision(self):
         return self.side_colliding_offender or self.side_colliding_victim or self.frontal_colliding
 
-    def reset_racing_status(self):
+    def reset_racing_status(self, race_counter):
         self.decelerating = False
         self.rotating = False
         self.bumping = False
@@ -322,6 +330,19 @@ class Car:
         self.previous_ramp_poly = None
         self.current_ramp_poly = None
         self.current_bridge_poly = None
+        if not self.is_drone:
+            #Apply Customization:
+            self.speed_max = self.player_speed + self.higher_top_speed * 0.3
+            self.rotation_step = self.player_rotation_step + self.super_traction * 0.015
+            self.acceleration_step = self.player_acceleration_step + self.turbo_acceleration * 0.05
+            self.deceleration_step = self.player_deceleration_step + self.super_traction * 0.025
+            self.skidding_weight = self.player_skidding_weight - self.super_traction * 0.2
+        else:
+            #Increase Drone mechanics as game continues
+            self.speed_max = self.speed_max + (race_counter//5) * 0.1
+            self.rotation_step = self.rotation_step + (race_counter//5) * 0.05
+            self.acceleration_step = self.acceleration_step + (race_counter//5) * 0.1
+            self.deceleration_step = self.deceleration_step + (race_counter//5) * 0.025
 
 
 
@@ -399,6 +420,10 @@ class Car:
         self.score = 0
         self.high_score_rank = 0
         self.high_score_name = ""
+        self.wrench_count = 0
+        self.super_traction = 0
+        self.turbo_acceleration = 0
+        self.higher_top_speed = 0
 
     def start_game(self):
         if self.game_over==False:
@@ -888,10 +913,16 @@ class Car:
 
     def test_bonus(self, track: pysprint_tracks.Track):
         if track.bonus_frame_index >=0:
-            bonus_mask = pygame.mask.from_surface(pysprint_tracks.bonus_frames[track.bonus_frame_index], 50)
+            bonus_mask = pysprint_tracks.bonus_frames_masks[track.bonus_frame_index]
             x_test = 0
             y_test = 0
             return  bonus_mask.overlap(self.car_mask, (round(self.x_position-track.bonus_position[0]),round(self.y_position-track.bonus_position[1])))
+        else:
+            return False
+
+    def test_wrench(self, track: pysprint_tracks.Track):
+        if track.wrench_displayed:
+            return  pysprint_tracks.wrench_mask.overlap(self.car_mask, (round(self.x_position-track.wrench_position[0]),round(self.y_position-track.wrench_position[1])))
         else:
             return False
 
@@ -901,7 +932,7 @@ class Car:
         else:
             return False
 
-    def test_pole(self, track: pysprint_tracks.Track, position,):
+    def test_pole(self, track: pysprint_tracks.Track, position):
         if not position is None:
             return  track.pole_mask.overlap(self.car_mask, (round(self.x_position-position[0]),round(self.y_position-position[1])))
         else:
@@ -1588,6 +1619,10 @@ class Car:
         if self.test_bonus(track):
             self.score+=int(track.bonus_value)
             track.hide_bonus()
+        #If car runs on Wrench, increase Wrench count
+        if self.test_wrench(track):
+            self.wrench_count+=1
+            track.hide_wrench()
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status
             self.rotating = False
@@ -1908,7 +1943,7 @@ class Car:
             #Car is not visible durign explosion
             if not self.crashing:
                 game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-                self.car_mask = pygame.mask.from_surface(self.sprites[self.sprite_angle], 50)
+                self.car_mask = self.sprites_masks[self.sprite_angle]
 
             if DEBUG_AI:
                 if self.is_drone:
