@@ -159,6 +159,7 @@ class Car:
         self.start_screen_thumb_position = None
         self.start_screen_text_position = None
         self.customization_string_position = None
+        self.selection_wheel = None
         self.score_top_left = None
         self.prepare_to_race_counter = -1
 

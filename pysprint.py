@@ -130,7 +130,11 @@ lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').conve
 race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
 checkered_background = pygame.image.load('Assets/CheckeredBackground.png').convert_alpha()
 item_screen = pygame.image.load('Assets/SuperSprintItemScreen.png').convert_alpha()
-selection_wheel = pygame.image.load('Assets/SelectionWheel.png').convert_alpha()
+
+blue_selection_wheel = pygame.image.load('Assets/BlueSelectionWheel.png').convert_alpha()
+yellow_selection_wheel = pygame.image.load('Assets/YellowSelectionWheel.png').convert_alpha()
+red_selection_wheel = pygame.image.load('Assets/RedSelectionWheel.png').convert_alpha()
+green_selection_wheel = pygame.image.load('Assets/GreenSelectionWheel.png').convert_alpha()
 
 #Traffic Cone
 pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
@@ -372,7 +376,6 @@ fourth_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCar
 fourth_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png').convert_alpha()
 fourth_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png').convert_alpha()
 fourth_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png').convert_alpha()
-
 
 
 engine_idle = {
@@ -1642,8 +1645,36 @@ def display_car_item_selection(car:pysprint_car.Car):
         car_item_background.blit(item_screen,(0,0))
 
         game_display.blit(car_item_background, (0, 0))
-        wheel_surf = pygame.transform.rotate(selection_wheel,selection_wheel_angles[selected_item])
-        game_display.blit(wheel_surf,(278,203))
+        if abs(wheel_angle - selection_wheel_angles[selected_item])>=270:
+            if abs(wheel_angle - selection_wheel_angles[selected_item])<350:
+                wheel_angle -= 10 * (selection_wheel_angles[selected_item]-wheel_angle)/abs(selection_wheel_angles[selected_item]-wheel_angle)
+            else:
+                wheel_angle = selection_wheel_angles[selected_item]
+        else:
+            if abs(wheel_angle - selection_wheel_angles[selected_item])>10:
+                wheel_angle += 10 * (selection_wheel_angles[selected_item]-wheel_angle)/abs(selection_wheel_angles[selected_item]-wheel_angle)
+            else:
+                wheel_angle = selection_wheel_angles[selected_item]
+
+        originPos = (car.selection_wheel.get_width()/2, car.selection_wheel.get_height()/2)
+        pos = (278 + car.selection_wheel.get_width()/2, 203 + car.selection_wheel.get_height()/2)
+
+        # offset from pivot to center
+        image_rect = car.selection_wheel.get_rect(topleft = (pos[0] - originPos[0], pos[1]-originPos[1]))
+        offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
+
+        # roatated offset from pivot to center
+        rotated_offset = offset_center_to_pivot.rotate(-wheel_angle)
+
+        # roatetd image center
+        rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
+
+        # get a rotated image
+        rotated_image = pygame.transform.rotate(car.selection_wheel, wheel_angle)
+        rotated_image_rect = rotated_image.get_rect(center = rotated_image_center)
+
+        # rotate and blit the image
+        game_display.blit(rotated_image, rotated_image_rect)
 
         if selection_confirmed:
             if grant_item_counter==0:
@@ -1911,6 +1942,10 @@ def initialize_cars():
     cars[2].customization_string_position = yellow_customization
     cars[3].customization_string_position = red_customization
 
+    cars[0].selection_wheel = blue_selection_wheel
+    cars[1].selection_wheel = green_selection_wheel
+    cars[2].selection_wheel = yellow_selection_wheel
+    cars[3].selection_wheel = red_selection_wheel
 
     cars[0].start_screen_thumb_position = blue_thumb
     cars[1].start_screen_thumb_position = green_thumb

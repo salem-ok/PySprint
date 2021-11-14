@@ -13,93 +13,164 @@ yellow_tertiary_color = (238, 204, 102) #EECC66
 
 
 
-#Yellow HElicopter Horizontal
+#Yellow Wheel
 
-for i in range(0,4):
-    im = Image.open('Assets/BlueHelicopter{}.png'.format(i))
-    data = np.array(im)
 
-    r1, g1, b1 = 68, 102, 238 # Original value
-    r2, g2, b2 = 238, 238, 102 # Value that we want to replace it with
+im = Image.open('Assets/SelectionWheel.png')
+data = np.array(im)
 
-    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:,:,:3][mask] = [r2, g2, b2]
+r1, g1, b1 = 0, 0, 0 # Original value
+r2, g2, b2 = 238, 238, 102 # Value that we want to replace it with
 
-    im = Image.fromarray(data)
+red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+mask = (red == r1) & (green == g1) & (blue == b1)
+data[:,:,:3][mask] = [r2, g2, b2]
 
-    data = np.array(im)
+im = Image.fromarray(data)
 
-    r1, g1, b1 = 170, 204, 238 # Original value
-    r2, g2, b2 = 170, 170, 0 # Value that we want to replace it with
-
-    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:,:,:3][mask] = [r2, g2, b2]
-
-    im = Image.fromarray(data)
-
-    im.save('Assets/YellowHelicopter{}.png'.format(i))
+im.save('Assets/YellowSelectionWheel.png')
 
 
 
-#RED HElicopter Horizontal
+#RED Wheel
 
-for i in range(0,4):
-    im = Image.open('Assets/BlueHelicopter{}.png'.format(i))
-    data = np.array(im)
+im = Image.open('Assets/SelectionWheel.png')
+data = np.array(im)
 
-    r1, g1, b1 = 68, 102, 238 # Original value
-    r2, g2, b2 = 238, 0, 34 # Value that we want to replace it with
+r1, g1, b1 = 0, 0, 0 # Original value
+r2, g2, b2 = 238, 0, 34 # Value that we want to replace it with
 
-    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:,:,:3][mask] = [r2, g2, b2]
+red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+mask = (red == r1) & (green == g1) & (blue == b1)
+data[:,:,:3][mask] = [r2, g2, b2]
 
-    im = Image.fromarray(data)
+im = Image.fromarray(data)
 
-    data = np.array(im)
-
-    r1, g1, b1 = 170, 204, 238 # Original value
-    r2, g2, b2 = 170, 0, 0 # Value that we want to replace it with
-
-    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:,:,:3][mask] = [r2, g2, b2]
-
-    im = Image.fromarray(data)
-
-    im.save('Assets/RedHelicopter{}.png'.format(i))
+im.save('Assets/RedSelectionWheel.png')
 
 
 
-#GREEN HElicopter Horizontal
+#GREEN Wheel
 
-for i in range(0,4):
-    im = Image.open('Assets/BlueHelicopter{}.png'.format(i))
-    data = np.array(im)
+im = Image.open('Assets/SelectionWheel.png')
+data = np.array(im)
 
-    r1, g1, b1 = 68, 102, 238 # Original value
-    r2, g2, b2 = 34, 170, 102 # Value that we want to replace it with
+r1, g1, b1 = 0, 0, 0 # Original value
+r2, g2, b2 = 34, 170, 102 # Value that we want to replace it with
 
-    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:,:,:3][mask] = [r2, g2, b2]
+red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+mask = (red == r1) & (green == g1) & (blue == b1)
+data[:,:,:3][mask] = [r2, g2, b2]
 
-    im = Image.fromarray(data)
+im = Image.fromarray(data)
 
-    data = np.array(im)
+im.save('Assets/GreenSelectionWheel.png')
 
-    r1, g1, b1 = 170, 204, 238 # Original value
-    r2, g2, b2 = 170, 204, 102 # Value that we want to replace it with
+#BLUE Wheel
 
-    red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:,:,:3][mask] = [r2, g2, b2]
+im = Image.open('Assets/SelectionWheel.png')
+data = np.array(im)
 
-    im = Image.fromarray(data)
+r1, g1, b1 = 0, 0, 0 # Original value
+r2, g2, b2 = 68, 102, 238 # Value that we want to replace it with
 
-    im.save('Assets/GreenHelicopter{}.png'.format(i))
+red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+mask = (red == r1) & (green == g1) & (blue == b1)
+data[:,:,:3][mask] = [r2, g2, b2]
+
+im = Image.fromarray(data)
+
+im.save('Assets/BlueSelectionWheel.png')
+
+
+
+# #Yellow HElicopter Horizontal
+
+# for i in range(0,4):
+#     im = Image.open('Assets/BlueHelicopter{}.png'.format(i))
+#     data = np.array(im)
+
+#     r1, g1, b1 = 68, 102, 238 # Original value
+#     r2, g2, b2 = 238, 238, 102 # Value that we want to replace it with
+
+#     red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+#     mask = (red == r1) & (green == g1) & (blue == b1)
+#     data[:,:,:3][mask] = [r2, g2, b2]
+
+#     im = Image.fromarray(data)
+
+#     data = np.array(im)
+
+#     r1, g1, b1 = 170, 204, 238 # Original value
+#     r2, g2, b2 = 170, 170, 0 # Value that we want to replace it with
+
+#     red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+#     mask = (red == r1) & (green == g1) & (blue == b1)
+#     data[:,:,:3][mask] = [r2, g2, b2]
+
+#     im = Image.fromarray(data)
+
+#     im.save('Assets/YellowHelicopter{}.png'.format(i))
+
+
+
+# #RED HElicopter Horizontal
+
+# for i in range(0,4):
+#     im = Image.open('Assets/BlueHelicopter{}.png'.format(i))
+#     data = np.array(im)
+
+#     r1, g1, b1 = 68, 102, 238 # Original value
+#     r2, g2, b2 = 238, 0, 34 # Value that we want to replace it with
+
+#     red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+#     mask = (red == r1) & (green == g1) & (blue == b1)
+#     data[:,:,:3][mask] = [r2, g2, b2]
+
+#     im = Image.fromarray(data)
+
+#     data = np.array(im)
+
+#     r1, g1, b1 = 170, 204, 238 # Original value
+#     r2, g2, b2 = 170, 0, 0 # Value that we want to replace it with
+
+#     red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+#     mask = (red == r1) & (green == g1) & (blue == b1)
+#     data[:,:,:3][mask] = [r2, g2, b2]
+
+#     im = Image.fromarray(data)
+
+#     im.save('Assets/RedHelicopter{}.png'.format(i))
+
+
+
+# #GREEN HElicopter Horizontal
+
+# for i in range(0,4):
+#     im = Image.open('Assets/BlueHelicopter{}.png'.format(i))
+#     data = np.array(im)
+
+#     r1, g1, b1 = 68, 102, 238 # Original value
+#     r2, g2, b2 = 34, 170, 102 # Value that we want to replace it with
+
+#     red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+#     mask = (red == r1) & (green == g1) & (blue == b1)
+#     data[:,:,:3][mask] = [r2, g2, b2]
+
+#     im = Image.fromarray(data)
+
+#     data = np.array(im)
+
+#     r1, g1, b1 = 170, 204, 238 # Original value
+#     r2, g2, b2 = 170, 204, 102 # Value that we want to replace it with
+
+#     red, green, blue = data[:,:,0], data[:,:,1], data[:,:,2]
+#     mask = (red == r1) & (green == g1) & (blue == b1)
+#     data[:,:,:3][mask] = [r2, g2, b2]
+
+#     im = Image.fromarray(data)
+
+#     im.save('Assets/GreenHelicopter{}.png'.format(i))
 
 
 
