@@ -1,6 +1,7 @@
 import pygame
 from pygame import draw
 import pygame.display
+import pygame.mixer
 from pygame import gfxdraw, init
 import numpy as np
 import pysprint_car
@@ -20,8 +21,9 @@ pysprint_car.display_height = 400
 pysprint_tracks.display_width = 640
 pysprint_tracks.display_height = 400
 
-
-
+# perhaps the mixer is not included or initialised.
+if pygame.mixer:
+    pygame.mixer.init()
 
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
@@ -107,7 +109,25 @@ score_top_left_green = (161,0)
 score_top_left_red = (321,0)
 score_top_left_yellow = (481,0)
 
+
+
 #Load Assets
+
+#Sound Assets
+FADEOUT_DURATION = 1000
+track_select_music = pygame.mixer.Sound('Assets/trackselect.wav')
+prepare_to_race_music = pygame.mixer.Sound('Assets/prepare_to_race.wav')
+item_choice_sound = pygame.mixer.Sound('Assets/item_choice.wav')
+pysprint_car.start_race_sound = pygame.mixer.Sound('Assets/start_race.wav')
+podium_tunes = [
+    pygame.mixer.Sound('Assets/podium_tune1.wav'),
+    pygame.mixer.Sound('Assets/podium_tune2.wav'),
+    pygame.mixer.Sound('Assets/podium_tune3.wav'),
+    pygame.mixer.Sound('Assets/podium_tune4.wav')
+]
+
+#Graphic assets
+
 pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
 pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
 pysprint_car.vector_surf.fill((0,0,0))
@@ -1024,7 +1044,9 @@ def print_press_acceltoplay(top_left, color, seconds, game_over):
         game_display.blit(small_font.render("TO CONTINUE", False, color), (top_left[0] - 32, top_left[1] + 40))
     else:
         game_display.blit(small_font.render("TO PLAY", False, color), (top_left[0] - 10, top_left[1] + 40))
-    game_display.blit(small_font.render("{}".format(seconds), False, color), (top_left[0] + 24, top_left[1] + 60))
+    if not seconds=='':
+        if seconds <= 5:
+            game_display.blit(small_font.render("{}".format(seconds), False, color), (top_left[0] + 24, top_left[1] + 60))
 
 def print_start_race_text(seconds):
     for car in cars:
@@ -1048,12 +1070,13 @@ def print_game_over_text():
                     print_prepare_to_race(car.start_screen_text_position, car.main_color)
 
 def display_start_race_screen():
-    seconds = 5
+    seconds = 8
     screen_exit = False
     engine_idle_counter = 0
 
     #Add Green car
     screen_fadein(start_race_screen)
+    prepare_to_race_music.play()
     print_start_race_text(seconds)
     game_over_screen = False
     for car in cars:
@@ -1140,9 +1163,9 @@ def display_start_race_screen():
                     screen_exit = True
                     return pygame.K_ESCAPE
 
-        any_joystick_button_pressed()
+        any_joystick_button_pressed(True)
         if key_pressed >= 0:
-            accelerate_pressed(key_pressed)
+            accelerate_pressed(key_pressed,True)
 
         clock.tick(15)
 
@@ -1243,7 +1266,7 @@ def display_start_race_screen():
 
         with open(".bestlaps.json","w") as best_laps_file:
             json.dump(best_laps, best_laps_file)
-
+    prepare_to_race_music.fadeout(FADEOUT_DURATION)
     screen_fadeout()
     return pygame.K_SPACE
 
@@ -1496,6 +1519,8 @@ def display_track_selection():
             master_car_index = i
             break
     car = cars[master_car_index]
+    track_select_music.play()
+
     while not screen_exit:
         if track_index<0:
             track_index = len(tracks)-1
@@ -1582,6 +1607,7 @@ def display_track_selection():
                     screen_exit = True
 
         clock.tick(15)
+    track_select_music.fadeout(FADEOUT_DURATION)
     screen_fadeout()
     return track_index
 
@@ -1624,6 +1650,7 @@ def display_car_item_selection(car:pysprint_car.Car):
     selection_confirmed = False
     grant_item_counter = -1
     grant_item_timer = -1
+    track_select_music.play()
     while not screen_exit:
         car_item_background.blit(white_background,(0,0))
 
@@ -1681,7 +1708,9 @@ def display_car_item_selection(car:pysprint_car.Car):
                 grant_item_timer = pygame.time.get_ticks()
                 grant_item_counter+=1
             else:
-                if pygame.time.get_ticks()-grant_item_timer>=500:
+                if pygame.time.get_ticks()-grant_item_timer>=395:
+                    if grant_item_counter==1:
+                        item_choice_sound.play()
                     grant_item_counter+=1
                     grant_item_timer = pygame.time.get_ticks()
                     if grant_item_counter>=1:
@@ -1820,6 +1849,7 @@ def display_car_item_selection(car:pysprint_car.Car):
             #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Track is selected
             if key_pressed == car.accelerate_key:
                 selection_confirmed = True
+                track_select_music.fadeout(FADEOUT_DURATION)
 
             if not car.joystick is None:
                 joy = car.joystick
@@ -1885,17 +1915,17 @@ def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS_DETAILED:
         print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
 
-def accelerate_pressed(key_pressed):
+def accelerate_pressed(key_pressed, play_sound = False):
     if key_pressed == JOYSTICK_BUTTON_PRESSED:
         return True
     for car in cars:
         if not car.accelerate_key is None:
             if key_pressed == car.accelerate_key:
-                car.start_game()
+                car.start_game(play_sound)
                 return True
     return False
 
-def any_joystick_button_pressed():
+def any_joystick_button_pressed(play_sound = False):
     button_pressed = False
     for car in cars:
         if not car.joystick is None:
@@ -1905,7 +1935,7 @@ def any_joystick_button_pressed():
                 button = joy.get_button(j)
                 if button == 1:
                     button_pressed = True
-                    car.start_game()
+                    car.start_game(play_sound)
     return button_pressed
 
 
@@ -2593,6 +2623,7 @@ def game_loop():
                                 composed_race_podium.blit(mechanic_frames[0], (0,0))
 
                                 screen_fadein(composed_race_podium)
+                                podium_tunes[mechanic_index].play()
                                 display_race_podium_screen(track, mechanic_frames, ranking, composed_race_podium, crowd_background)
                                 podium_displayed = True
                                 #Game Over if behind a Drone

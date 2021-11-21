@@ -42,6 +42,7 @@ dust_cloud_frames = None
 explosion_frames = None
 transparency = None
 vector_surf = None
+start_race_sound = None
 
 class Car:
 
@@ -426,10 +427,13 @@ class Car:
         self.turbo_acceleration = 0
         self.higher_top_speed = 0
 
-    def start_game(self):
+    def start_game(self, play_sound = False):
         if self.game_over==False:
             self.reset_game_over()
-        self.is_drone = False
+        if self.is_drone:
+            self.is_drone = False
+            if play_sound:
+                start_race_sound.play()
         self.ignore_controls = False
         self.speed_max = self.player_speed
         self.bump_speed = self.player__bump_speed
