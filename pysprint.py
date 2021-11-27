@@ -118,16 +118,29 @@ FADEOUT_DURATION = 1000
 track_select_music = pygame.mixer.Sound('Assets/trackselect.wav')
 prepare_to_race_music = pygame.mixer.Sound('Assets/prepare_to_race.wav')
 item_choice_sound = pygame.mixer.Sound('Assets/item_choice.wav')
-pysprint_car.start_race_sound = pygame.mixer.Sound('Assets/start_race.wav')
+get_ready_sound = pygame.mixer.Sound('Assets/get_ready.wav')
+last_lap_sound = pygame.mixer.Sound('Assets/last_lap.wav')
+end_race_sound = pygame.mixer.Sound('Assets/end_race.wav')
 podium_tunes = [
     pygame.mixer.Sound('Assets/podium_tune1.wav'),
     pygame.mixer.Sound('Assets/podium_tune2.wav'),
     pygame.mixer.Sound('Assets/podium_tune3.wav'),
     pygame.mixer.Sound('Assets/podium_tune4.wav')
 ]
+pysprint_car.start_race_sound = pygame.mixer.Sound('Assets/start_race.wav')
+pysprint_car.bonus_pickup_sound = pygame.mixer.Sound('Assets/bonus_pickup.wav')
+pysprint_car.wrench_pickup_sound = pygame.mixer.Sound('Assets/wrench_pickup.wav')
+pysprint_car.bump_sound = pygame.mixer.Sound('Assets/bump.wav')
+pysprint_car.obstacle_sound = pygame.mixer.Sound('Assets/obstacle.wav')
+pysprint_car.spin_sound = pygame.mixer.Sound('Assets/spin.wav')
+pysprint_car.crash_sound = pygame.mixer.Sound('Assets/crash.wav')
+pysprint_car.collision_sound = pygame.mixer.Sound('Assets/collision.wav')
+pysprint_car.engine_idle = pygame.mixer.Sound('Assets/engine_idle.wav')
+pysprint_car.engine_accelerate = pygame.mixer.Sound('Assets/engine_accelerate.wav')
+pysprint_car.engine_max = pygame.mixer.Sound('Assets/engine_max.wav')
+pysprint_car.engine_decelerate = pygame.mixer.Sound('Assets/engine_decelerate.wav')
 
 #Graphic assets
-
 pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
 pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
 pysprint_car.vector_surf.fill((0,0,0))
@@ -2231,6 +2244,7 @@ def game_loop():
                     track.init_obstacles(race_counter)
 
                     get_ready_time  = pygame.time.get_ticks()
+                    get_ready_sound.play()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
                         track.blit_obstacles(False)
@@ -2446,6 +2460,7 @@ def game_loop():
                                         break
                                 #Draw Checkered Flag and finish race
                                 if race_finish:
+                                    end_race_sound.play()
                                     animation_index = 0
                                     flag_waves = 0
                                     flag_waved = False
@@ -2458,6 +2473,7 @@ def game_loop():
                             for car in cars:
                                 #Draw White Flag for Last lap
                                 if not last_lap and car.lap_count == race_laps -1:
+                                    last_lap_sound.play()
                                     animation_index = 0
                                     flag_waves = 0
                                     wave_up = True

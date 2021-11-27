@@ -719,6 +719,7 @@ class Track:
         min_obstacles = 0
         max_obstacles = 0
         nb_cones_max = 0
+
         #No obstacles the first 2 races
         if race_counter>2:
             #No more than 1 obstacles the 3rd to 5th race
