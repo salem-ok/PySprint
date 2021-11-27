@@ -12,18 +12,23 @@ Prerequisites:
 
 The game requires the pygame and numpy packages to run.
 
+In game commands:
+  - Hit F1 for Options
+  - Hit F11 to Scale the window
+  - Hit ESC to quit the game
+
 Control Intructions:
 
 Hit acclerate for any player to start a game.
 
 Controls:
 
-Blue car: 
+Blue car:
   - Accelerate: Right Ctrl
   - Left: Left
   - Right: Right
 
-Green car: 
+Green car:
   - Accelerate: Left Ctrl
   - Left: X
   - Right: C
@@ -32,7 +37,7 @@ Yellow car:
   - First Detected Joystick:
   - Any D-PAD or Analog Pad or Stick for Left and Right
   - Any button for accelerate
-  
+
 Red car:
   - Second Detected Joystick
   - Any D-PAD or Analog Pad or Stick for Left and Right

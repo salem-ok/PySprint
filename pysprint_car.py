@@ -1098,17 +1098,25 @@ class Car:
             intersect_point = self.test_collision(track, True)
             #Test if the car is still collidign and keep moving backwards until not the case
             if intersect_point:
-                #Reposition the to the midpoint of the latest progress gate or Start Line by default
                 if DEBUG_COLLISION:
                     print('Car stuck outside of borders at ({},{}) - Repositionning'.format(self.x_position, self.y_position))
                 self.y_vector = 0
                 self.x_vector = 0
-                if self.last_passed_gate is None:
-                    self.x_position = track.first_car_start_position[0]
-                    self.y_position = track.first_car_start_position[1]
-                else:
-                    self.x_position = (track.external_gate_points[self.last_passed_gate][0] + track.internal_gate_points[self.last_passed_gate][0])/ 2
-                    self.y_position = (track.external_gate_points[self.last_passed_gate][1] + track.internal_gate_points[self.last_passed_gate][1])/ 2
+
+                # Reposition the to the midpoint of the closest progress gate
+                closest_gate_index = track.find_progress_gate((self.x_position, self.y_position))
+
+                self.x_position = (track.external_gate_points[closest_gate_index][0] + track.internal_gate_points[closest_gate_index][0])/ 2
+                self.y_position = (track.external_gate_points[closest_gate_index][1] + track.internal_gate_points[closest_gate_index][1])/ 2
+
+
+                # #Reposition the to the midpoint of the latest progress gate or Start Line by default
+                # if self.last_passed_gate is None:
+                #     self.x_position = track.first_car_start_position[0]
+                #     self.y_position = track.first_car_start_position[1]
+                # else:
+                #     self.x_position = (track.external_gate_points[self.last_passed_gate][0] + track.internal_gate_points[self.last_passed_gate][0])/ 2
+                #     self.y_position = (track.external_gate_points[self.last_passed_gate][1] + track.internal_gate_points[self.last_passed_gate][1])/ 2
             else:
                 result = self.get_simulation_vector()
                 self.x_position = round(self.x_position+result[0])

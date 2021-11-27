@@ -31,10 +31,11 @@ with open(".highscores.json") as high_scores_file:
 with open(".bestlaps.json") as best_laps_file:
     best_laps = json.load(best_laps_file)
 
-flags = 0
+
+
 race_laps = 4
 pysprint_car.race_laps = race_laps
-
+flags = 0
 game_display = pygame.display.set_mode((display_width, display_height), flags)
 
 pygame.display.set_caption('PySprint v{}'.format(version))
@@ -50,8 +51,6 @@ cars = []
 
 tracks = []
 
-#Scale screen
-#flags = pygame.SCALED
 
 FPS = 30
 DEBUG_BUMP = False
@@ -1934,6 +1933,8 @@ def accelerate_pressed(key_pressed, play_sound = False):
     for car in cars:
         if not car.accelerate_key is None:
             if key_pressed == car.accelerate_key:
+                if not car.is_drone and not car.game_over:
+                    return True
                 car.start_game(play_sound)
                 return True
     return False
@@ -1948,6 +1949,8 @@ def any_joystick_button_pressed(play_sound = False):
                 button = joy.get_button(j)
                 if button == 1:
                     button_pressed = True
+                    if not car.is_drone and not car.game_over:
+                        return True
                     car.start_game(play_sound)
     return button_pressed
 
@@ -2156,11 +2159,25 @@ def initialize_tracks():
         init_track(pysprint_tracks.track7_json_filename)
         init_track(pysprint_tracks.track8_json_filename)
 
+def check_option_key_pressed(key_pressed,scaled_screen):
+    if (key_pressed == pygame.K_F1):
+        display_options()
+        return scaled_screen
+    if (key_pressed == pygame.K_F11):
+        if scaled_screen:
+            game_display = pygame.display.set_mode((display_width, display_height), 0)
+            return False
+        else:
+            game_display = pygame.display.set_mode((display_width, display_height), pygame.SCALED)
+            return True
+
+
 
 def game_loop():
 
     game_exit = False
     race_finished = False
+    scaled_screen = False
     print('{} - Joystick(s) detected'.format(pygame.joystick.get_count()))
 
     for i in range (pygame.joystick.get_count()):
@@ -2184,21 +2201,16 @@ def game_loop():
             #Attract mode
             while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                 key_pressed = display_splash_screen()
-                if (key_pressed == pygame.K_F1):
-                    display_options()
+                scaled_screen = check_option_key_pressed(key_pressed,scaled_screen)
                 if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                     key_pressed = display_high_scores()
-                if (key_pressed == pygame.K_F1):
-                    display_options()
+                scaled_screen = check_option_key_pressed(key_pressed,scaled_screen)
                 if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                     key_pressed = display_lap_records()
-                if (key_pressed == pygame.K_F1):
-                    display_options()
+                scaled_screen = check_option_key_pressed(key_pressed,scaled_screen)
                 if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                     key_pressed = display_credits_screen()
-                if (key_pressed == pygame.K_F1):
-                    display_options()
-
+                scaled_screen = check_option_key_pressed(key_pressed,scaled_screen)
         if accelerate_pressed(key_pressed) or race_finished:
             #Initiate Race
             if race_counter == 0:
