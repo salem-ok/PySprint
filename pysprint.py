@@ -13,7 +13,7 @@ import json
 pygame.init()
 pygame.joystick.init()
 
-version = "0.2"
+version = "0.29"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640

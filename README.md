@@ -14,8 +14,8 @@ The game requires the pygame and numpy packages to run.
 
 In game commands:
   - Hit F1 for Options
-  - Hit F11 to Scale the window
-  - Hit ESC to quit the game
+  - Hit F11 to toggle Scaled Window Mode
+  - Hit ESC to Quit the Game
 
 Control Intructions:
 
