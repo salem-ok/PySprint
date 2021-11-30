@@ -29,6 +29,8 @@ The game starts in **"Attract mode"** cycling through several screens -Spash Scr
   - Hit F1 for Options:
        - Re-mapping of keyboard controls for 2 players
        - Re-assigning of Gamepads & keyboard controls to any car color
+       - Any Gamepad plugged and detected by your OS should be available (USB, Bluetooth or other)
+       - Up to 4 Gamepads or Joysticks can be assigned
 
 ![PySprint Options Screen](https://github.com/salem-ok/PySprint/blob/main/ImageSource/OptionsScreen.png?raw=true)
 
