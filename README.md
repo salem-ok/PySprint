@@ -11,7 +11,7 @@ The idea is to:
 
 ## Prerequisites:
 
-- The game requires the pygame and numpy packages to run if you download teh source and want to run it interpreted.
+- The game requires the pygame and numpy packages to run if you download the source and want to run it interpreted.
 - The first beta release is pre-compiled and packages for Linux, Mac OS & Windows just download, unzip and execute:
   [Download Binaries](https://github.com/salem-ok/PySprint/releases/tag/v0.29-beta)
 
@@ -21,7 +21,7 @@ The idea is to:
 
 ## Game navigation
 
-The game starts in **"Attract mode"** cycliong thourgh several screens -Spash Screen, High Scores, best Laps, Credits etc.:
+The game starts in **"Attract mode"** cycling through several screens -Spash Screen, High Scores, best Laps, Credits etc.:
 
 ![PySprint Attract Mode](https://github.com/salem-ok/PySprint/blob/main/ImageSource/Attract.gif?raw=true)
 
@@ -29,6 +29,8 @@ The game starts in **"Attract mode"** cycliong thourgh several screens -Spash Sc
   - Hit F1 for Options:
        - Re-mapping of keyboard controls for 2 players
        - Re-assigning of Gamepads & keyboard controls to any car color
+       - Any Gamepad plugged and detected by your OS should be available (USB, Bluetooth or other)
+       - Up to 4 Gamepads or Joysticks can be assigned
 
 ![PySprint Options Screen](https://github.com/salem-ok/PySprint/blob/main/ImageSource/OptionsScreen.png?raw=true)
 
@@ -49,6 +51,8 @@ The game starts in **"Attract mode"** cycliong thourgh several screens -Spash Sc
 ## In game Controls:
 
 - Hit ESC or close the Window to Quit the Game
+
+## Default Car controls (can be adjusted in the Options screen)
 
 ### Blue car:
   - Accelerate: Right Ctrl
