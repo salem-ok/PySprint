@@ -1,0 +1,12 @@
+{
+    "track_select_music": "Assets/sound/trackselect.wav",
+    "prepare_to_race_music": "Assets/sound/prepare_to_race.wav",
+    "item_choice": "Assets/sound/item_choice.wav",
+    "get_ready": "Assets/sound/get_ready.wav",
+    "last_lap": "Assets/sound/last_lap.wav",
+    "end_race": "Assets/sound/end_race.wav",
+    "podium_tune1": "Assets/sound/podium_tune1.wav",
+    "podium_tune2": "Assets/sound/podium_tune2.wav",
+    "podium_tune3": "Assets/sound/podium_tune3.wav",
+    "podium_tune4": "Assets/sound/podium_tune4.wav"
+}

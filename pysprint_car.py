@@ -13,6 +13,8 @@ from pygame.key import name
 from pygame.mask import from_threshold
 import pysprint_tracks
 
+from managers.sample_manager import SampleManager
+
 game_display = None
 DEBUG_FINISH = False
 DEBUG_COLLISION = False
@@ -42,19 +44,7 @@ dust_cloud_frames = None
 explosion_frames = None
 transparency = None
 vector_surf = None
-#SOund assets
-start_race_sound = None
-bonus_pickup_sound = None
-wrench_pickup_sound = None
-bump_sound = None
-obstacle_sound = None
-spin_sound = None
-crash_sound = None
-collision_sound = None
-engine_idle = None
-engine_accelerate = None
-engine_max = None
-engine_decelerate = None
+
 
 class Car:
 
@@ -166,6 +156,10 @@ class Car:
 
 
     def __init__(self):
+
+        # Sound
+        self.smp_manager = SampleManager.get_manager("sfx")
+        
         #Appearance
         #Color
         self.main_color = None
@@ -454,7 +448,7 @@ class Car:
         if self.is_drone:
             self.is_drone = False
             if play_sound:
-                start_race_sound.play()
+                self.smp_manager.get_sample("start_race").play()
         self.ignore_controls = False
         self.speed_max = self.player_speed
         self.bump_speed = self.player__bump_speed
@@ -499,28 +493,28 @@ class Car:
             if self.speed < self.speed_max:
                 if not self.is_drone:
                     if self.deceleration_playing:
-                        engine_decelerate.stop()
+                        self.smp_manager.get_sample("engine_decelerate").stop()
                         self.deceleration_playing = False
                     if self.idle_playing:
-                        engine_idle.stop()
+                        self.smp_manager.get_sample("engine_idle").stop()
                         self.idle_playing = False
                     if not self.acceleration_playing:
                         if not self.max_speed_playing:
                             self.accel_decel_timer = pygame.time.get_ticks()
-                            engine_accelerate.play()
+                            self.smp_manager.get_sample("engine_accelerate").play()
                             self.acceleration_playing = True
                     else:
                         if pygame.time.get_ticks() - self.accel_decel_timer >= self.acceleration_duration:
-                            engine_accelerate.stop()
+                            self.smp_manager.get_sample("engine_accelerate").stop()
                             self.acceleration_playing = False
-                            engine_max.play(-1)
+                            self.smp_manager.get_sample("engine_max").play(-1)
                             self.max_speed_playing = True
                 self.speed += self.acceleration_step
                 if self.speed >= self.speed_max:
                     self.max_speed_reached = pygame.time.get_ticks()
                     if not self.is_drone:
                         if not self.max_speed_playing:
-                            engine_max.play(-1)
+                            self.smp_manager.get_sample("engine_max").play(-1)
                             self.max_speed_playing = True
 
 
@@ -529,26 +523,26 @@ class Car:
         self.max_speed_reached = 0
         if not self.is_drone:
             if self.acceleration_playing:
-                engine_accelerate.stop()
+                self.smp_manager.get_sample("engine_accelerate").stop()
                 self.acceleration_playing = False
             if self.max_speed_playing:
-                engine_max.stop()
+                self.smp_manager.get_sample("engine_max").stop()
                 self.max_speed_playing = False
             if self.speed == 0:
                 if not self.is_drone:
                     if not self.idle_playing:
-                        engine_idle.play(-1)
+                        self.smp_manager.get_sample("engine_idle").play(-1)
                         self.idle_playing = True
             if not self.deceleration_playing:
                 if not self.idle_playing:
                     self.accel_decel_timer = pygame.time.get_ticks()
-                    engine_decelerate.play()
+                    self.smp_manager.get_sample("engine_decelerate").play()
                     self.deceleration_playing = True
             else:
                 if pygame.time.get_ticks() - self.accel_decel_timer >= self.deceleration_duration:
-                    engine_decelerate.stop()
+                    self.smp_manager.get_sample("engine_decelerate").stop()
                     self.deceleration_playing = False
-                    engine_idle.play(-1)
+                    self.smp_manager.get_sample("engine_idle").play(-1)
                     self.idle_playing = True
 
         if self.bumping:
@@ -561,7 +555,7 @@ class Car:
         if self.speed == 0:
             if not self.is_drone:
                 if not self.idle_playing:
-                    engine_idle.play(-1)
+                    self.smp_manager.get_sample("engine_idle").play(-1)
                     self.idle_playing = True
 
             self.decelerating = False
@@ -1238,7 +1232,7 @@ class Car:
 
     def init_pole_loop(self,track,position):
         if self.speed<self.speed_max:
-            bump_sound.play()
+            self.smp_manager.get_sample("bump").play()
             self.set_bumping(True)
             self.speed = self.bump_speed
             self.animation_index = 0
@@ -1250,7 +1244,7 @@ class Car:
             self.init_crash_loop(position)
 
     def init_cone_loop(self,cone_hit):
-        obstacle_sound.play()
+        self.smp_manager.get_sample("obstacle").play()
         self.set_bumping(True)
         self.hitting_cone = True
         self.speed = 0
@@ -1260,7 +1254,7 @@ class Car:
         self.collision_time = pygame.time.get_ticks()
 
     def init_tornado_loop(self):
-        spin_sound.play()
+        self.smp_manager.get_sample("spin").play()
         self.set_spinning(True)
         self.speed = self.player_speed *0.5
         self.deceleration_step = self.player_deceleration_step * 0.5
@@ -1269,7 +1263,7 @@ class Car:
         self.collision_time = pygame.time.get_ticks()
 
     def init_oil_spill_loop(self):
-        spin_sound.play()
+        self.smp_manager.get_sample("spin").play()
         self.set_spinning(True)
         self.speed = self.player_speed *0.5
         self.deceleration_step = self.player_deceleration_step * 0.5
@@ -1277,11 +1271,11 @@ class Car:
         self.collision_time = pygame.time.get_ticks()
 
     def init_water_spill_loop(self):
-        obstacle_sound.play()
+        self.smp_manager.get_sample("obstacle").play()
         self.speed = 0
 
     def init_grease_spill_loop(self):
-        obstacle_sound.play()
+        self.smp_manager.get_sample("obstacle").play()
         self.set_spinning(True)
         if self.is_drone:
             self.speed = self.speed_max *0.5
@@ -1292,7 +1286,7 @@ class Car:
         self.collision_time = pygame.time.get_ticks()
 
     def init_frontal_car_collision_loop(self, other_car):
-        spin_sound.play()
+        self.smp_manager.get_sample("spin").play()
         self.set_spinning(True)
         self.speed = self.speed_max * 0.6
         self.frontal_colliding = True
@@ -1303,7 +1297,7 @@ class Car:
         self.collision_time = pygame.time.get_ticks()
 
     def init_side_car_collision_offender_loop(self, victim, collision):
-        collision_sound.play()
+        self.smp_manager.get_sample("collision").play()
         self.set_bumping(True)
         self.side_colliding_offender_previous_speed = self.speed
         self.speed = self.player__bump_speed
@@ -1319,7 +1313,7 @@ class Car:
         self.colliding_other_car = victim
 
     def init_side_car_collision_victim_loop(self, offender, collision):
-        collision_sound.play()
+        self.smp_manager.get_sample("collision").play()
         self.set_bumping(True)
         self.speed = self.player__bump_speed
         self.bump_decelaration_step = self.player_bump_decelaration_step * 6
@@ -1335,7 +1329,7 @@ class Car:
         self.side_colliding_offender_vector = (offender.x_vector, offender.y_vector)
 
     def init_bump_loop(self, track: pysprint_tracks.Track, intersect_point):
-        bump_sound.play()
+        self.smp_manager.get_sample("bump").play()
         self.set_bumping(True)
         self.speed = self.bump_speed
         #Determine the agle at which angle the car is intersecting with the Border: either right angle or not
@@ -1358,7 +1352,7 @@ class Car:
         self.animation_index = 0
 
     def init_crash_loop(self, intersect_point):
-        crash_sound.play()
+        self.smp_manager.get_sample("crash").play()
         self.crashing = True
         self.crash_finished = False
         self.speed = 0
@@ -1589,7 +1583,7 @@ class Car:
     def init_landing(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
             print('{} - Init Landing'.format(self.color_text))
-        collision_sound.play()
+        self.smp_manager.get_sample("collision").play()
         self.landing = True
         self.mid_air = False
         self.ignore_controls = True
@@ -1717,12 +1711,12 @@ class Car:
         #If car runs on Bonus, increase score
         if self.test_bonus(track):
             self.score+=int(track.bonus_value)
-            bonus_pickup_sound.play()
+            self.smp_manager.get_sample("bonus_pickup").play()
             track.hide_bonus()
         #If car runs on Wrench, increase Wrench count
         if self.test_wrench(track):
             self.wrench_count+=1
-            wrench_pickup_sound.play()
+            self.smp_manager.get_sample("wrench_pickup").play()
             track.hide_wrench()
         if not self.crashing:
             #Reset Rotation Flag to match Key Pressed Status

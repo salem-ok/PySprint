@@ -9,6 +9,7 @@ import pysprint_tracks
 import random
 import json
 
+from managers.sample_manager import SampleManager
 
 pygame.init()
 pygame.joystick.init()
@@ -21,9 +22,10 @@ pysprint_car.display_height = 400
 pysprint_tracks.display_width = 640
 pysprint_tracks.display_height = 400
 
-# perhaps the mixer is not included or initialised.
-if pygame.mixer:
-    pygame.mixer.init()
+# Create sample managers
+FADEOUT_DURATION = 1000
+SampleManager.create_manager("sfx", "Assets/sound/smp_sfx.json")
+smp_manager = SampleManager.create_manager("music", "Assets/sound/smp_music.json")
 
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
@@ -113,31 +115,7 @@ score_top_left_yellow = (481,0)
 #Load Assets
 
 #Sound Assets
-FADEOUT_DURATION = 1000
-track_select_music = pygame.mixer.Sound('Assets/trackselect.wav')
-prepare_to_race_music = pygame.mixer.Sound('Assets/prepare_to_race.wav')
-item_choice_sound = pygame.mixer.Sound('Assets/item_choice.wav')
-get_ready_sound = pygame.mixer.Sound('Assets/get_ready.wav')
-last_lap_sound = pygame.mixer.Sound('Assets/last_lap.wav')
-end_race_sound = pygame.mixer.Sound('Assets/end_race.wav')
-podium_tunes = [
-    pygame.mixer.Sound('Assets/podium_tune1.wav'),
-    pygame.mixer.Sound('Assets/podium_tune2.wav'),
-    pygame.mixer.Sound('Assets/podium_tune3.wav'),
-    pygame.mixer.Sound('Assets/podium_tune4.wav')
-]
-pysprint_car.start_race_sound = pygame.mixer.Sound('Assets/start_race.wav')
-pysprint_car.bonus_pickup_sound = pygame.mixer.Sound('Assets/bonus_pickup.wav')
-pysprint_car.wrench_pickup_sound = pygame.mixer.Sound('Assets/wrench_pickup.wav')
-pysprint_car.bump_sound = pygame.mixer.Sound('Assets/bump.wav')
-pysprint_car.obstacle_sound = pygame.mixer.Sound('Assets/obstacle.wav')
-pysprint_car.spin_sound = pygame.mixer.Sound('Assets/spin.wav')
-pysprint_car.crash_sound = pygame.mixer.Sound('Assets/crash.wav')
-pysprint_car.collision_sound = pygame.mixer.Sound('Assets/collision.wav')
-pysprint_car.engine_idle = pygame.mixer.Sound('Assets/engine_idle.wav')
-pysprint_car.engine_accelerate = pygame.mixer.Sound('Assets/engine_accelerate.wav')
-pysprint_car.engine_max = pygame.mixer.Sound('Assets/engine_max.wav')
-pysprint_car.engine_decelerate = pygame.mixer.Sound('Assets/engine_decelerate.wav')
+podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
 #Graphic assets
 pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
@@ -1088,7 +1066,7 @@ def display_start_race_screen():
 
     #Add Green car
     screen_fadein(start_race_screen)
-    prepare_to_race_music.play()
+    smp_manager.get_sample("prepare_to_race_music").play()
     print_start_race_text(seconds)
     game_over_screen = False
     for car in cars:
@@ -1278,7 +1256,7 @@ def display_start_race_screen():
 
         with open(".bestlaps.json","w") as best_laps_file:
             json.dump(best_laps, best_laps_file)
-    prepare_to_race_music.fadeout(FADEOUT_DURATION)
+    smp_manager.get_sample("prepare_to_race_music").stop(fadeout_ms=FADEOUT_DURATION)
     screen_fadeout()
     return pygame.K_SPACE
 
@@ -1564,7 +1542,7 @@ def display_track_selection():
             master_car_index = i
             break
     car = cars[master_car_index]
-    track_select_music.play()
+    smp_manager.get_sample("track_select_music").play()
 
     while not screen_exit:
         if track_index<0:
@@ -1652,7 +1630,7 @@ def display_track_selection():
                     screen_exit = True
 
         clock.tick(15)
-    track_select_music.fadeout(FADEOUT_DURATION)
+    smp_manager.get_sample("track_select_music").stop(fadeout_ms=FADEOUT_DURATION)
     screen_fadeout()
     return track_index
 
@@ -1695,7 +1673,7 @@ def display_car_item_selection(car:pysprint_car.Car):
     selection_confirmed = False
     grant_item_counter = -1
     grant_item_timer = -1
-    track_select_music.play()
+    smp_manager.get_sample("track_select_music").play()
     while not screen_exit:
         car_item_background.blit(white_background,(0,0))
 
@@ -1755,7 +1733,7 @@ def display_car_item_selection(car:pysprint_car.Car):
             else:
                 if pygame.time.get_ticks()-grant_item_timer>=395:
                     if grant_item_counter==1:
-                        item_choice_sound.play()
+                        smp_manager.get_sample("item_choice").play()
                     grant_item_counter+=1
                     grant_item_timer = pygame.time.get_ticks()
                     if grant_item_counter>=1:
@@ -1894,7 +1872,7 @@ def display_car_item_selection(car:pysprint_car.Car):
             #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Track is selected
             if key_pressed == car.accelerate_key:
                 selection_confirmed = True
-                track_select_music.fadeout(FADEOUT_DURATION)
+                smp_manager.get_sample("track_select_music").stop(fadeout_ms=FADEOUT_DURATION)
 
             if not car.joystick is None:
                 joy = car.joystick
@@ -2290,7 +2268,7 @@ def game_loop():
                     track.init_obstacles(race_counter)
 
                     get_ready_time  = pygame.time.get_ticks()
-                    get_ready_sound.play()
+                    smp_manager.get_sample("get_ready").play()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
                         track.blit_obstacles(False)
@@ -2506,7 +2484,7 @@ def game_loop():
                                         break
                                 #Draw Checkered Flag and finish race
                                 if race_finish:
-                                    end_race_sound.play()
+                                    smp_manager.get_sample("end_race").play()
                                     animation_index = 0
                                     flag_waves = 0
                                     flag_waved = False
@@ -2519,7 +2497,7 @@ def game_loop():
                             for car in cars:
                                 #Draw White Flag for Last lap
                                 if not last_lap and car.lap_count == race_laps -1:
-                                    last_lap_sound.play()
+                                    smp_manager.get_sample("last_lap").play()
                                     animation_index = 0
                                     flag_waves = 0
                                     wave_up = True
@@ -2616,7 +2594,8 @@ def game_loop():
                             #Display Podium Screen
                             if race_finish and flag_waved:
                                 #Stop out all sounds
-                                pygame.mixer.stop()
+                                smp_manager.mute()
+
                                 #Ranking Cars
                                 ranking = [-1, -1, -1, -1]
                                 #Evaluate progress and save Best Lap for Track
@@ -2689,7 +2668,7 @@ def game_loop():
                                 screen_fadein(composed_race_podium)
                                 podium_tunes[mechanic_index].play()
                                 key_pressed = display_race_podium_screen(track, mechanic_frames, ranking, composed_race_podium, crowd_background)
-                                pygame.mixer.fadeout(500)
+                                smp_manager.fadeout(500)
                                 if key_pressed == pygame.K_ESCAPE:
                                     game_exit = True
 
