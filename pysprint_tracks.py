@@ -7,6 +7,9 @@ from numpy.lib.polynomial import poly
 import pygame
 from pygame import Surface, gfxdraw, draw
 
+from loguru import logger
+from gfx.cone import Cone
+
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
 
@@ -182,8 +185,10 @@ class Track:
         self.external_pole_position = None
         self.internal_pole_position = None
         self.middle_pole_position = None
+        
         #Traffic Cones
-        self.traffic_cones_positions = None
+        self.traffic_cones = []
+
         #All static Obstacles Gates
         self.obstacle_gates = []
         #Tornado
@@ -773,13 +778,22 @@ class Track:
                     obstacle_count+=1
                     self.display_water_spill = True
 
-        self.display_cones = False
+        self.display_cones = True
         self.cones_count = 0
-        if nb_cones_max>0:
+        if nb_cones_max > 0:
             if random.randint(0,1)>0:
                 self.display_cones = True
+
             if self.display_cones:
-                self.cones_count = random.randint(3,nb_cones_max)
+                self.cones_count = random.randint(3, nb_cones_max)
+
+                logger.debug(f"Creating {self.cones_count} cones")
+                for i in range(self.cones_count):
+                    cone = Cone(display=game_display, image=traffic_cone, shade_image=traffic_cone_shade)
+
+                    self.traffic_cones.append(cone)
+                    logger.debug(f"Cone at {cone.pos} added")
+                    
 
         if DEBUG_OBSTACLES:
             self.display_pole = True
@@ -914,13 +928,11 @@ class Track:
                 game_display.blit(grease_spill_image,self.grease_spill_position)
 
         #Display Traffic Cones
-        if self.display_cones:
-            if self.traffic_cones_positions is None:
-                self.traffic_cones_positions = []
-                for i in range(1,self.cones_count):
-                    self.traffic_cones_positions.append(self.get_random_position(traffic_cone.get_height(),traffic_cone_shade.get_width()))
+        if race_started:
+            for cone in self.traffic_cones:
 
-            if race_started:
-                for i in range(0,len(self.traffic_cones_positions)):
-                    game_display.blit(traffic_cone,self.traffic_cones_positions[i])
-                    game_display.blit(traffic_cone_shade,self.traffic_cones_positions[i])
+                # should be done before
+                if cone.pos is None:
+                    cone.update(self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width()))
+
+                cone.blit()
