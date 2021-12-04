@@ -10,30 +10,6 @@ from pygame import Surface, gfxdraw, draw
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
 
-#Track 1 Setup
-track1_json_filename = 'Assets/SuperSprintTrack1.json'
-
-#Track 2 Setup
-track2_json_filename = 'Assets/SuperSprintTrack2.json'
-
-#Track 3 Setup
-track3_json_filename = 'Assets/SuperSprintTrack3.json'
-
-#Track 4 Setup
-track4_json_filename = 'Assets/SuperSprintTrack4.json'
-
-#Track 5 Setup
-track5_json_filename = 'Assets/SuperSprintTrack5.json'
-
-#Track 6 Setup
-track6_json_filename = 'Assets/SuperSprintTrack6.json'
-
-#Track 7 Setup
-track7_json_filename = 'Assets/SuperSprintTrack7.json'
-
-#Track 7 Setup
-track8_json_filename = 'Assets/SuperSprintTrack8.json'
-
 #Spills
 oil_spill_image = None
 water_spill_image = None
