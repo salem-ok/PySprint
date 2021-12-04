@@ -13,7 +13,7 @@ import json
 pygame.init()
 pygame.joystick.init()
 
-version = "0.29"
+version = "0.37"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
@@ -2163,14 +2163,16 @@ def check_option_key_pressed(key_pressed,scaled_screen):
     if (key_pressed == pygame.K_F1):
         display_options()
         return scaled_screen
-    if (key_pressed == pygame.K_F11):
-        if scaled_screen:
-            game_display = pygame.display.set_mode((display_width, display_height), 0)
-            return False
-        else:
-            game_display = pygame.display.set_mode((display_width, display_height), pygame.SCALED)
-            return True
-
+    if (key_pressed == pygame.K_F4):
+        try:
+            if scaled_screen:
+                game_display = pygame.display.set_mode((display_width, display_height), 0)
+                return False
+            else:
+                game_display = pygame.display.set_mode((display_width, display_height), pygame.SCALED)
+                return True
+        except:
+            print("Could not Scale Window - probably an old version of pygame Library < 2.0.0")
 
 
 def game_loop():
