@@ -34,7 +34,7 @@ The game starts in **"Attract mode"** cycling through several screens -Spash Scr
 
 ![PySprint Options Screen](https://github.com/salem-ok/PySprint/blob/main/ImageSource/OptionsScreen.png?raw=true)
 
-  - Hit F11 to toggle Scaled Window Mode (crashes on Raspberry Pi)
+  - Hit F4 to toggle Scaled Window Mode (will not work with pygame version < 2.0.0)
   - Hit ESC or close the Window to Quit the Game
   - Hit acclerate for any player to start a game:
       - The first player to hit accelerate selects the track (left-right to choose, accelerate to select).
