@@ -46,8 +46,8 @@ grease_spill_mask = None
 wrench_image = None
 wrench_mask = None
 wrench_position = None
-wrench_display_interval = 6000
-wrench_display_duration = 15000
+wrench_display_interval = 7000
+wrench_display_duration = 240000
 
 #Traffic Cone
 traffic_cone = None
@@ -704,7 +704,7 @@ class Track:
                     #Now we display the wrench
                     self.wrench_position = self.get_random_position(12,26)
                     self.wrench_displayed = True
-                    self.wrench_timer = now + wrench_display_interval
+                    self.wrench_timer = now + wrench_display_duration
             if self.wrench_displayed:
                 game_display.blit(wrench_image,self.wrench_position)
 
