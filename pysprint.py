@@ -1305,7 +1305,10 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
         best_lap_scores.append(track.get_score_from_laptime(cars[ranking[i]].best_lap))
         best_lap_scores_surfs.append(small_font.render('{}'.format(best_lap_scores[i]), False, black_color))
         score_position_surfs.append(small_font.render('{}'.format(score_positions[i]), False, black_color))
+        skip_surf = small_font.render("PRESS SPACE TO SKIP", False, black_color)
 
+    key_pressed = -1
+    screen_exit = False
 
     for score in range(0,1010,10):
         game_display.blit(composed_race_podium, (0, 0))
@@ -1313,7 +1316,7 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
             #Blit Lap times
             game_display.blit(avg_lap_times[i], (text_positions[i][0] - avg_lap_times[i].get_width(), text_positions[i][3]))
             game_display.blit(best_lap_times[i], (text_positions[i][0] - best_lap_times[i].get_width(), text_positions[i][4]))
-
+            game_display.blit(skip_surf, ((600 - skip_surf.get_width())/2, 385))
             #Render main score
             if score < score_positions[i]:
                 score_surf = small_font.render('{}'.format(score), False, black_color)
@@ -1337,52 +1340,82 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
             game_display.blit(best_score_surf, (text_positions[i][1] - best_score_surf.get_width(), text_positions[i][4]))
             draw_score(cars[ranking[i]], track)
         pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                screen_exit = True
+                key_pressed = pygame.K_ESCAPE
+            if event.type == pygame.KEYDOWN:
+                key_pressed = event.key
+                if event.key == pygame.K_SPACE:
+                    screen_exit = True
+                if event.key == pygame.K_ESCAPE:
+                    screen_exit = True
+
+        if screen_exit:
+            break
+
         clock.tick(10)
+    if not screen_exit:
+        #Update Score on top screen
+        for i in range(0, len(ranking)):
+            #Pre_calculate and pre-render scores based on lap_times
+            cars[ranking[i]].score += avg_lap_scores[i]
+            cars[ranking[i]].score += best_lap_scores[i]
+            cars[ranking[i]].score += score_positions[i]
 
-    #Update Score on top screen
-    for i in range(0, len(ranking)):
-        #Pre_calculate and pre-render scores based on lap_times
-        cars[ranking[i]].score += avg_lap_scores[i]
-        cars[ranking[i]].score += best_lap_scores[i]
-        cars[ranking[i]].score += score_positions[i]
-
-    #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
-    wave_count = 0
-    frame_count = 0
-    mechanic_index = 0
-    for waves in range (0, 11, 1):
-        for index in range (0, len(crowd_flags), 1):
-            game_display.blit(crowd_background, (0, 0))
-            game_display.blit(race_podium_screen, (0,0))
-            game_display.blit(crowd_flags[index], (0,0))
-            game_display.blit(cars[ranking[0]].first_car, (0,0))
-            game_display.blit(cars[ranking[1]].second_car, (0,0))
-            game_display.blit(cars[ranking[2]].third_car, (0,0))
-            game_display.blit(cars[ranking[3]].fourth_car, (0,0))
-            game_display.blit(mechanic_frames[mechanic_index], (0,0))
+        #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
+        wave_count = 0
+        frame_count = 0
+        mechanic_index = 0
+        for waves in range (0, 11, 1):
+            for index in range (0, len(crowd_flags), 1):
+                game_display.blit(crowd_background, (0, 0))
+                game_display.blit(race_podium_screen, (0,0))
+                game_display.blit(crowd_flags[index], (0,0))
+                game_display.blit(cars[ranking[0]].first_car, (0,0))
+                game_display.blit(cars[ranking[1]].second_car, (0,0))
+                game_display.blit(cars[ranking[2]].third_car, (0,0))
+                game_display.blit(cars[ranking[3]].fourth_car, (0,0))
+                game_display.blit(mechanic_frames[mechanic_index], (0,0))
 
 
-            for i in range (0, len(ranking)):
-                #Blit Lap times & scores
-                game_display.blit(avg_lap_times[i], (text_positions[i][0] - avg_lap_times[i].get_width(), text_positions[i][3]))
-                game_display.blit(best_lap_times[i], (text_positions[i][0] - best_lap_times[i].get_width(), text_positions[i][4]))
-                game_display.blit(score_position_surfs[i], (text_positions[i][1] - score_position_surfs[i].get_width(), text_positions[i][2]))
-                game_display.blit(avg_lap_scores_surfs[i], (text_positions[i][1] - avg_lap_scores_surfs[i].get_width(), text_positions[i][3]))
-                game_display.blit(best_lap_scores_surfs[i], (text_positions[i][1] - best_lap_scores_surfs[i].get_width(), text_positions[i][4]))
-                draw_score(cars[ranking[i]], track)
-
-            pygame.display.update()
-            index += 1
-            if index > len(crowd_flags)-1:
-                index = 0
-            frame_count += 1
-            if frame_count % 4 ==0:
-                mechanic_index += 1
-                if mechanic_index == len(mechanic_frames):
-                    mechanic_index = 0
-                    frame_count = 0
-            clock.tick(18)
-        wave_count += 1
+                for i in range (0, len(ranking)):
+                    #Blit Lap times & scores
+                    game_display.blit(avg_lap_times[i], (text_positions[i][0] - avg_lap_times[i].get_width(), text_positions[i][3]))
+                    game_display.blit(best_lap_times[i], (text_positions[i][0] - best_lap_times[i].get_width(), text_positions[i][4]))
+                    game_display.blit(score_position_surfs[i], (text_positions[i][1] - score_position_surfs[i].get_width(), text_positions[i][2]))
+                    game_display.blit(avg_lap_scores_surfs[i], (text_positions[i][1] - avg_lap_scores_surfs[i].get_width(), text_positions[i][3]))
+                    game_display.blit(best_lap_scores_surfs[i], (text_positions[i][1] - best_lap_scores_surfs[i].get_width(), text_positions[i][4]))
+                    draw_score(cars[ranking[i]], track)
+                game_display.blit(skip_surf, ((600 - skip_surf.get_width())/2, 385))
+                pygame.display.update()
+                index += 1
+                if index > len(crowd_flags)-1:
+                    index = 0
+                frame_count += 1
+                if frame_count % 4 ==0:
+                    mechanic_index += 1
+                    if mechanic_index == len(mechanic_frames):
+                        mechanic_index = 0
+                        frame_count = 0
+                clock.tick(18)
+            wave_count += 1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                screen_exit = True
+                key_pressed = pygame.K_ESCAPE
+            if event.type == pygame.KEYDOWN:
+                key_pressed = event.key
+                if event.key == pygame.K_SPACE:
+                    screen_exit = True
+                if event.key == pygame.K_ESCAPE:
+                    screen_exit = True
+            if screen_exit:
+                break
+    if key_pressed==-1:
+        return pygame.K_SPACE
+    else:
+        return key_pressed
 
 
 def print_car_name_and_control_method(top_left, color, color_text, control_method, joy_name):
@@ -2224,8 +2257,8 @@ def game_loop():
                 if not car.is_drone:
                     while car.wrench_count>=4:
                         display_car_item_selection(car)
-
-            key_pressed = display_start_race_screen()
+            if not key_pressed == pygame.K_ESCAPE:
+                key_pressed = display_start_race_screen()
             if not key_pressed == pygame.K_ESCAPE:
                 race_finished = False
                 nb_drones = activate_cars()
@@ -2583,6 +2616,8 @@ def game_loop():
 
                             #Display Podium Screen
                             if race_finish and flag_waved:
+                                #Stop out all sounds
+                                pygame.mixer.stop()
                                 #Ranking Cars
                                 ranking = [-1, -1, -1, -1]
                                 #Evaluate progress and save Best Lap for Track
@@ -2654,7 +2689,11 @@ def game_loop():
 
                                 screen_fadein(composed_race_podium)
                                 podium_tunes[mechanic_index].play()
-                                display_race_podium_screen(track, mechanic_frames, ranking, composed_race_podium, crowd_background)
+                                key_pressed = display_race_podium_screen(track, mechanic_frames, ranking, composed_race_podium, crowd_background)
+                                pygame.mixer.fadeout(500)
+                                if key_pressed == pygame.K_ESCAPE:
+                                    game_exit = True
+
                                 podium_displayed = True
                                 #Game Over if behind a Drone
                                 for i in range(0, len(cars)-1):
