@@ -2206,6 +2206,16 @@ def check_option_key_pressed(key_pressed,scaled_screen):
                 return True
         except:
             print("Could not Scale Window - probably an old version of pygame Library < 2.0.0")
+    if (key_pressed == pygame.K_F5):
+        try:
+            if scaled_screen:
+                game_display = pygame.display.set_mode((display_width, display_height), 0)
+                return False
+            else:
+                game_display = pygame.display.set_mode((display_width, display_height), pygame.FULLSCREEN)
+                return True
+        except:
+            print("Could not go full screen - probably an old version of pygame Library < 2.1.0")
 
 
 def game_loop():
