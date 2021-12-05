@@ -102,12 +102,14 @@ class Car:
 
     #30FPS Default Settings
     player_rotation_step = .26#.28
-    player_acceleration_step = 0.5#0.18
-    player_deceleration_step = 0.5#0.1
+    player_acceleration_step = 0.3#0.18
+    player_deceleration_step = 0.15#0.1
     player_bump_decelaration_step = 1.3
     player__bump_speed = 9
     player_speed = 7.5#8
     player_skidding_weight = 3
+    #How much time after starting to skid before the car gaoins traction and turns
+    skidding_traction_timer = 500
 
     #AI Default Characteristics
     drone_personalities = [
@@ -155,12 +157,12 @@ class Car:
     side_detection_tolerance = 7
     max_speed_crash_threshold = 3000#4000
     collision_area_threshold = 80#80#75
-    #Threshold over which theer is a higher chance to crash
+    #Threshold over which there is a higher chance to crash
     speed_crash_probability_threshold = 0.95#0.85
     #% increase of probability to crash if condition is true
     speed_crash_probability_penalty = 1.2#1.2
     sensitive_border_crash_probability_penalty = 1.4
-    #Max Random number drawn to calculate Crash probability
+    #Calculate Crash probability
     crash_basic_chance = 0
     crash_certainty_treshold = 85#85
 
@@ -253,6 +255,7 @@ class Car:
 
         #Car State
         #Track the last time score was incremented due to progress in race (lap_count, gate_number)
+        self.skidding_timer = 0
         self.previous_score_increment = 0
         self.is_drone = True
         self.decelerating = False
@@ -494,6 +497,8 @@ class Car:
             self.fix_sprite_angle_on_ramp(track)
 
     def accelerate(self):
+        #Reset skidding timer, as skidding stops once acceleration starts
+        self.skidding_timer = 0
         self.decelerating = False
         if not self.mid_air and not self.take_off:
             if self.speed < self.speed_max:
@@ -525,6 +530,9 @@ class Car:
 
 
     def decelerate(self):
+        #Reset skidding timer, as skidding stops once acceleration starts
+        if self.skidding_timer == 0:
+            self.skidding_timer = pygame.time.get_ticks()
         self.decelerating = True
         self.max_speed_reached = 0
         if not self.is_drone:
@@ -682,19 +690,30 @@ class Car:
         #Start Skidding
         # v0.1 - Ignore current Rotation sprite, update speed and use previous Angle and sign
         # v0.11 - Incorporate the spinte angle in the skidding vector if rotating
+        # v0.37 - issue #45 set a timer when teh car starts skidding and incorporate the sprite angle only after that timer expired
         skidding_x = self.x_vector
         skidding_y = self.y_vector
+        regain_traction = self.bumping
+        if (self.skidding_timer>0) and (pygame.time.get_ticks()-self.skidding_timer > self.skidding_traction_timer):
+            regain_traction = True
         skidding_angle = self.sin_angle
-        if not skidding_y == 0:
-            skidding_y = skidding_y * abs(self.speed * skidding_angle) / abs(self.y_vector)
+        if regain_traction:
+            if DEBUG_BUMP:
+                print("Regaining traction on skidding")
+            if not skidding_y == 0:
+                skidding_y = skidding_y * abs(self.speed * skidding_angle) / abs(self.y_vector)
 
-        if not skidding_x == 0:
-            skidding_x = skidding_x * math.sqrt(abs(self.speed*self.speed-skidding_y*skidding_y))  / abs(skidding_x)
+            if not skidding_x == 0:
+                skidding_x = skidding_x * math.sqrt(abs(self.speed*self.speed-skidding_y*skidding_y))  / abs(skidding_x)
+        else:
+            if DEBUG_BUMP:
+                print("Skidding without Traction")
 
         self.calculate_vector_from_sprite()
         self.x_vector = (self.x_vector + skidding_x*self.skidding_weight)/(self.skidding_weight+1)
         self.y_vector = (self.y_vector + skidding_y*self.skidding_weight)/(self.skidding_weight+1)
-        self.sin_angle = (self.sin_angle + skidding_angle*2)/3
+        if regain_traction:
+            self.sin_angle = (self.sin_angle + skidding_angle*2)/3
 
         if self.x_vector==0 and self.y_vector==0 and self.speed>0:
             #Wrong situation: reset to default vector

@@ -2605,7 +2605,10 @@ def game_loop():
                             if DISPLAY_FPS:
                                 avg_fps.append(current_fps)
                                 if (pygame.time.get_ticks() - fps_refresh_time>500):
-                                    average_fps = round(sum(avg_fps)/(len(avg_fps)-1))
+                                    if len(avg_fps)>1:
+                                        average_fps = round(sum(avg_fps)/(len(avg_fps)-1))
+                                    else:
+                                        average_fps = current_fps
                                     avg_fps.clear()
                                     fps_refresh_time = pygame.time.get_ticks()
                                     fps_surf = small_font.render("{} FPS".format(average_fps), False, white_color)
