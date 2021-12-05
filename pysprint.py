@@ -9,8 +9,9 @@ import pysprint_tracks
 import random
 import json
 
-#New awesome imports from shazz
+#New awesome imports from shazz :D
 from managers.sample_manager import SampleManager
+from managers.texture_manager import TextureManager
 from pathlib import Path
 from loguru import logger
 
@@ -27,8 +28,9 @@ pysprint_tracks.display_height = 400
 
 # Create sample managers
 FADEOUT_DURATION = 1000
-SampleManager.create_manager("sfx", "Assets/sound/smp_sfx.json")
-smp_manager = SampleManager.create_manager("music", "Assets/sound/smp_music.json")
+SampleManager.create_manager("sfx", "configuration/atarist_sfx.json")
+smp_manager = SampleManager.create_manager("music", "configuration/atarist_music.json")
+tex_manager = TextureManager.create_manager("sprites", "configuration/atarist_tex.json")
 
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
@@ -150,131 +152,70 @@ red_selection_wheel = pygame.image.load('Assets/RedSelectionWheel.png').convert_
 green_selection_wheel = pygame.image.load('Assets/GreenSelectionWheel.png').convert_alpha()
 
 #Traffic Cone
-pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
-pysprint_tracks.traffic_cone_shade = pygame.image.load('Assets/TrafficConeShade.png').convert_alpha()
-pysprint_tracks.traffic_cone_mask =  pygame.mask.from_surface(pysprint_tracks.traffic_cone, 50)
+pysprint_tracks.traffic_cone = tex_manager.get_texture("traffic_cone")
+pysprint_tracks.traffic_cone_shade = tex_manager.get_texture("traffic_cone_shade")
+pysprint_tracks.traffic_cone_mask =  tex_manager.get_mask("traffic_cone")
 
 #Tornado Frames:
-pysprint_tracks.tornado_frames = {
-    0:pygame.image.load('Assets/TornadoFrame0.png').convert_alpha(),
-    1:pygame.image.load('Assets/TornadoFrame1.png').convert_alpha()
-}
-pysprint_tracks.tornado_frames_masks = {
-    0:pygame.mask.from_surface(pysprint_tracks.tornado_frames[0], 50),
-    1:pygame.mask.from_surface(pysprint_tracks.tornado_frames[1], 50)
-}
+pysprint_tracks.tornado_frames = {}
+pysprint_tracks.tornado_frames_masks = {}
+for i in range(2):
+    pysprint_tracks.tornado_frames[i] = tex_manager.get_texture(f"tornado_frame_{i}")
+    pysprint_tracks.tornado_frames_masks[i] = tex_manager.get_mask(f"tornado_frame_{i}")
 
 #Poles Frames:
-pysprint_tracks.poles_frames = {
-    0:pygame.image.load('Assets/PoleFrame0.png').convert_alpha(),
-    1:pygame.image.load('Assets/PoleFrame1.png').convert_alpha(),
-    2:pygame.image.load('Assets/PoleFrame2.png').convert_alpha(),
-    3:pygame.image.load('Assets/PoleFrame3.png').convert_alpha()
-}
-
-pysprint_tracks.poles_frames_masks = {
-    0:pygame.mask.from_surface(pysprint_tracks.poles_frames[0], 50),
-    1:pygame.mask.from_surface(pysprint_tracks.poles_frames[1], 50),
-    2:pygame.mask.from_surface(pysprint_tracks.poles_frames[2], 50),
-    3:pygame.mask.from_surface(pysprint_tracks.poles_frames[3], 50)
-}
-
+pysprint_tracks.poles_frames = {}
+pysprint_tracks.poles_frames_masks = {}
+for i in range(4):
+    pysprint_tracks.poles_frames[i] = tex_manager.get_texture(f"pole_frame_{i}")
+    pysprint_tracks.poles_frames_masks[i] = tex_manager.get_mask(f"pole_frame_{i}")
 
 #Spills
-pysprint_tracks.oil_spill_image = pygame.image.load('Assets/OilSpill.png').convert_alpha()
-pysprint_tracks.oil_spill_mask = pygame.mask.from_surface(pysprint_tracks.oil_spill_image, 50)
-pysprint_tracks.water_spill_image = pygame.image.load('Assets/WaterSpill.png').convert_alpha()
-pysprint_tracks.water_spill_mask = pygame.mask.from_surface(pysprint_tracks.water_spill_image, 50)
-pysprint_tracks.grease_spill_image = pygame.image.load('Assets/GreaseSpill.png').convert_alpha()
-pysprint_tracks.grease_spill_mask = pygame.mask.from_surface(pysprint_tracks.grease_spill_image, 50)
+pysprint_tracks.oil_spill_image     = tex_manager.get_texture("oil_spill")
+pysprint_tracks.oil_spill_mask      = tex_manager.get_mask("oil_spill")
+pysprint_tracks.water_spill_image   = tex_manager.get_texture("water_spill")
+pysprint_tracks.water_spill_mask    = tex_manager.get_mask("water_spill")
+pysprint_tracks.grease_spill_image  = tex_manager.get_texture("grease_spill")
+pysprint_tracks.grease_spill_mask   = tex_manager.get_mask("grease_spill")
 
 #Wrenches
-pysprint_tracks.wrench_image = pygame.image.load('Assets/Wrench.png').convert_alpha()
-pysprint_tracks.wrench_mask = pygame.mask.from_surface(pysprint_tracks.oil_spill_image, 50)
+pysprint_tracks.wrench_image = tex_manager.get_texture("wrench")
+pysprint_tracks.wrench_mask = tex_manager.get_mask("wrench")
 
-wrench_count_sprites = {
-    0:pygame.image.load('Assets/0_WrenchCount.png').convert_alpha(),
-    1:pygame.image.load('Assets/1_WrenchCount.png').convert_alpha(),
-    2:pygame.image.load('Assets/2_WrenchCount.png').convert_alpha(),
-    3:pygame.image.load('Assets/3_WrenchCount.png').convert_alpha(),
-    3:pygame.image.load('Assets/3_WrenchCount.png').convert_alpha(),
-    4:pygame.image.load('Assets/4_WrenchCount.png').convert_alpha(),
-    5:pygame.image.load('Assets/5_WrenchCount.png').convert_alpha(),
-    6:pygame.image.load('Assets/6_WrenchCount.png').convert_alpha(),
-    7:pygame.image.load('Assets/7_WrenchCount.png').convert_alpha(),
-    8:pygame.image.load('Assets/8_WrenchCount.png').convert_alpha(),
-    9:pygame.image.load('Assets/9_WrenchCount.png').convert_alpha(),
-}
-
+wrench_count_sprites = {}
+for i in range(10):
+    wrench_count_sprites[i] = tex_manager.get_texture(f"wrench_count_{i}")
 
 
 #Bonus Frames:
-pysprint_tracks.bonus_frames = {
-    0:pygame.image.load('Assets/BonusFrame0.png').convert_alpha(),
-    1:pygame.image.load('Assets/BonusFrame1.png').convert_alpha(),
-    2:pygame.image.load('Assets/BonusFrame2.png').convert_alpha(),
-    3:pygame.image.load('Assets/BonusFrame3.png').convert_alpha()
-}
+pysprint_tracks.bonus_frames = {}
+pysprint_tracks.bonus_frames_masks = {}
+for i in range(4):
+    pysprint_tracks.bonus_frames[i] = tex_manager.get_texture(f"bonus_frame_{i}")
+    pysprint_tracks.bonus_frames_masks[i] = tex_manager.get_mask(f"bonus_frame_{i}")
 
-pysprint_tracks.bonus_frames_masks = {
-    0:pygame.mask.from_surface(pysprint_tracks.bonus_frames[0], 50),
-    1:pygame.mask.from_surface(pysprint_tracks.bonus_frames[1], 50),
-    2:pygame.mask.from_surface(pysprint_tracks.bonus_frames[2], 50),
-    3:pygame.mask.from_surface(pysprint_tracks.bonus_frames[3], 50)
-}
-
-
-pysprint_tracks.bonus_shade_frames = {
-    0:pygame.image.load('Assets/BonusFrame0Shade.png').convert_alpha(),
-    1:pygame.image.load('Assets/BonusFrame1Shade.png').convert_alpha(),
-    2:pygame.image.load('Assets/BonusFrame2Shade.png').convert_alpha()
-}
-
+pysprint_tracks.bonus_shade_frames = { }
+for i in range(3):
+    pysprint_tracks.bonus_shade_frames[i] = tex_manager.get_texture(f"bonus_frame_shade_{i}")
 
 
 # For the Background
-pysprint_tracks.road_gate_frames = {
-    0:pygame.image.load('Assets/Gate0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Gate1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Gate2.png').convert_alpha(),
-    3:pygame.image.load('Assets/Gate3.png').convert_alpha(),
-    4:pygame.image.load('Assets/Gate4.png').convert_alpha()
-}
+pysprint_tracks.road_gate_frames = { }
+pysprint_tracks.road_gate_shade_frames = { }
+pysprint_tracks.road_gate_mask_frames = { }
+for i in range(5):
+    pysprint_tracks.road_gate_frames[i] = tex_manager.get_texture(f"gate_{i}")
+    pysprint_tracks.road_gate_shade_frames[i] = tex_manager.get_texture(f"gate_shade_{i}")
+    pysprint_tracks.road_gate_mask_frames[i] = tex_manager.get_texture(f"gate_mask_{i}")
 
-# For the Overlay
-pysprint_tracks.road_gate_shade_frames = {
-    0:pygame.image.load('Assets/GateShade0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GateShade1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GateShade2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GateShade3.png').convert_alpha(),
-    4:pygame.image.load('Assets/GateShade4.png').convert_alpha()
-}
+crowd_flags = { }
+for i in range(6):
+    crowd_flags[i] = tex_manager.get_texture(f"gate_crowd_flag_{i}")
 
-# For the Overlay
-pysprint_tracks.road_gate_mask_frames = {
-    0:pygame.image.load('Assets/GateMask0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GateMask1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GateMask2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GateMask3.png').convert_alpha(),
-    4:pygame.image.load('Assets/GateMask4.png').convert_alpha()
-}
+hammer_frames_loader = { }
+for i in range(3):
+    hammer_frames_loader[i] = tex_manager.get_texture(f"hammer_{i}")
 
-
-
-crowd_flags = {
-    0:pygame.image.load('Assets/CrowdFlags0.png').convert_alpha(),
-    1:pygame.image.load('Assets/CrowdFlags1.png').convert_alpha(),
-    2:pygame.image.load('Assets/CrowdFlags2.png').convert_alpha(),
-    3:pygame.image.load('Assets/CrowdFlags3.png').convert_alpha(),
-    4:pygame.image.load('Assets/CrowdFlags4.png').convert_alpha(),
-    5:pygame.image.load('Assets/CrowdFlags5.png').convert_alpha()
-}
-
-hammer_frames_loader = {
-    0:pygame.image.load('Assets/Hammer0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Hammer1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Hammer2.png').convert_alpha()
-}
 hammer_frames = {
     0:hammer_frames_loader[0],
     1:hammer_frames_loader[1],
@@ -283,11 +224,9 @@ hammer_frames = {
     4:hammer_frames_loader[2]
 }
 
-saw_frames_loader =  {
-    0:pygame.image.load('Assets/Saw0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Saw1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Saw2.png').convert_alpha()
-}
+saw_frames_loader =  { }
+for i in range(3):
+    saw_frames_loader[i] = tex_manager.get_texture(f"saw_{i}")
 
 saw_frames =  {
     0:saw_frames_loader[0],
@@ -297,11 +236,9 @@ saw_frames =  {
     4:saw_frames_loader[0]
 }
 
-head_scratch_frames_loader =  {
-    0:pygame.image.load('Assets/HeadScratch0.png').convert_alpha(),
-    1:pygame.image.load('Assets/HeadScratch1.png').convert_alpha(),
-    2:pygame.image.load('Assets/HeadScratch2.png').convert_alpha()
-}
+head_scratch_frames_loader = { }
+for i in range(3):
+    head_scratch_frames_loader[i] = tex_manager.get_texture(f"head_scratch_{i}")
 
 
 head_scratch_frames =  {
@@ -321,13 +258,9 @@ head_scratch_frames =  {
     13:head_scratch_frames_loader[2]
 }
 
-blow_frames_loader =  {
-    0:pygame.image.load('Assets/Blow0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Blow1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Blow2.png').convert_alpha(),
-    3:pygame.image.load('Assets/Blow3.png').convert_alpha(),
-    4:pygame.image.load('Assets/Blow4.png').convert_alpha()
-}
+blow_frames_loader =  { }
+for i in range(5):
+    blow_frames_loader[i] = tex_manager.get_texture(f"blow_{i}")
 
 
 blow_frames =  {
@@ -350,15 +283,15 @@ blow_frames =  {
     16:blow_frames_loader[4]
 }
 
-first_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarBlueCar.png').convert_alpha()
-first_car_red = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRedCar.png').convert_alpha()
-first_car_green = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCar.png').convert_alpha()
-first_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCar.png').convert_alpha()
+first_car_blue = tex_manager.get_texture("podium_first_blue_car")
+first_car_red = tex_manager.get_texture("podium_first_red_car")
+first_car_green = tex_manager.get_texture("podium_first_green_car")
+first_car_yellow = tex_manager.get_texture("podium_first_yellow_car")
 
-first_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarBlueCarDrone.png').convert_alpha()
-first_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRedCarDrone.png').convert_alpha()
-first_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCarDrone.png').convert_alpha()
-first_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCarDrone.png').convert_alpha()
+first_car_blue_drone = tex_manager.get_texture("podium_first_blue_drone")
+first_car_red_drone = tex_manager.get_texture("podium_first_red_drone")
+first_car_green_drone = tex_manager.get_texture("podium_first_green_drone")
+first_car_yellow_drone = tex_manager.get_texture("podium_first_yellow_drone")
 
 second_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCar.png').convert_alpha()
 second_car_red = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCar.png').convert_alpha()
@@ -390,12 +323,9 @@ fourth_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarR
 fourth_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png').convert_alpha()
 fourth_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png').convert_alpha()
 
-
-engine_idle = {
-    0:pygame.image.load('Assets/EngineIdle0.png').convert_alpha(),
-    1:pygame.image.load('Assets/EngineIdle1.png').convert_alpha(),
-    2:pygame.image.load('Assets/EngineIdle2.png').convert_alpha(),
-}
+engine_idle = {}
+for i in range(3):
+    engine_idle[i] = tex_manager.get_texture(f"engine_idle_{i}")
 
 prepare_to_race = {
     0:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),

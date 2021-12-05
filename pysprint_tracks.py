@@ -8,7 +8,7 @@ from numpy.lib.polynomial import poly
 import pygame
 from pygame import Surface, gfxdraw, draw
 
-DEBUG_OBSTACLES = False
+DEBUG_OBSTACLES = True
 DEBUG_RAMPS = False
 
 #Spills
