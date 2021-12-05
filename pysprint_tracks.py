@@ -174,10 +174,10 @@ class Track:
         
         #Traffic Cones
         self.traffic_cones = []
-        self.on_bridge_or_ramp_grease_traffic_cones = None
 
         #All static Obstacles Gates
         self.obstacle_gates = []
+        
         #Tornado
         self.tornado_position = None
         self.tornado_timer = None
@@ -1018,18 +1018,4 @@ class Track:
                 if not overlay_blitted:
                     cone.blit()
 
-#         if self.display_cones:
-#             if self.traffic_cones_positions is None:
-#                 self.traffic_cones_positions = []
-#                 self.on_bridge_or_ramp_grease_traffic_cones = []
-#                 for i in range(1,self.cones_count):
-#                     result = self.get_random_position(traffic_cone.get_height(),traffic_cone_shade.get_width())
-#                     self.traffic_cones_positions.append(result[0])
-#                     self.on_bridge_or_ramp_grease_traffic_cones.append(result[1])
-
-#             if race_started:
-#                 for i in range(0,len(self.traffic_cones_positions)):
-#                     if not overlay_blitted or self.on_bridge_or_ramp_grease_traffic_cones[i]:
-#                         game_display.blit(traffic_cone,self.traffic_cones_positions[i])
-#                         game_display.blit(traffic_cone_shade,self.traffic_cones_positions[i])
 
