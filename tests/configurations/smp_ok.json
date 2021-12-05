@@ -1,0 +1,14 @@
+{
+    "collision": "Assets/sound/collision.wav",
+    "crash": "Assets/sound/crash.wav",
+    "start_race": "Assets/sound/start_race.wav",
+    "bonus_pickup": "Assets/sound/bonus_pickup.wav",
+    "wrench_pickup": "Assets/sound/wrench_pickup.wav",
+    "bump": "Assets/sound/bump.wav",
+    "obstacle": "Assets/sound/obstacle.wav",
+    "spin": "Assets/sound/spin.wav",
+    "engine_idle": "Assets/sound/engine_idle.wav",
+    "engine_accelerate": "Assets/sound/engine_accelerate.wav",
+    "engine_max": "Assets/sound/engine_max.wav",
+    "engine_decelerate": "Assets/sound/engine_decelerate.wav"
+}
