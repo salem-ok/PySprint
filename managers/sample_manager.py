@@ -13,7 +13,7 @@ class Sample():
             raise ValueError(f"No sample found at {path}")
 
         self.path = path
-        self.sound = pygame.mixer.Sound(path)
+        self.sound = pygame.mixer.Sound(str(path))
 
     def play(self, loops: int = 0, maxtime: int = 0, fade_start_ms : int = 0):
         logger.debug(f"Playing {self.path}")
