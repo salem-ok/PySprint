@@ -1195,18 +1195,22 @@ class Car:
                 return False
 
     def detect_spills(self, track: pysprint_tracks.Track):
-        if track.display_oil_spill:
-            if self.test_spill(pysprint_tracks.oil_spill_mask,track.oil_spill_position):
+
+        # oil spills
+        for spill in track.oil_spills:
+            if self.test_spill(pysprint_tracks.oil_spill_mask, spill.pos):
                 if not self.on_spill:
                     self.init_oil_spill_loop()
                 return True
-        if track.display_water_spill:
-            if self.test_spill(pysprint_tracks.water_spill_mask,track.water_spill_position):
+
+        for spill in track.water_spills:
+            if self.test_spill(pysprint_tracks.water_spill_mask, spill.pos):
                 if not self.on_spill:
                     self.init_water_spill_loop()
                 return True
-        if track.display_grease_spill:
-            if self.test_spill(pysprint_tracks.grease_spill_mask,track.grease_spill_position):
+
+        for spill in track.grease_spills:
+            if self.test_spill(pysprint_tracks.grease_spill_mask, spill.pos):
                 if not self.on_spill:
                     self.init_grease_spill_loop()
                 return True

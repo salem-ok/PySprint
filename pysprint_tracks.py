@@ -9,6 +9,7 @@ from pygame import Surface, gfxdraw, draw
 
 from loguru import logger
 from gfx.cone import Cone
+from gfx.spill import Spill
 
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
@@ -165,15 +166,17 @@ class Track:
         #Obstacles
         self.display_pole = False
         self.display_tornado = False
-        self.display_oil_spill = False
-        self.display_grease_spill = False
-        self.display_water_spill = False
         self.display_cones = False
         self.cones_count = 0
+
         #Spills
-        self.oil_spill_position = None
-        self.water_spill_position = None
-        self.grease_spill_position = None
+        self.oil_spills = []
+        self.oil_spill_count = 1
+        self.grease_spills = []
+        self.grease_spill_count = 1
+        self.water_spills = []
+        self.water_spill_count = 1        
+
         #Timer for Poles display animation
         self.poles_timer = None
         self.poles_popping_up = False
@@ -722,14 +725,14 @@ class Track:
         #Determine the number of obstacles
         nb_obstacles = 0
         min_obstacles = 0
-        max_obstacles = 0
+        max_obstacles = 5
         nb_cones_max = 0
 
         #No obstacles the first 2 races
         if race_counter>2:
             #No more than 1 obstacles the 3rd to 5th race
             if race_counter <6:
-                max_obstacles = 1
+                max_obstacles = 10
             #6th to 11th race: max obstacles depending on difficulty (wrenches)
             elif race_counter < 12:
                 max_obstacles = self.wrenches
@@ -754,29 +757,46 @@ class Track:
         #if less, we randomly pick the obstacles
         self.display_pole = False
         self.display_tornado = False
-        self.display_oil_spill = False
-        self.display_grease_spill = False
-        self.display_water_spill = False
 
+        logger.debug(f"nb obstacles: {nb_obstacles}")
         if nb_obstacles < 5:
             obstacle_count = 0
             while obstacle_count < nb_obstacles:
+
+                # select a arandom obstacle between pole, tornado, oil spill/grease/water spill
                 new_obstacle = random.randint(0,4)
+
                 if new_obstacle == 0 and not self.display_pole:
                     obstacle_count+=1
                     self.display_pole = True
-                elif new_obstacle == 1 and not self.display_tornado:
+                
+                if new_obstacle == 1 and not self.display_tornado:
                     obstacle_count+=1
                     self.display_tornado = True
-                elif new_obstacle == 2 and not self.display_oil_spill:
-                    obstacle_count+=1
-                    self.display_oil_spill = True
-                elif new_obstacle == 3 and not self.display_grease_spill:
-                    obstacle_count+=1
-                    self.display_grease_spill = True
-                elif new_obstacle == 4 and not self.display_water_spill:
-                    obstacle_count+=1
-                    self.display_water_spill = True
+                
+                if new_obstacle == 2:
+
+                    logger.debug(f"Creating {self.oil_spill_count} oil spills")
+                    for i in range(self.oil_spill_count):
+                        spill = Spill(display=game_display, image=oil_spill_image)
+                        self.oil_spills.append(spill)
+                    obstacle_count += self.oil_spill_count
+
+                if new_obstacle == 3:
+
+                    logger.debug(f"Creating {self.grease_spill_count} grease spills")
+                    for i in range(self.grease_spill_count):
+                        spill = Spill(display=game_display, image=grease_spill_image)
+                        self.grease_spills.append(spill)
+                    obstacle_count += self.oil_spill_count                    
+                
+                if new_obstacle == 4:
+
+                    logger.debug(f"Creating {self.water_spill_count} water spills")
+                    for i in range(self.water_spill_count):
+                        spill = Spill(display=game_display, image=water_spill_image)
+                        self.water_spills.append(spill)
+                    obstacle_count += self.oil_spill_count        
 
         self.display_cones = True
         self.cones_count = 0
@@ -790,17 +810,11 @@ class Track:
                 logger.debug(f"Creating {self.cones_count} cones")
                 for i in range(self.cones_count):
                     cone = Cone(display=game_display, image=traffic_cone, shade_image=traffic_cone_shade)
-
-                    self.traffic_cones.append(cone)
-                    logger.debug(f"Cone at {cone.pos} added")
-                    
+                    self.traffic_cones.append(cone)                    
 
         if DEBUG_OBSTACLES:
             self.display_pole = True
             self.display_tornado = True
-            self.display_oil_spill = True
-            self.display_grease_spill = True
-            self.display_water_spill = True
             self.display_cones = True
             self.cones_count = 16
 
@@ -910,29 +924,36 @@ class Track:
                 game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
 
         #Display spills
-        if self.display_oil_spill:
-            if self.oil_spill_position is None:
-                self.oil_spill_position = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
-            if race_started:
-                game_display.blit(oil_spill_image,self.oil_spill_position)
+        for spill in self.oil_spills:
 
-        if self.display_water_spill:
-            if self.water_spill_position is None:
-                self.water_spill_position = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
-            if race_started:
-                game_display.blit(water_spill_image,self.water_spill_position)
-        if self.display_grease_spill:
-            if self.grease_spill_position is None:
-                self.grease_spill_position = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
-            if race_started:
-                game_display.blit(grease_spill_image,self.grease_spill_position)
+            if not race_started:    
+                if spill.pos is None:
+                    spill.update(self.get_random_position(oil_spill_image.get_height(), oil_spill_image.get_width()))
+            else:
+                spill.blit()
+
+        for spill in self.grease_spills:
+
+            if not race_started:    
+                if spill.pos is None:
+                    spill.update(self.get_random_position(grease_spill_image.get_height(), grease_spill_image.get_width()))
+            else:
+                spill.blit()
+
+        for spill in self.water_spills:
+
+            if not race_started:    
+                if spill.pos is None:
+                    spill.update(self.get_random_position(water_spill_image.get_height(), water_spill_image.get_width()))
+            else:
+                spill.blit()
 
         #Display Traffic Cones
-        if race_started:
-            for cone in self.traffic_cones:
+        for cone in self.traffic_cones:
 
-                # should be done before
+            if not race_started:
+            # should be done before
                 if cone.pos is None:
                     cone.update(self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width()))
-
+            else:
                 cone.blit()
