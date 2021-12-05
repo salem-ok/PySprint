@@ -102,10 +102,10 @@ class Car:
 
     #30FPS Default Settings
     player_rotation_step = .26#.28
-    player_acceleration_step = 0.17#0.18
-    player_deceleration_step = 0.15#0.1
-    player_bump_decelaration_step = 0.3
-    player__bump_speed = 4
+    player_acceleration_step = 0.5#0.18
+    player_deceleration_step = 0.5#0.1
+    player_bump_decelaration_step = 1.3
+    player__bump_speed = 9
     player_speed = 7.5#8
     player_skidding_weight = 3
 
@@ -154,15 +154,15 @@ class Car:
     vector_simulation_length = 10
     side_detection_tolerance = 7
     max_speed_crash_threshold = 3000#4000
-    collision_area_threshold = 30#80#75
+    collision_area_threshold = 80#80#75
     #Threshold over which theer is a higher chance to crash
-    speed_crash_probability_threshold = 0.75#0.85
+    speed_crash_probability_threshold = 0.95#0.85
     #% increase of probability to crash if condition is true
-    speed_crash_probability_penalty = 1.4#1.2
+    speed_crash_probability_penalty = 1.2#1.2
     sensitive_border_crash_probability_penalty = 1.4
     #Max Random number drawn to calculate Crash probability
-    crash_random_max = 60
-    crash_certainty_treshold = 75#85#80
+    crash_basic_chance = 0
+    crash_certainty_treshold = 85#85
 
 
     def __init__(self):
@@ -1175,8 +1175,8 @@ class Car:
             else:
                 return False
         else:
-            #There is a random chance to Crash, increased:
-            crash_probability = random.randint(1,self.crash_random_max)
+            #Basic chance to crash which increased:
+            crash_probability = self.crash_basic_chance
             #1- If Speed is higher than xx% of max speed
             if self.speed >= self.speed_crash_probability_threshold * self.speed_max:
                 crash_probability = crash_probability * self.speed_crash_probability_penalty
