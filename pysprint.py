@@ -59,7 +59,7 @@ DEBUG_FLAG = False
 DISPLAY_FPS = True
 DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
-DEBUG_AI = False
+DEBUG_AI = True
 DISABLE_DRONES = False
 
 #Flag Events
@@ -2299,6 +2299,9 @@ def game_loop():
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay(False)
+                        track.blit_obstacles(True)
+                        track.blit_bonus(True)
+                        track.blit_wrench(True)
                         for car in cars:
                             car.blit(track, True)
                         print_get_ready()
@@ -2535,6 +2538,9 @@ def game_loop():
                             for car in cars:
                                 car.blit(track, False)
                             track.blit_overlay(True)
+                            track.blit_obstacles(True)
+                            track.blit_bonus(True)
+                            track.blit_wrench(True)
                             for car in cars:
                                 car.blit(track, True)
                             for car in cars:
@@ -2589,7 +2595,7 @@ def game_loop():
 
                             frame_duration = pygame.time.get_ticks() - frame_start
                             current_fps = round(1000/frame_duration)
-                            if current_fps <= 90:
+                            if current_fps <= 90 and current_fps > 0:
                                 pysprint_car.frame_rate_speed_modifier = 1 + (100/current_fps)/11
                                 pysprint_car.rotation_step_modifier =  1 + (100/current_fps)/14
                             else:
