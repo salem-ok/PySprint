@@ -9,6 +9,7 @@ import pysprint_tracks
 import random
 import json
 from pathlib import Path
+from loguru import logger
 
 pygame.init()
 pygame.joystick.init()
@@ -49,7 +50,7 @@ pysprint_tracks.game_display = game_display
 
 cars = []
 
-tracks = []
+tracks = {}
 
 
 FPS = 30
@@ -2184,7 +2185,9 @@ def init_track(filename):
         track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
     track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
     track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
-    tracks.append(track)
+    
+    logger.debug(f"Adding track {track.track_number} to the track list")
+    tracks[track.track_number-1] = track
 
 def initialize_tracks():
 
