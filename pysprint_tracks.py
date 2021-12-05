@@ -2,6 +2,7 @@
 import math
 import json
 import random
+from numpy import False_, object_, positive
 from numpy.lib.index_tricks import _fill_diagonal_dispatcher
 from numpy.lib.polynomial import poly
 import pygame
@@ -12,30 +13,6 @@ from gfx.cone import Cone
 
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
-
-#Track 1 Setup
-track1_json_filename = 'Assets/SuperSprintTrack1.json'
-
-#Track 2 Setup
-track2_json_filename = 'Assets/SuperSprintTrack2.json'
-
-#Track 3 Setup
-track3_json_filename = 'Assets/SuperSprintTrack3.json'
-
-#Track 4 Setup
-track4_json_filename = 'Assets/SuperSprintTrack4.json'
-
-#Track 5 Setup
-track5_json_filename = 'Assets/SuperSprintTrack5.json'
-
-#Track 6 Setup
-track6_json_filename = 'Assets/SuperSprintTrack6.json'
-
-#Track 7 Setup
-track7_json_filename = 'Assets/SuperSprintTrack7.json'
-
-#Track 7 Setup
-track8_json_filename = 'Assets/SuperSprintTrack8.json'
 
 #Spills
 oil_spill_image = None
@@ -158,10 +135,12 @@ class Track:
         self.bonus_frame_index = None
         self.bonus_value = None
         self.bonus_position = None
+        self.on_bridge_or_ramp_bonus = False
         #Timer for Wrench display
         self.wrench_timer = None
         self.wrench_displayed = False
         self.wrench_position = None
+        self.on_bridge_or_ramp_wrench = False
         #Obstacles
         self.display_pole = False
         self.display_tornado = False
@@ -169,6 +148,13 @@ class Track:
         self.display_grease_spill = False
         self.display_water_spill = False
         self.display_cones = False
+        self.on_bridge_or_ramp_pole = False
+        self.on_bridge_or_ramp_tornado = False
+        self.on_bridge_or_ramp_oil_spill = False
+        self.on_bridge_or_ramp_grease_spill = False
+        self.on_bridge_or_ramp_water_spill = False
+        self.on_bridge_or_ramp_cones = False
+
         self.cones_count = 0
         #Spills
         self.oil_spill_position = None
@@ -188,6 +174,7 @@ class Track:
         
         #Traffic Cones
         self.traffic_cones = []
+        self.on_bridge_or_ramp_grease_traffic_cones = None
 
         #All static Obstacles Gates
         self.obstacle_gates = []
@@ -547,16 +534,36 @@ class Track:
         self.track_mask_mask = pygame.mask.from_surface(self.track_mask, 50)
 
     def get_random_poles_position(self):
-        #Pick a gate at random where teh gate is more than 40 pixels long
+        #Pick a gate at random where teh gate is more than 70 pixels long
         random_gate = random.randint(1, len(self.external_gate_points)-1)
-        while calculate_distance(self.external_gate_points[random_gate],self.internal_gate_points[random_gate])<40:
+        while calculate_distance(self.external_gate_points[random_gate],self.internal_gate_points[random_gate])<70:
             random_gate = random.randint(0, len(self.external_gate_points)-1)
-
         return random_gate
 
     def test_object_on_track(self, position, width, height):
         object_mask = pygame.mask.from_surface(pygame.Surface((width,height)), 50)
         return  self.track_mask_mask.overlap(object_mask, (round(position[0]),round(position[1])))
+
+    def test_object_on_bridge(self, position, width, height):
+        object_mask = pygame.mask.from_surface(pygame.Surface((width,height)), 50)
+        bridges_found = []
+        for i in range(0, len(self.bridge_masks)):
+            for j in range(0,len(self.bridge_masks[i])):
+                bridge_mask = self.bridge_masks[i][j]
+                if bridge_mask.overlap(object_mask, (round(position[0]),round(position[1]))):
+                    bridges_found.append((i,j))
+        return len(bridges_found)>0
+
+
+    def test_object_on_ramp(self, position, width, height):
+        object_mask = pygame.mask.from_surface(pygame.Surface((width,height)), 50)
+        ramps_found = []
+        for i in range(0, len(self.ramp_masks)):
+            for j in range(0,len(self.ramp_masks[i])):
+                ramp_mask = self.ramp_masks[i][j]
+                if ramp_mask.overlap(object_mask, (round(position[0]),round(position[1]))):
+                    ramps_found.append((i,j))
+        return len(ramps_found)>0
 
 
     def get_random_position(self, height, width, force_gate = None):
@@ -571,12 +578,31 @@ class Track:
                         free_gate=False
         else:
             random_gate = force_gate
+
         self.obstacle_gates.append(random_gate)
+        is_ramp_or_bridge_gate = False
+        if not self.ramp_gates is None:
+            for i in self.ramp_gates:
+                for j in i:
+                    for k in j:
+                        if k==random_gate:
+                            is_ramp_or_bridge_gate = True
+        if not self.bridge_gates is None:
+            for i in self.bridge_gates:
+                for j in i:
+                    for k in j:
+                        if k==random_gate:
+                            is_ramp_or_bridge_gate = True
+
+        #define a box with the gate ahead of the one that was picked at randow and place the obstacle randomly inside it
+        next_random_gate = random_gate + 1
+        if next_random_gate>=len(self.external_gate_points):
+            next_random_gate = 0
 
         ext_x = round(self.external_gate_points[random_gate][0] - (width/2))
         ext_y = round(self.external_gate_points[random_gate][1] - (height/2))
-        int_x = round(self.internal_gate_points[random_gate][0] - (width/2))
-        int_y = round(self.internal_gate_points[random_gate][1] - (height/2))
+        int_x = round(self.internal_gate_points[next_random_gate][0] - (width/2))
+        int_y = round(self.internal_gate_points[next_random_gate][1] - (height/2))
 
         if ext_x<int_x:
             min_x  = ext_x
@@ -599,39 +625,40 @@ class Track:
         if self.test_object_on_track((random_x,random_y),width,height):
             move_x = 0
             move_y = 0
+            diff_max_x = max_x - random_x
+            diff_min_x = min_x - random_x
+            if abs(diff_max_x)>abs(diff_min_x):
+                diff_x = diff_max_x
+            else:
+                diff_x = diff_min_x
+
+            diff_max_y = max_y - random_y
+            diff_min_y = min_y - random_y
+            if abs(diff_max_y)>abs(diff_min_y):
+                diff_y = diff_max_y
+            else:
+                diff_y = diff_min_y
+
+            #move according to the most distant coordinate
+            if abs(diff_x)>=(abs(diff_y)):
+                if diff_x>0:
+                    move_x=1
+                elif diff_x<0:
+                    move_x=-1
+            else:
+                if diff_y>0:
+                    move_y=1
+                elif diff_y<0:
+                    move_y=-1
+
             while self.test_object_on_track((random_x,random_y),width,height):
-                diff_max_x = max_x - random_x
-                diff_min_x = min_x - random_x
-                if abs(diff_max_x)>=abs(diff_min_x):
-                    diff_x = diff_max_x
-                else:
-                    diff_x = diff_min_x
-
-                diff_max_y = max_y - random_y
-                diff_min_y = min_y - random_y
-                if abs(diff_max_y)>=abs(diff_min_y):
-                    diff_y = diff_max_y
-                else:
-                    diff_y = diff_min_y
-
-                #move according to the most distant coordinate
-                if abs(diff_x)>=(abs(diff_y)):
-                    if diff_x>0:
-                        move_x=1
-                    elif diff_x<0:
-                        move_x=-1
-                else:
-                    if diff_y>0:
-                        move_y=1
-                    elif diff_y<0:
-                        move_y=-1
                 random_x+=move_x
                 random_y+=move_y
 
             random_x+=move_x*3
             random_y+=move_y*3
 
-        return (random_x,random_y)
+        return ((random_x,random_y), is_ramp_or_bridge_gate)
 
 
     def hide_bonus(self):
@@ -640,7 +667,7 @@ class Track:
         self.bonus_frame_index = -1
         self.bonus_timer = pygame.time.get_ticks() + bonus_display_interval
 
-    def blit_bonus(self, race_started):
+    def blit_bonus(self, race_started, overlay_blitted = False):
         #Initialize timer for bonus
         if self.bonus_timer is None:
             self.hide_bonus()
@@ -676,25 +703,28 @@ class Track:
                     else:
                         #Now we display the bonus
                         self.bonus_value = '{}'.format(random.randint(2,10) * 50)
-                        self.bonus_position = self.get_random_position(16,30)
+                        result = self.get_random_position(16,30)
+                        self.bonus_position = result[0]
+                        self.on_bridge_or_ramp_bonus = result[1]
                         self.bonus_rolling = True
                         self.bonus_displayed = True
                         self.bonus_timer = now +100
 
         if self.bonus_frame_index>=0:
-            slice_index = self.bonus_frame_index
-            bonus_value_surf = tiny_font.render(self.bonus_value[0:slice_index], False, (255, 255, 255))
-            game_display.blit(bonus_frames[self.bonus_frame_index],self.bonus_position)
-            game_display.blit(bonus_value_surf,(self.bonus_position[0]+1,self.bonus_position[1]+3))
-            if self.bonus_frame_index<=2:
-                game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)
+            if not overlay_blitted or self.on_bridge_or_ramp_bonus:
+                slice_index = self.bonus_frame_index
+                bonus_value_surf = tiny_font.render(self.bonus_value[0:slice_index], False, (255, 255, 255))
+                game_display.blit(bonus_frames[self.bonus_frame_index],self.bonus_position)
+                game_display.blit(bonus_value_surf,(self.bonus_position[0]+1,self.bonus_position[1]+3))
+                if self.bonus_frame_index<=2:
+                    game_display.blit(bonus_shade_frames[self.bonus_frame_index],self.bonus_position)
 
 
     def hide_wrench(self):
         self.wrench_displayed = False
         self.wrench_timer = pygame.time.get_ticks() + wrench_display_interval
 
-    def blit_wrench(self, race_started):
+    def blit_wrench(self, race_started, overlay_blitted = False):
         #Initialize timer for bonus
         if self.wrench_timer is None:
             self.hide_wrench()
@@ -707,16 +737,42 @@ class Track:
                     self.hide_wrench()
                 else:
                     #Now we display the wrench
-                    self.wrench_position = self.get_random_position(12,26)
+                    result = self.get_random_position(12,26)
+                    self.wrench_position = result[0]
+                    self.on_bridge_or_ramp_wrench = result[1]
                     self.wrench_displayed = True
                     self.wrench_timer = now + wrench_display_duration
             if self.wrench_displayed:
-                game_display.blit(wrench_image,self.wrench_position)
+                if not overlay_blitted or self.on_bridge_or_ramp_wrench:
+                    game_display.blit(wrench_image,self.wrench_position)
 
 
     def test_pole_on_track(self, position):
         pole_mask = pygame.mask.from_surface(pygame.Surface((10,16)), 50)
         return  self.track_mask_mask.overlap(pole_mask, (round(position[0]),round(position[1])))
+
+
+    def test_pole_on_bridge(self, position):
+        object_mask = pygame.mask.from_surface(pygame.Surface((10,16)), 50)
+        bridges_found = []
+        for i in range(0, len(self.bridge_masks)):
+            for j in range(0,len(self.bridge_masks[i])):
+                bridge_mask = self.bridge_masks[i][j]
+                if bridge_mask.overlap(object_mask, (round(position[0]),round(position[1]))):
+                    bridges_found.append((i,j))
+        return len(bridges_found)>0
+
+
+    def test_pole_on_ramp(self, position):
+        object_mask = pygame.mask.from_surface(pygame.Surface((10,16)), 50)
+        ramps_found = []
+        for i in range(0, len(self.ramp_masks)):
+            for j in range(0,len(self.ramp_masks[i])):
+                ramp_mask = self.ramp_masks[i][j]
+                if ramp_mask.overlap(object_mask, (round(position[0]),round(position[1]))):
+                    ramps_found.append((i,j))
+        return len(ramps_found)>0
+
 
     def init_obstacles(self, race_counter):
         #Determine the number of obstacles
@@ -804,12 +860,26 @@ class Track:
             self.display_cones = True
             self.cones_count = 16
 
-    def blit_obstacles(self, race_started):
+    def blit_obstacles(self, race_started, overlay_blitted = False):
 
         if self.display_pole:
             if self.poles_gate_index is None:
                 self.poles_gate_index = self.get_random_poles_position()
                 self.obstacle_gates.append(self.poles_gate_index)
+                is_ramp_or_bridge_gate = False
+                if not self.ramp_gates is None:
+                    for i in self.ramp_gates:
+                        for j in i:
+                            for k in j:
+                                if k==self.poles_gate_index:
+                                    self.on_bridge_or_ramp_pole = True
+                if not self.bridge_gates is None:
+                    for i in self.bridge_gates:
+                        for j in i:
+                            for k in j:
+                                if k==self.poles_gate_index:
+                                    self.on_bridge_or_ramp_pole = True
+
                 ext_x = self.external_gate_points[self.poles_gate_index][0] - 5
                 ext_y = self.external_gate_points[self.poles_gate_index][1] - 8
                 int_x = self.internal_gate_points[self.poles_gate_index][0] - 5
@@ -819,20 +889,20 @@ class Track:
                 if self.test_pole_on_track((int_x,int_y)):
                     move_x = 0
                     move_y = 0
+                    diff_x = ext_x - int_x
+                    diff_y = ext_y - int_y
+                    #move according to the most distant coordinate
+                    if abs(diff_x)>=(abs(diff_y)):
+                        if diff_x>0:
+                            move_x=1
+                        elif diff_x<0:
+                            move_x=-1
+                    else:
+                        if diff_y>0:
+                            move_y=1
+                        elif diff_y<0:
+                            move_y=-1
                     while self.test_pole_on_track((int_x,int_y)):
-                        diff_x = ext_x - int_x
-                        diff_y = ext_y - int_y
-                        #move according to the most distant coordinate
-                        if abs(diff_x)>=(abs(diff_y)):
-                            if diff_x>0:
-                                move_x=1
-                            elif diff_x<0:
-                                move_x=-1
-                        else:
-                            if diff_y>0:
-                                move_y=1
-                            elif diff_y<0:
-                                move_y=-1
                         int_x+=move_x
                         int_y+=move_y
                     int_x+=move_x*3
@@ -859,6 +929,7 @@ class Track:
                         ext_y+=move_y
                     ext_x+=move_x*15
                     ext_y+=move_y*15
+
                 self.external_pole_position = (ext_x,ext_y)
                 self.internal_pole_position = (int_x,int_y)
                 self.middle_pole_position = ((ext_x+int_x)/2,(ext_y+int_y)/2)
@@ -903,29 +974,37 @@ class Track:
                     self.pole_mask = poles_frames_masks[self.poles_frame_indexes[1]]
                 if self.poles_frame_indexes[2]:
                     self.pole_mask = poles_frames_masks[self.poles_frame_indexes[2]]
-
-
-                game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
-                game_display.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
-                game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
+                if not overlay_blitted or self.on_bridge_or_ramp_pole:
+                    game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
+                    game_display.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
+                    game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
 
         #Display spills
         if self.display_oil_spill:
             if self.oil_spill_position is None:
-                self.oil_spill_position = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
+                result = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
+                self.oil_spill_position = result[0]
+                self.on_bridge_or_ramp_oil_spill = result[1]
             if race_started:
-                game_display.blit(oil_spill_image,self.oil_spill_position)
+                if not overlay_blitted or self.on_bridge_or_ramp_oil_spill:
+                    game_display.blit(oil_spill_image,self.oil_spill_position)
 
         if self.display_water_spill:
             if self.water_spill_position is None:
-                self.water_spill_position = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
+                result = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
+                self.water_spill_position = result[0]
+                self.on_bridge_or_ramp_water_spill = result[1]
             if race_started:
-                game_display.blit(water_spill_image,self.water_spill_position)
+                if not overlay_blitted or self.on_bridge_or_ramp_water_spill:
+                    game_display.blit(water_spill_image,self.water_spill_position)
         if self.display_grease_spill:
             if self.grease_spill_position is None:
-                self.grease_spill_position = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
+                result = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
+                self.grease_spill_position = result[0]
+                self.on_bridge_or_ramp_grease_spill = result[1]
             if race_started:
-                game_display.blit(grease_spill_image,self.grease_spill_position)
+                if not overlay_blitted or self.on_bridge_or_ramp_grease_spill:
+                    game_display.blit(grease_spill_image,self.grease_spill_position)
 
         #Display Traffic Cones
         if race_started:
@@ -933,6 +1012,24 @@ class Track:
 
                 # should be done before
                 if cone.pos is None:
-                    cone.update(self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width()))
+                    pos, on_object = self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width())
+                    cone.update(pos) if not on_object else cone.disable()
 
-                cone.blit()
+                if not overlay_blitted:
+                    cone.blit()
+
+#         if self.display_cones:
+#             if self.traffic_cones_positions is None:
+#                 self.traffic_cones_positions = []
+#                 self.on_bridge_or_ramp_grease_traffic_cones = []
+#                 for i in range(1,self.cones_count):
+#                     result = self.get_random_position(traffic_cone.get_height(),traffic_cone_shade.get_width())
+#                     self.traffic_cones_positions.append(result[0])
+#                     self.on_bridge_or_ramp_grease_traffic_cones.append(result[1])
+
+#             if race_started:
+#                 for i in range(0,len(self.traffic_cones_positions)):
+#                     if not overlay_blitted or self.on_bridge_or_ramp_grease_traffic_cones[i]:
+#                         game_display.blit(traffic_cone,self.traffic_cones_positions[i])
+#                         game_display.blit(traffic_cone_shade,self.traffic_cones_positions[i])
+

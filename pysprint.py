@@ -9,7 +9,10 @@ import pysprint_tracks
 import random
 import json
 
+#New awesome imports from shazz
 from managers.sample_manager import SampleManager
+from pathlib import Path
+from loguru import logger
 
 pygame.init()
 pygame.joystick.init()
@@ -51,7 +54,7 @@ pysprint_tracks.game_display = game_display
 
 cars = []
 
-tracks = []
+tracks = {}
 
 
 FPS = 30
@@ -2146,29 +2149,31 @@ def activate_cars():
 
 
 def init_track(filename):
-        track = pysprint_tracks.Track()
-        track.load_track_definition(filename)
-        track.background = pygame.image.load(track.background_filename)
-        if not track.thumbnail_filename is None:
-            track.thumbnail = pygame.image.load(track.thumbnail_filename)
-        track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
-        if not track.track_upper_mask_filename is None:
-            track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
-            track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
-        track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
-        track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
-        tracks.append(track)
+
+    track = pysprint_tracks.Track()
+
+    #TODO: validate json with jsonschema 
+    track.load_track_definition(filename)
+    track.background = pygame.image.load(track.background_filename)
+
+    if not track.thumbnail_filename is None:
+        track.thumbnail = pygame.image.load(track.thumbnail_filename)
+    track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
+    
+    if not track.track_upper_mask_filename is None:
+        track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
+        track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
+    track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
+    track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
+    
+    logger.debug(f"Adding track {track.track_number} to the track list")
+    tracks[track.track_number-1] = track
 
 def initialize_tracks():
 
-        init_track(pysprint_tracks.track1_json_filename)
-        init_track(pysprint_tracks.track2_json_filename)
-        init_track(pysprint_tracks.track3_json_filename)
-        init_track(pysprint_tracks.track4_json_filename)
-        init_track(pysprint_tracks.track5_json_filename)
-        init_track(pysprint_tracks.track6_json_filename)
-        init_track(pysprint_tracks.track7_json_filename)
-        init_track(pysprint_tracks.track8_json_filename)
+        p = Path(r'Assets/tracks').glob('**/*.json')
+        for track in [x for x in p if x.is_file()]:
+            init_track(track)
 
 def check_option_key_pressed(key_pressed,scaled_screen):
     if (key_pressed == pygame.K_F1):
@@ -2277,6 +2282,9 @@ def game_loop():
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay(False)
+                        track.blit_obstacles(True)
+                        track.blit_bonus(True)
+                        track.blit_wrench(True)
                         for car in cars:
                             car.blit(track, True)
                         print_get_ready()
@@ -2513,6 +2521,9 @@ def game_loop():
                             for car in cars:
                                 car.blit(track, False)
                             track.blit_overlay(True)
+                            track.blit_obstacles(True)
+                            track.blit_bonus(True)
+                            track.blit_wrench(True)
                             for car in cars:
                                 car.blit(track, True)
                             for car in cars:
@@ -2567,7 +2578,7 @@ def game_loop():
 
                             frame_duration = pygame.time.get_ticks() - frame_start
                             current_fps = round(1000/frame_duration)
-                            if current_fps <= 90:
+                            if current_fps <= 90 and current_fps > 0:
                                 pysprint_car.frame_rate_speed_modifier = 1 + (100/current_fps)/11
                                 pysprint_car.rotation_step_modifier =  1 + (100/current_fps)/14
                             else:
@@ -2577,7 +2588,10 @@ def game_loop():
                             if DISPLAY_FPS:
                                 avg_fps.append(current_fps)
                                 if (pygame.time.get_ticks() - fps_refresh_time>500):
-                                    average_fps = round(sum(avg_fps)/(len(avg_fps)-1))
+                                    if len(avg_fps)>1:
+                                        average_fps = round(sum(avg_fps)/(len(avg_fps)-1))
+                                    else:
+                                        average_fps = current_fps
                                     avg_fps.clear()
                                     fps_refresh_time = pygame.time.get_ticks()
                                     fps_surf = small_font.render("{} FPS".format(average_fps), False, white_color)
