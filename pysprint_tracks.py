@@ -725,7 +725,7 @@ class Track:
         #Determine the number of obstacles
         nb_obstacles = 0
         min_obstacles = 0
-        max_obstacles = 5
+        max_obstacles = 0
         nb_cones_max = 0
 
         #No obstacles the first 2 races
