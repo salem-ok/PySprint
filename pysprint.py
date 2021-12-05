@@ -365,35 +365,9 @@ scrolling_font = {
     ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
 }
 
-green_flag_frames = {
-    0:pygame.image.load('Assets/GreenFlag0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GreenFlag1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GreenFlag2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GreenFlag3.png').convert_alpha(),
-    4:pygame.image.load('Assets/GreenFlag4.png').convert_alpha(),
-    5:pygame.image.load('Assets/GreenFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/GreenFlag6.png').convert_alpha()
-}
-
-white_flag_frames = {
-    0:pygame.image.load('Assets/WhiteFlag0.png').convert_alpha(),
-    1:pygame.image.load('Assets/WhiteFlag1.png').convert_alpha(),
-    2:pygame.image.load('Assets/WhiteFlag2.png').convert_alpha(),
-    3:pygame.image.load('Assets/WhiteFlag3.png').convert_alpha(),
-    4:pygame.image.load('Assets/WhiteFlag4.png').convert_alpha(),
-    5:pygame.image.load('Assets/WhiteFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/WhiteFlag6.png').convert_alpha()
-}
-
-checkered_flag_frames = {
-    0:pygame.image.load('Assets/CheckeredFlag0.png').convert_alpha(),
-    1:pygame.image.load('Assets/CheckeredFlag1.png').convert_alpha(),
-    2:pygame.image.load('Assets/CheckeredFlag2.png').convert_alpha(),
-    3:pygame.image.load('Assets/CheckeredFlag3.png').convert_alpha(),
-    4:pygame.image.load('Assets/CheckeredFlag4.png').convert_alpha(),
-    5:pygame.image.load('Assets/CheckeredFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/CheckeredFlag6.png').convert_alpha()
-}
+green_flag_frames = tex_manager.get_textures(f"green_flag")
+white_flag_frames = tex_manager.get_textures(f"white_flag")
+checkered_flag_frames = tex_manager.get_textures(f"checkered_flag")
 
 
 yellow_helicopter_frames = {
@@ -462,31 +436,11 @@ dust_cloud_frames = {
     4:pygame.image.load('Assets/DustCloud4.png').convert_alpha()
 }
 
-
-explosion_frames = {
-    0:pygame.image.load('Assets/Explosion0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Explosion1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Explosion2.png').convert_alpha(),
-    3:pygame.image.load('Assets/Explosion3.png').convert_alpha(),
-    4:pygame.image.load('Assets/Explosion4.png').convert_alpha(),
-    5:pygame.image.load('Assets/Explosion5.png').convert_alpha(),
-    6:pygame.image.load('Assets/Explosion6.png').convert_alpha(),
-    7:pygame.image.load('Assets/Explosion7.png').convert_alpha(),
-    8:pygame.image.load('Assets/Explosion8.png').convert_alpha(),
-    9:pygame.image.load('Assets/Explosion9.png').convert_alpha(),
-    10:pygame.image.load('Assets/Explosion10.png').convert_alpha(),
-    11:pygame.image.load('Assets/Explosion11.png').convert_alpha(),
-    12:pygame.image.load('Assets/Explosion12.png').convert_alpha(),
-    13:pygame.image.load('Assets/Explosion13.png').convert_alpha(),
-    14:pygame.image.load('Assets/Explosion14.png').convert_alpha(),
-    15:pygame.image.load('Assets/Explosion15.png').convert_alpha(),
-    16:pygame.image.load('Assets/Explosion16.png').convert_alpha(),
-    17:pygame.image.load('Assets/Explosion17.png').convert_alpha(),
-    18:pygame.image.load('Assets/Explosion18.png').convert_alpha()
-}
+explosion_frames = tex_manager.get_textures(f"explosion")
+ 
+car_sprites_masks = tex_manager.get_masks(f"blue_drone")
 
 blue_drone_sprites = tex_manager.get_textures(f"blue_drone")
-car_sprites_masks = tex_manager.get_masks(f"blue_drone")
 blue_car_sprites = tex_manager.get_textures(f"blue_car")
 
 red_drone_sprites = tex_manager.get_textures(f"red_drone")

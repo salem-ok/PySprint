@@ -235,5 +235,53 @@
         "Assets/GreenCar13.png",
         "Assets/GreenCar14.png",
         "Assets/GreenCar15.png"
-    ]            
+    ],
+    "explosion": [
+        "Assets/Explosion0.png",
+        "Assets/Explosion1.png",
+        "Assets/Explosion2.png",
+        "Assets/Explosion3.png",
+        "Assets/Explosion4.png",
+        "Assets/Explosion5.png",
+        "Assets/Explosion6.png",
+        "Assets/Explosion7.png",
+        "Assets/Explosion8.png",
+        "Assets/Explosion9.png",
+        "Assets/Explosion10.png",
+        "Assets/Explosion11.png",
+        "Assets/Explosion12.png",
+        "Assets/Explosion13.png",
+        "Assets/Explosion14.png",
+        "Assets/Explosion15.png",
+        "Assets/Explosion16.png",
+        "Assets/Explosion17.png",
+        "Assets/Explosion18.png"
+    ],            
+    "green_flag": [
+        "Assets/GreenFlag0.png",
+        "Assets/GreenFlag1.png",
+        "Assets/GreenFlag2.png",
+        "Assets/GreenFlag3.png",
+        "Assets/GreenFlag4.png",
+        "Assets/GreenFlag5.png",
+        "Assets/GreenFlag6.png"
+    ],
+    "white_flag": [
+        "Assets/WhiteFlag0.png",
+        "Assets/WhiteFlag1.png",
+        "Assets/WhiteFlag2.png",
+        "Assets/WhiteFlag3.png",
+        "Assets/WhiteFlag4.png",
+        "Assets/WhiteFlag5.png",
+        "Assets/WhiteFlag6.png"
+    ],
+    "checkered_flag": [
+        "Assets/CheckeredFlag0.png",
+        "Assets/CheckeredFlag1.png",
+        "Assets/CheckeredFlag2.png",
+        "Assets/CheckeredFlag3.png",
+        "Assets/CheckeredFlag4.png",
+        "Assets/CheckeredFlag5.png",
+        "Assets/CheckeredFlag6.png"
+    ]        
 }
