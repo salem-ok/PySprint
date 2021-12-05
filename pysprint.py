@@ -157,18 +157,12 @@ pysprint_tracks.traffic_cone_shade = tex_manager.get_texture("traffic_cone_shade
 pysprint_tracks.traffic_cone_mask =  tex_manager.get_mask("traffic_cone")
 
 #Tornado Frames:
-pysprint_tracks.tornado_frames = {}
-pysprint_tracks.tornado_frames_masks = {}
-for i in range(2):
-    pysprint_tracks.tornado_frames[i] = tex_manager.get_texture(f"tornado_frame_{i}")
-    pysprint_tracks.tornado_frames_masks[i] = tex_manager.get_mask(f"tornado_frame_{i}")
+pysprint_tracks.tornado_frames = tex_manager.get_textures(f"tornado_frame")
+pysprint_tracks.tornado_frames_masks = tex_manager.get_masks(f"tornado_frame")
 
 #Poles Frames:
-pysprint_tracks.poles_frames = {}
-pysprint_tracks.poles_frames_masks = {}
-for i in range(4):
-    pysprint_tracks.poles_frames[i] = tex_manager.get_texture(f"pole_frame_{i}")
-    pysprint_tracks.poles_frames_masks[i] = tex_manager.get_mask(f"pole_frame_{i}")
+pysprint_tracks.poles_frames = tex_manager.get_textures(f"pole_frame")
+pysprint_tracks.poles_frames_masks = tex_manager.get_masks(f"pole_frame")
 
 #Spills
 pysprint_tracks.oil_spill_image     = tex_manager.get_texture("oil_spill")
@@ -186,33 +180,19 @@ wrench_count_sprites = {}
 for i in range(10):
     wrench_count_sprites[i] = tex_manager.get_texture(f"wrench_count_{i}")
 
-
 #Bonus Frames:
-pysprint_tracks.bonus_frames = {}
-pysprint_tracks.bonus_frames_masks = {}
-for i in range(4):
-    pysprint_tracks.bonus_frames[i] = tex_manager.get_texture(f"bonus_frame_{i}")
-    pysprint_tracks.bonus_frames_masks[i] = tex_manager.get_mask(f"bonus_frame_{i}")
-
-pysprint_tracks.bonus_shade_frames = { }
-for i in range(3):
-    pysprint_tracks.bonus_shade_frames[i] = tex_manager.get_texture(f"bonus_frame_shade_{i}")
-
+pysprint_tracks.bonus_frames = tex_manager.get_textures(f"bonus_frame")
+pysprint_tracks.bonus_frames_masks = tex_manager.get_masks(f"bonus_frame")
+pysprint_tracks.bonus_shade_frames = tex_manager.get_textures(f"bonus_frame_shade")
 
 # For the Background
-pysprint_tracks.road_gate_frames = { }
-pysprint_tracks.road_gate_shade_frames = { }
-pysprint_tracks.road_gate_mask_frames = { }
-for i in range(5):
-    pysprint_tracks.road_gate_frames[i] = tex_manager.get_texture(f"gate_{i}")
-    pysprint_tracks.road_gate_shade_frames[i] = tex_manager.get_texture(f"gate_shade_{i}")
-    pysprint_tracks.road_gate_mask_frames[i] = tex_manager.get_texture(f"gate_mask_{i}")
+pysprint_tracks.road_gate_frames = tex_manager.get_textures(f"gate")
+pysprint_tracks.road_gate_shade_frames = tex_manager.get_textures(f"gate_shade")
+pysprint_tracks.road_gate_mask_frames = tex_manager.get_masks(f"gate")
 
-crowd_flags = { }
-for i in range(6):
-    crowd_flags[i] = tex_manager.get_texture(f"gate_crowd_flag_{i}")
+crowd_flags = tex_manager.get_textures(f"gate_crowd_flag")
 
-hammer_frames_loader = { }
+hammer_frames_loader = {}
 for i in range(3):
     hammer_frames_loader[i] = tex_manager.get_texture(f"hammer_{i}")
 
@@ -261,7 +241,6 @@ head_scratch_frames =  {
 blow_frames_loader =  { }
 for i in range(5):
     blow_frames_loader[i] = tex_manager.get_texture(f"blow_{i}")
-
 
 blow_frames =  {
     0:blow_frames_loader[1],
@@ -323,9 +302,7 @@ fourth_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarR
 fourth_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png').convert_alpha()
 fourth_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png').convert_alpha()
 
-engine_idle = {}
-for i in range(3):
-    engine_idle[i] = tex_manager.get_texture(f"engine_idle_{i}")
+engine_idle = tex_manager.get_textures(f"engine_idle")
 
 prepare_to_race = {
     0:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
