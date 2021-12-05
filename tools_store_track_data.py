@@ -116,7 +116,7 @@ def insert_gates(filename, to_add):
 
 
 #Set filename
-filename = pysprint_tracks.track8_json_filename
+filename = pysprint_tracks.track6_json_filename
 
 #Create a new Track File (see above for setting initial data via HTML Map points vectors)
 #create_track_file(filename,external_borders_map,internal_borders_map, secondary_internal_borders_map,external_gate_points_map,internal_gate_points_map,gates_to_remove)
@@ -126,7 +126,7 @@ filename = pysprint_tracks.track8_json_filename
 #to_modify = [(16,556,121,540,80),(17,581,101,550,79),(18,600,75,550,75)]
 #to_modify = [(22,317,17,317,54),(23,284,17,296,57),(24,240,40,270,60),(25,224,78,255,78)]
 #to_modify = [(26,238,140,288,140),(27,258,178,291,145),(28,290,180,291,145)]
-to_modify = [(30,431,172,431,145),(33,551,200,598,190),(34,551,207,592,228),(36,428,209,428,235)]
+to_modify = [(13,67,346,56,369),(14,52,301,26,301),(15,61,267,45,246)]
 
 modify_gates(filename, to_modify)
 
