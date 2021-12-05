@@ -153,16 +153,16 @@ class Car:
     diagonal_detection_tolerance = 2
     vector_simulation_length = 10
     side_detection_tolerance = 7
-    max_speed_crash_threshold = 4000#3000
-    collision_area_threshold = 80#75
+    max_speed_crash_threshold = 3000#4000
+    collision_area_threshold = 30#80#75
     #Threshold over which theer is a higher chance to crash
-    speed_crash_probability_threshold = 0.85
+    speed_crash_probability_threshold = 0.75#0.85
     #% increase of probability to crash if condition is true
-    speed_crash_probability_penalty = 1.2
+    speed_crash_probability_penalty = 1.4#1.2
     sensitive_border_crash_probability_penalty = 1.4
     #Max Random number drawn to calculate Crash probability
     crash_random_max = 60
-    crash_certainty_treshold = 85#80
+    crash_certainty_treshold = 75#85#80
 
 
     def __init__(self):
