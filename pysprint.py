@@ -59,7 +59,7 @@ DEBUG_FLAG = False
 DISPLAY_FPS = True
 DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
-DEBUG_AI = True
+DEBUG_AI = False
 DISABLE_DRONES = False
 
 #Flag Events
