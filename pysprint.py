@@ -485,177 +485,18 @@ explosion_frames = {
     18:pygame.image.load('Assets/Explosion18.png').convert_alpha()
 }
 
-blue_drone_sprites = {
-        0:pygame.image.load('Assets/BlueCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/BlueCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/BlueCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/BlueCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/BlueCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/BlueCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/BlueCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/BlueCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/BlueCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/BlueCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/BlueCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/BlueCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/BlueCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/BlueCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/BlueCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/BlueCarDrone15.png').convert_alpha()
-}
+blue_drone_sprites = tex_manager.get_textures(f"blue_drone")
+car_sprites_masks = tex_manager.get_masks(f"blue_drone")
+blue_car_sprites = tex_manager.get_textures(f"blue_car")
 
-car_sprites_masks = {
-        0:pygame.mask.from_surface(blue_drone_sprites[0], 50),
-        1:pygame.mask.from_surface(blue_drone_sprites[1], 50),
-        2:pygame.mask.from_surface(blue_drone_sprites[2], 50),
-        3:pygame.mask.from_surface(blue_drone_sprites[3], 50),
-        4:pygame.mask.from_surface(blue_drone_sprites[4], 50),
-        5:pygame.mask.from_surface(blue_drone_sprites[5], 50),
-        6:pygame.mask.from_surface(blue_drone_sprites[6], 50),
-        7:pygame.mask.from_surface(blue_drone_sprites[7], 50),
-        8:pygame.mask.from_surface(blue_drone_sprites[8], 50),
-        9:pygame.mask.from_surface(blue_drone_sprites[9], 50),
-        10:pygame.mask.from_surface(blue_drone_sprites[10], 50),
-        11:pygame.mask.from_surface(blue_drone_sprites[11], 50),
-        12:pygame.mask.from_surface(blue_drone_sprites[12], 50),
-        13:pygame.mask.from_surface(blue_drone_sprites[13], 50),
-        14:pygame.mask.from_surface(blue_drone_sprites[14], 50),
-        15:pygame.mask.from_surface(blue_drone_sprites[15], 50)
-}
+red_drone_sprites = tex_manager.get_textures(f"red_drone")
+red_car_sprites = tex_manager.get_textures(f"red_car")
 
-blue_car_sprites = {
-        0:pygame.image.load('Assets/BlueCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/BlueCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/BlueCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/BlueCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/BlueCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/BlueCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/BlueCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/BlueCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/BlueCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/BlueCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/BlueCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/BlueCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/BlueCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/BlueCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/BlueCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/BlueCar15.png').convert_alpha()
-}
+green_drone_sprites = tex_manager.get_textures(f"green_drone")
+green_car_sprites = tex_manager.get_textures(f"green_car")
 
-red_drone_sprites = {
-        0:pygame.image.load('Assets/RedCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/RedCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/RedCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/RedCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/RedCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/RedCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/RedCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/RedCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/RedCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/RedCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/RedCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/RedCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/RedCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/RedCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/RedCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/RedCarDrone15.png').convert_alpha()
-}
-
-red_car_sprites = {
-        0:pygame.image.load('Assets/RedCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/RedCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/RedCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/RedCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/RedCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/RedCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/RedCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/RedCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/RedCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/RedCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/RedCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/RedCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/RedCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/RedCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/RedCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/RedCar15.png').convert_alpha()
-}
-
-yellow_drone_sprites = {
-        0:pygame.image.load('Assets/YellowCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/YellowCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/YellowCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/YellowCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/YellowCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/YellowCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/YellowCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/YellowCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/YellowCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/YellowCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/YellowCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/YellowCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/YellowCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/YellowCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/YellowCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/YellowCarDrone15.png').convert_alpha()
-}
-
-yellow_car_sprites = {
-        0:pygame.image.load('Assets/YellowCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/YellowCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/YellowCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/YellowCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/YellowCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/YellowCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/YellowCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/YellowCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/YellowCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/YellowCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/YellowCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/YellowCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/YellowCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/YellowCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/YellowCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/YellowCar15.png').convert_alpha()
-}
-
-green_drone_sprites = {
-        0:pygame.image.load('Assets/GreenCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/GreenCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/GreenCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/GreenCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/GreenCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/GreenCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/GreenCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/GreenCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/GreenCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/GreenCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/GreenCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/GreenCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/GreenCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/GreenCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/GreenCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/GreenCarDrone15.png').convert_alpha()
-}
-
-green_car_sprites = {
-        0:pygame.image.load('Assets/GreenCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/GreenCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/GreenCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/GreenCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/GreenCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/GreenCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/GreenCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/GreenCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/GreenCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/GreenCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/GreenCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/GreenCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/GreenCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/GreenCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/GreenCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/GreenCar15.png').convert_alpha()
-}
-
+yellow_drone_sprites = tex_manager.get_textures(f"yellow_drone")
+yellow_car_sprites = tex_manager.get_textures(f"yellow_car")
 
 keyboard_1 = {}
 keyboard_1['ACCELERATE'] = pygame.K_RCTRL
