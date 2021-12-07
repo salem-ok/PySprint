@@ -97,7 +97,6 @@ green_customization = (330, 340)
 yellow_customization = (330, 202)
 red_customization = (12, 340)
 
-
 blue_thumb = (51, 120)
 green_thumb = (369, 258)
 yellow_thumb = (369, 120)
@@ -115,8 +114,6 @@ score_top_left_yellow = (481,0)
 
 attract_mode_display_duration = 5000
 
-#Load Assets
-
 #Sound Assets
 podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
@@ -127,11 +124,15 @@ shadow_font                 = pygame.font.Font('Assets/SupersprintST-Regular-Str
 big_font                    = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
 big_shadow_font             = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
 
+# ---------------------------------------------------------------------------------------------
+# TODO: move to pysprint_car
+# ---------------------------------------------------------------------------------------------
 #Graphic assets
 pysprint_car.transparency = tex_manager.get_texture("transparency")
 pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
 pysprint_car.vector_surf.fill((0,0,0))
 pysprint_car.vector_surf.set_colorkey((0,0,0))
+# ---------------------------------------------------------------------------------------------
 
 # Screens
 loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground")
@@ -148,6 +149,10 @@ blue_selection_wheel        = tex_manager.get_texture("blue_selection_wheel")
 yellow_selection_wheel      = tex_manager.get_texture("yellow_selection_wheel")
 red_selection_wheel         = tex_manager.get_texture("red_selection_wheel")
 green_selection_wheel       = tex_manager.get_texture("green_selection_wheel")
+
+# ---------------------------------------------------------------------------------------------
+# TODO: move to pysprint_tracks
+# ---------------------------------------------------------------------------------------------
 
 #Traffic Cone
 pysprint_tracks.traffic_cone        = tex_manager.get_texture("traffic_cone")
@@ -173,7 +178,6 @@ pysprint_tracks.grease_spill_mask   = tex_manager.get_mask("grease_spill")
 #Wrenches
 pysprint_tracks.wrench_image    = tex_manager.get_texture("wrench")
 pysprint_tracks.wrench_mask     = tex_manager.get_mask("wrench")
-wrench_count_sprites            = tex_manager.get_textures(f"wrench_count")
 
 #Bonus Frames:
 pysprint_tracks.bonus_frames        = tex_manager.get_textures(f"bonus_frame")
@@ -184,8 +188,10 @@ pysprint_tracks.bonus_shade_frames  = tex_manager.get_textures(f"bonus_frame_sha
 pysprint_tracks.road_gate_frames        = tex_manager.get_textures(f"gate")
 pysprint_tracks.road_gate_shade_frames  = tex_manager.get_textures(f"gate_shade")
 pysprint_tracks.road_gate_mask_frames   = tex_manager.get_masks(f"gate")
+# ---------------------------------------------------------------------------------------------
 
 crowd_flags = tex_manager.get_textures(f"gate_crowd_flag")
+wrench_count_sprites    = tex_manager.get_textures(f"wrench_count")
 
 hammer_frames           = tex_manager.get_textures(f"hammer")
 saw_frames              = tex_manager.get_textures(f"saw")

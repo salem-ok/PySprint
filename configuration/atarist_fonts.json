@@ -1,0 +1,22 @@
+{
+    "tiny_font": {
+        "ttf_file": "Assets/SupersprintST-Regular.ttf",
+        "size": 10
+    },
+    "small_font": {
+        "ttf_file": "Assets/SupersprintST-Regular.ttf",
+        "size": 15
+    },
+    "shadow_font": {
+        "ttf_file": "Assets/SupersprintST-Regular-Stroke.ttf",
+        "size": 15
+    },    
+    "big_font": {
+        "ttf_file": "Assets/SupersprintST-Regular.ttf",
+        "size": 20
+    },
+    "big_shadow_font": {
+        "ttf_file": "Assets/SupersprintST-Regular-Stroke.ttf.ttf",
+        "size": 20
+    }
+}
