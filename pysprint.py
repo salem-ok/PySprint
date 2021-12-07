@@ -1,8 +1,7 @@
 import pygame
-from pygame import draw
 import pygame.display
 import pygame.mixer
-from pygame import gfxdraw, init
+from pygame import gfxdraw
 import numpy as np
 import pysprint_car
 import pysprint_tracks
