@@ -26,19 +26,11 @@ pysprint_car.display_height = 400
 pysprint_tracks.display_width = 640
 pysprint_tracks.display_height = 400
 
-# Create sample managers
-FADEOUT_DURATION = 1000
-SampleManager.create_manager("sfx", "configuration/atarist_sfx.json")
-smp_manager = SampleManager.create_manager("music", "configuration/atarist_music.json")
-tex_manager = TextureManager.create_manager("sprites", "configuration/atarist_tex.json")
-
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
 
 with open(".bestlaps.json") as best_laps_file:
     best_laps = json.load(best_laps_file)
-
-
 
 race_laps = 4
 pysprint_car.race_laps = race_laps
@@ -53,6 +45,12 @@ clock = pygame.time.Clock()
 
 pysprint_car.game_display = game_display
 pysprint_tracks.game_display = game_display
+
+# Create sample managers
+FADEOUT_DURATION = 1000
+SampleManager.create_manager("sfx", "configuration/atarist_sfx.json")
+smp_manager = SampleManager.create_manager("music", "configuration/atarist_music.json")
+tex_manager = TextureManager.create_manager("sprites", "configuration/atarist_tex.json")
 
 cars = []
 

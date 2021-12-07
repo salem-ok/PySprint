@@ -46,20 +46,16 @@ class TextureManager(object):
 
         for name, path in configuration.items():
             if type(path) is list:
-                self.textures[name] = [ pygame.image.load(str(item)) for item in path ]
+                self.textures[name] = [ pygame.image.load(str(item)).convert_alpha() for item in path ]
             else:
-                self.textures[name] = [ pygame.image.load(str(path)) ]
+                self.textures[name] = [ pygame.image.load(str(path)).convert_alpha() ]
 
-    def get_texture(self, name: str, convert_alpha: bool = True) -> Surface:
+    def get_texture(self, name: str) -> Surface:
 
         if name not in self.textures.keys():
             raise ValueError(f"Texture {name} in not defined in configuration! Only {list(self.textures.keys())}")
 
-        img = self.textures[name][0]
-        if convert_alpha:
-            img = img.convert_alpha()
-        
-        return img
+        return self.textures[name][0]
 
     def get_mask(self, name: str) -> Surface:
 
@@ -74,9 +70,7 @@ class TextureManager(object):
             raise ValueError(f"Textures {name} in not defined in configuration! Only {list(self.textures.keys())}")
 
         imgs = self.textures[name]
-        if convert_alpha:
-            imgs = [ img.convert_alpha() for img in imgs ]
-        
+
         if as_dict:
             imgs_dict = {}
             for i, img in enumerate(imgs):
