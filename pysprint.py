@@ -115,54 +115,54 @@ score_top_left_green = (161,0)
 score_top_left_red = (321,0)
 score_top_left_yellow = (481,0)
 
-
+attract_mode_display_duration = 5000
 
 #Load Assets
 
 #Sound Assets
 podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
+# fonts
+pysprint_tracks.tiny_font   = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
+small_font                  = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+shadow_font                 = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
+big_font                    = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
+big_shadow_font             = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
+
 #Graphic assets
-pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
+pysprint_car.transparency = tex_manager.get_texture("transparency")
 pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
 pysprint_car.vector_surf.fill((0,0,0))
 pysprint_car.vector_surf.set_colorkey((0,0,0))
 
+# Screens
+loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground")
+credits_screen              = tex_manager.get_texture("credits_screen")
+splash_screen               = tex_manager.get_texture("splash_screen")
+start_race_screen           = tex_manager.get_texture("start_race_screen")
+high_score_screen           = tex_manager.get_texture("high_score_screen") 
+lap_records_screen          = tex_manager.get_texture("lap_records_screen") 
+race_podium_screen          = tex_manager.get_texture("race_podium_screen") 
+checkered_background        = tex_manager.get_texture("checkered_background") 
+item_screen                 = tex_manager.get_texture("item_screen")
 
-tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
-pysprint_tracks.tiny_font = tiny_font
-small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
-shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
-big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
-big_shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
-
-loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
-credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
-splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
-start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').convert_alpha()
-high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
-lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
-race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
-checkered_background = pygame.image.load('Assets/CheckeredBackground.png').convert_alpha()
-item_screen = pygame.image.load('Assets/SuperSprintItemScreen.png').convert_alpha()
-
-blue_selection_wheel = pygame.image.load('Assets/BlueSelectionWheel.png').convert_alpha()
-yellow_selection_wheel = pygame.image.load('Assets/YellowSelectionWheel.png').convert_alpha()
-red_selection_wheel = pygame.image.load('Assets/RedSelectionWheel.png').convert_alpha()
-green_selection_wheel = pygame.image.load('Assets/GreenSelectionWheel.png').convert_alpha()
+blue_selection_wheel        = tex_manager.get_texture("blue_selection_wheel")
+yellow_selection_wheel      = tex_manager.get_texture("yellow_selection_wheel")
+red_selection_wheel         = tex_manager.get_texture("red_selection_wheel")
+green_selection_wheel       = tex_manager.get_texture("green_selection_wheel")
 
 #Traffic Cone
-pysprint_tracks.traffic_cone = tex_manager.get_texture("traffic_cone")
-pysprint_tracks.traffic_cone_shade = tex_manager.get_texture("traffic_cone_shade")
-pysprint_tracks.traffic_cone_mask =  tex_manager.get_mask("traffic_cone")
+pysprint_tracks.traffic_cone        = tex_manager.get_texture("traffic_cone")
+pysprint_tracks.traffic_cone_shade  = tex_manager.get_texture("traffic_cone_shade")
+pysprint_tracks.traffic_cone_mask   = tex_manager.get_mask("traffic_cone")
 
 #Tornado Frames:
-pysprint_tracks.tornado_frames = tex_manager.get_textures(f"tornado_frame")
+pysprint_tracks.tornado_frames       = tex_manager.get_textures(f"tornado_frame")
 pysprint_tracks.tornado_frames_masks = tex_manager.get_masks(f"tornado_frame")
 
 #Poles Frames:
-pysprint_tracks.poles_frames = tex_manager.get_textures(f"pole_frame")
-pysprint_tracks.poles_frames_masks = tex_manager.get_masks(f"pole_frame")
+pysprint_tracks.poles_frames        = tex_manager.get_textures(f"pole_frame")
+pysprint_tracks.poles_frames_masks  = tex_manager.get_masks(f"pole_frame")
 
 #Spills
 pysprint_tracks.oil_spill_image     = tex_manager.get_texture("oil_spill")
@@ -173,164 +173,100 @@ pysprint_tracks.grease_spill_image  = tex_manager.get_texture("grease_spill")
 pysprint_tracks.grease_spill_mask   = tex_manager.get_mask("grease_spill")
 
 #Wrenches
-pysprint_tracks.wrench_image = tex_manager.get_texture("wrench")
-pysprint_tracks.wrench_mask = tex_manager.get_mask("wrench")
-
-wrench_count_sprites = {}
-for i in range(10):
-    wrench_count_sprites[i] = tex_manager.get_texture(f"wrench_count_{i}")
+pysprint_tracks.wrench_image    = tex_manager.get_texture("wrench")
+pysprint_tracks.wrench_mask     = tex_manager.get_mask("wrench")
+wrench_count_sprites            = tex_manager.get_textures(f"wrench_count")
 
 #Bonus Frames:
-pysprint_tracks.bonus_frames = tex_manager.get_textures(f"bonus_frame")
-pysprint_tracks.bonus_frames_masks = tex_manager.get_masks(f"bonus_frame")
-pysprint_tracks.bonus_shade_frames = tex_manager.get_textures(f"bonus_frame_shade")
+pysprint_tracks.bonus_frames        = tex_manager.get_textures(f"bonus_frame")
+pysprint_tracks.bonus_frames_masks  = tex_manager.get_masks(f"bonus_frame")
+pysprint_tracks.bonus_shade_frames  = tex_manager.get_textures(f"bonus_frame_shade")
 
 # For the Background
-pysprint_tracks.road_gate_frames = tex_manager.get_textures(f"gate")
-pysprint_tracks.road_gate_shade_frames = tex_manager.get_textures(f"gate_shade")
-pysprint_tracks.road_gate_mask_frames = tex_manager.get_masks(f"gate")
+pysprint_tracks.road_gate_frames        = tex_manager.get_textures(f"gate")
+pysprint_tracks.road_gate_shade_frames  = tex_manager.get_textures(f"gate_shade")
+pysprint_tracks.road_gate_mask_frames   = tex_manager.get_masks(f"gate")
 
 crowd_flags = tex_manager.get_textures(f"gate_crowd_flag")
 
-hammer_frames_loader = {}
-for i in range(3):
-    hammer_frames_loader[i] = tex_manager.get_texture(f"hammer_{i}")
+hammer_frames           = tex_manager.get_textures(f"hammer")
+saw_frames              = tex_manager.get_textures(f"saw")
+head_scratch_frames     = tex_manager.get_texture(f"head_scratch")
+blow_frames             = tex_manager.get_textures(f"blow")
 
-hammer_frames = {
-    0:hammer_frames_loader[0],
-    1:hammer_frames_loader[1],
-    2:hammer_frames_loader[2],
-    3:hammer_frames_loader[2],
-    4:hammer_frames_loader[2]
-}
+# podiums
+first_car_blue          = tex_manager.get_texture("podium_first_blue_car")
+first_car_red           = tex_manager.get_texture("podium_first_red_car")
+first_car_green         = tex_manager.get_texture("podium_first_green_car")
+first_car_yellow        = tex_manager.get_texture("podium_first_yellow_car")
 
-saw_frames_loader =  { }
-for i in range(3):
-    saw_frames_loader[i] = tex_manager.get_texture(f"saw_{i}")
+first_car_blue_drone    = tex_manager.get_texture("podium_first_blue_drone")
+first_car_red_drone     = tex_manager.get_texture("podium_first_red_drone")
+first_car_green_drone   = tex_manager.get_texture("podium_first_green_drone")
+first_car_yellow_drone  = tex_manager.get_texture("podium_first_yellow_drone")
 
-saw_frames =  {
-    0:saw_frames_loader[0],
-    1:saw_frames_loader[1],
-    2:saw_frames_loader[2],
-    3:saw_frames_loader[1],
-    4:saw_frames_loader[0]
-}
+second_car_blue         = tex_manager.get_texture("podium_second_car_blue")
+second_car_red          = tex_manager.get_texture("podium_second_car_red")
+second_car_green        = tex_manager.get_texture("podium_second_car_green")
+second_car_yellow       = tex_manager.get_texture("podium_second_car_yellow")
 
-head_scratch_frames_loader = { }
-for i in range(3):
-    head_scratch_frames_loader[i] = tex_manager.get_texture(f"head_scratch_{i}")
+second_car_blue_drone   = tex_manager.get_texture("podium_second_car_blue_drone")
+second_car_red_drone    = tex_manager.get_texture("podium_second_car_red_drone")
+second_car_green_drone  = tex_manager.get_texture("podium_second_car_green_drone")
+second_car_yellow_drone = tex_manager.get_texture("podium_second_car_yellow_drone")
 
+third_car_blue          = tex_manager.get_texture("podium_third_car_blue")
+third_car_red           = tex_manager.get_texture("podium_third_car_red")
+third_car_green         = tex_manager.get_texture("podium_third_car_green")
+third_car_yellow        = tex_manager.get_texture("podium_third_car_yellow")
 
-head_scratch_frames =  {
-    0:head_scratch_frames_loader[0],
-    1:head_scratch_frames_loader[1],
-    2:head_scratch_frames_loader[0],
-    3:head_scratch_frames_loader[1],
-    4:head_scratch_frames_loader[0],
-    5:head_scratch_frames_loader[1],
-    6:head_scratch_frames_loader[1],
-    7:head_scratch_frames_loader[2],
-    8:head_scratch_frames_loader[2],
-    9:head_scratch_frames_loader[2],
-    10:head_scratch_frames_loader[1],
-    11:head_scratch_frames_loader[2],
-    12:head_scratch_frames_loader[1],
-    13:head_scratch_frames_loader[2]
-}
+third_car_blue_drone    = tex_manager.get_texture("podium_third_car_blue_drone")
+third_car_red_drone     = tex_manager.get_texture("podium_third_car_red_drone")
+third_car_green_drone   = tex_manager.get_texture("podium_third_car_green_drone")
+third_car_yellow_drone  = tex_manager.get_texture("podium_third_car_yellow_drone")
 
-blow_frames_loader =  { }
-for i in range(5):
-    blow_frames_loader[i] = tex_manager.get_texture(f"blow_{i}")
+fourth_car_blue         = tex_manager.get_texture("podium_fourth_car_blue")
+fourth_car_red          = tex_manager.get_texture("podium_fourth_car_red")
+fourth_car_green        = tex_manager.get_texture("podium_fourth_car_green")
+fourth_car_yellow       = tex_manager.get_texture("podium_fourth_car_yellow")
 
-blow_frames =  {
-    0:blow_frames_loader[1],
-    1:blow_frames_loader[0],
-    2:blow_frames_loader[1],
-    3:blow_frames_loader[0],
-    4:blow_frames_loader[1],
-    5:blow_frames_loader[2],
-    6:blow_frames_loader[3],
-    7:blow_frames_loader[4],
-    8:blow_frames_loader[4],
-    9:blow_frames_loader[4],
-    10:blow_frames_loader[4],
-    11:blow_frames_loader[4],
-    12:blow_frames_loader[4],
-    13:blow_frames_loader[4],
-    14:blow_frames_loader[4],
-    15:blow_frames_loader[4],
-    16:blow_frames_loader[4]
-}
+fourth_car_blue_drone   = tex_manager.get_texture("podium_fourth_car_blue_drone")
+fourth_car_red_drone    = tex_manager.get_texture("podium_fourth_car_red_drone")
+fourth_car_green_drone  = tex_manager.get_texture("podium_fourth_car_green_drone")
+fourth_car_yellow_drone = tex_manager.get_texture("podium_fourth_car_yellow_drone")
 
-first_car_blue = tex_manager.get_texture("podium_first_blue_car")
-first_car_red = tex_manager.get_texture("podium_first_red_car")
-first_car_green = tex_manager.get_texture("podium_first_green_car")
-first_car_yellow = tex_manager.get_texture("podium_first_yellow_car")
+engine_idle             = tex_manager.get_textures(f"engine_idle")
+prepare_to_race         = tex_manager.get_textures(f"prepare_to_race")
+transition_dots         = tex_manager.get_textures(f"transition_dots")
 
-first_car_blue_drone = tex_manager.get_texture("podium_first_blue_drone")
-first_car_red_drone = tex_manager.get_texture("podium_first_red_drone")
-first_car_green_drone = tex_manager.get_texture("podium_first_green_drone")
-first_car_yellow_drone = tex_manager.get_texture("podium_first_yellow_drone")
+green_flag_frames       = tex_manager.get_textures(f"green_flag")
+white_flag_frames       = tex_manager.get_textures(f"white_flag")
+checkered_flag_frames   = tex_manager.get_textures(f"checkered_flag")
 
-second_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCar.png').convert_alpha()
-second_car_red = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCar.png').convert_alpha()
-second_car_green = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarGreenCar.png').convert_alpha()
-second_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarYellowCar.png').convert_alpha()
+# choper
+yellow_helicopter_frames            = tex_manager.get_textures(f"yellow_horizontal_helicopter")
+blue_helicopter_frames              = tex_manager.get_textures(f"blue_horizontal_helicopter")
+green_helicopter_frames             = tex_manager.get_textures(f"green_horizontal_helicopter")
+red_helicopter_frames               = tex_manager.get_textures(f"red_horizontal_helicopter")
 
-second_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCarDrone.png').convert_alpha()
-second_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCarDrone.png').convert_alpha()
-second_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarGreenCarDrone.png').convert_alpha()
-second_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarYellowCarDrone.png').convert_alpha()
+yellow_vertical_helicopter_frames   = tex_manager.get_textures(f"yellow_vertical_helicopter")
+blue_vertical_helicopter_frames     = tex_manager.get_textures(f"blue_vertical_helicopter")
+green_vertical_helicopter_frames    = tex_manager.get_textures(f"green_vertical_helicopter")
+red_vertical_helicopter_frames      = tex_manager.get_textures(f"red_vertical_helicopter")
 
-third_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarBlueCar.png').convert_alpha()
-third_car_red = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarRedCar.png').convert_alpha()
-third_car_green = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarGreenCar.png').convert_alpha()
-third_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarYellowCar.png').convert_alpha()
-
-third_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarBlueCarDrone.png').convert_alpha()
-third_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarRedCarDrone.png').convert_alpha()
-third_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarGreenCarDrone.png').convert_alpha()
-third_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarYellowCarDrone.png').convert_alpha()
-
-fourth_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarBlueCar.png').convert_alpha()
-fourth_car_red = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCar.png').convert_alpha()
-fourth_car_green = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCar.png').convert_alpha()
-fourth_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCar.png').convert_alpha()
-
-fourth_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png').convert_alpha()
-fourth_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png').convert_alpha()
-fourth_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png').convert_alpha()
-fourth_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png').convert_alpha()
-
-engine_idle = tex_manager.get_textures(f"engine_idle")
-
-prepare_to_race = {
-    0:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
-    1:pygame.image.load('Assets/PrePareToRace1.png').convert_alpha(),
-    2:pygame.image.load('Assets/PrePareToRace2.png').convert_alpha(),
-    3:pygame.image.load('Assets/PrePareToRace3.png').convert_alpha(),
-    4:pygame.image.load('Assets/PrePareToRace4.png').convert_alpha(),
-    5:pygame.image.load('Assets/PrePareToRace5.png').convert_alpha(),
-    6:pygame.image.load('Assets/PrePareToRace6.png').convert_alpha(),
-    7:pygame.image.load('Assets/PrePareToRace7.png').convert_alpha(),
-    8:pygame.image.load('Assets/PrePareToRace8.png').convert_alpha(),
-    9:pygame.image.load('Assets/PrePareToRace2.png').convert_alpha(),
-    10:pygame.image.load('Assets/PrePareToRace1.png').convert_alpha(),
-    11:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
-}
-attract_mode_display_duration = 5000
-
-transition_dots = {
-    0:pygame.image.load('Assets/TransitionDot0.png').convert_alpha(),
-    1:pygame.image.load('Assets/TransitionDot1.png').convert_alpha(),
-    2:pygame.image.load('Assets/TransitionDot2.png').convert_alpha(),
-    3:pygame.image.load('Assets/TransitionDot3.png').convert_alpha(),
-    4:pygame.image.load('Assets/TransitionDot4.png').convert_alpha(),
-    5:pygame.image.load('Assets/TransitionDot5.png').convert_alpha(),
-    6:pygame.image.load('Assets/TransitionDot6.png').convert_alpha(),
-    7:pygame.image.load('Assets/TransitionDot7.png').convert_alpha()
-}
-
+dust_cloud_frames       = tex_manager.get_textures(f"dust_cloud")
+explosion_frames        = tex_manager.get_textures(f"explosion")
+ 
+# cars
+car_sprites_masks       = tex_manager.get_masks(f"blue_drone")
+blue_drone_sprites      = tex_manager.get_textures(f"blue_drone")
+blue_car_sprites        = tex_manager.get_textures(f"blue_car")
+red_drone_sprites       = tex_manager.get_textures(f"red_drone")
+red_car_sprites         = tex_manager.get_textures(f"red_car")
+green_drone_sprites     = tex_manager.get_textures(f"green_drone")
+green_car_sprites       = tex_manager.get_textures(f"green_car")
+yellow_drone_sprites    = tex_manager.get_textures(f"yellow_drone")
+yellow_car_sprites      = tex_manager.get_textures(f"yellow_car")
 
 scrolling_font = {
     'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
@@ -364,93 +300,6 @@ scrolling_font = {
     '_':pygame.image.load('Assets/ScrollingFont_.png').convert_alpha(),
     ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
 }
-
-green_flag_frames = tex_manager.get_textures(f"green_flag")
-white_flag_frames = tex_manager.get_textures(f"white_flag")
-checkered_flag_frames = tex_manager.get_textures(f"checkered_flag")
-
-
-yellow_helicopter_frames = {
-    0:pygame.image.load('Assets/YellowHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/YellowHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/YellowHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/YellowHelicopter3.png').convert_alpha()
-}
-
-blue_helicopter_frames = {
-    0:pygame.image.load('Assets/BlueHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/BlueHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/BlueHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/BlueHelicopter3.png').convert_alpha()
-}
-
-green_helicopter_frames = {
-    0:pygame.image.load('Assets/GreenHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GreenHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GreenHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GreenHelicopter3.png').convert_alpha()
-}
-
-red_helicopter_frames = {
-    0:pygame.image.load('Assets/RedHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/RedHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/RedHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/RedHelicopter3.png').convert_alpha()
-}
-
-yellow_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/YellowHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/YellowHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/YellowHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/YellowHelicopterV3.png').convert_alpha()
-}
-
-blue_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/BlueHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/BlueHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/BlueHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/BlueHelicopterV3.png').convert_alpha()
-}
-
-green_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/GreenHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GreenHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GreenHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GreenHelicopterV3.png').convert_alpha()
-}
-
-red_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/RedHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/RedHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/RedHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/RedHelicopterV3.png').convert_alpha()
-}
-
-
-
-dust_cloud_frames = {
-    0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    1:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    2:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    3:pygame.image.load('Assets/DustCloud3.png').convert_alpha(),
-    4:pygame.image.load('Assets/DustCloud4.png').convert_alpha()
-}
-
-explosion_frames = tex_manager.get_textures(f"explosion")
- 
-car_sprites_masks = tex_manager.get_masks(f"blue_drone")
-
-blue_drone_sprites = tex_manager.get_textures(f"blue_drone")
-blue_car_sprites = tex_manager.get_textures(f"blue_car")
-
-red_drone_sprites = tex_manager.get_textures(f"red_drone")
-red_car_sprites = tex_manager.get_textures(f"red_car")
-
-green_drone_sprites = tex_manager.get_textures(f"green_drone")
-green_car_sprites = tex_manager.get_textures(f"green_car")
-
-yellow_drone_sprites = tex_manager.get_textures(f"yellow_drone")
-yellow_car_sprites = tex_manager.get_textures(f"yellow_car")
 
 keyboard_1 = {}
 keyboard_1['ACCELERATE'] = pygame.K_RCTRL
