@@ -1,0 +1,17 @@
+{
+    "name": "SuperSprint Atari ST version",
+    "version": 0.1,
+    "icon": "Assets/SuperSprintIcon.png",
+    "configs": {
+        "music": "configuration/atarist_music.json",
+        "sfx": "configuration/atarist_sfx.json",
+        "textures": "configuration/atarist_tex.json",
+        "fonts": "configuration/atarist_fonts.json"
+    },
+    "gameplay": {
+        "race_laps": 4
+    },
+    "display": {
+        "fadeout_duration": 1000
+    }
+}
