@@ -14,6 +14,8 @@ from pygame.mask import from_threshold
 import pysprint_tracks
 
 from managers.sample_manager import SampleManager
+from gfx.cone import Cone
+from loguru import logger
 
 game_display = None
 DEBUG_FINISH = False
@@ -161,7 +163,7 @@ class Car:
 
         # Sound
         self.smp_manager = SampleManager.get_manager("sfx")
-        
+
         #Appearance
         #Color
         self.main_color = None
@@ -1036,12 +1038,21 @@ class Car:
         else:
             return False
 
-    def test_cones(self, track: pysprint_tracks.Track):
-        if not track.traffic_cones_positions is None:
-            for i in range(0,len(track.traffic_cones_positions)):
-                if pysprint_tracks.traffic_cone_mask.overlap(self.car_mask, (round(self.x_position-track.traffic_cones_positions[i][0]),round(self.y_position-track.traffic_cones_positions[i][1]))):
-                    return i
-        return -1
+    def test_cones(self, track: pysprint_tracks.Track) -> Cone:
+        """Test collision between cones and current car positions
+
+        Args:
+            track (pysprint_tracks.Track): The current track
+
+        Returns:
+            Cone: if found, the cone which collided
+        """        
+        for cone in track.traffic_cones:
+            if cone.pos and cone.enabled:
+                if pysprint_tracks.traffic_cone_mask.overlap(self.car_mask, (round(self.x_position - cone.pos[0]), round(self.y_position - cone.pos[1]))):
+                    logger.debug(f"Overlap between cone {cone.pos} in state {cone.enabled} and car {(self.x_position, self.y_position)}")
+                    return cone     
+        return None
 
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
         x_test = 0
@@ -1245,9 +1256,10 @@ class Car:
 
     def detect_cones(self, track: pysprint_tracks.Track):
         cone_hit = self.test_cones(track)
-        if cone_hit>=0:
-            self.init_cone_loop(track.traffic_cones_positions[cone_hit])
-            track.traffic_cones_positions.pop(cone_hit)
+        if cone_hit:
+            self.init_cone_loop(cone_hit.pos)
+            cone_hit.disable()
+            logger.debug(f"Collision between car {self.main_color} and cone {cone_hit}")
 
     def init_pole_loop(self,track,position):
         if self.speed<self.speed_max:

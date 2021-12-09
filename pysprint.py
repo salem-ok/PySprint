@@ -1,8 +1,7 @@
 import pygame
-from pygame import draw
 import pygame.display
 import pygame.mixer
-from pygame import gfxdraw, init
+from pygame import gfxdraw
 import numpy as np
 import pysprint_car
 import pysprint_tracks
@@ -305,6 +304,7 @@ scrolling_font = {
     ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
 }
 
+
 keyboard_1 = {}
 keyboard_1['ACCELERATE'] = pygame.K_RCTRL
 keyboard_1['LEFT'] = pygame.K_LEFT
@@ -317,21 +317,24 @@ keyboard_2['LEFT'] = pygame.K_x
 keyboard_2['RIGHT'] = pygame.K_c
 keyboard_2['METHOD'] = "KEYBOARD 2"
 
-joystick_1  ={
-    'METHOD':"JOYSTICK 1"
-}
-joystick_2  ={
-    'METHOD':"JOYSTICK 2"
-}
-joystick_3  ={
-    'METHOD':"JOYSTICK 3"
-}
-joystick_4  ={
-    'METHOD':"JOYSTICK 4"
+joystick_1 = {
+    'METHOD': 'JOYSTICK 1'
 }
 
+joystick_2 = {
+    'METHOD': 'JOYSTICK 2'
+}
 
-control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2, joystick_3, joystick_4]
+joystick_3 = {
+    'METHOD': 'JOYSTICK 3'
+}
+
+joystick_4 = {
+    'METHOD': 'JOYSTICK 4'
+}
+
+control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2,
+                   joystick_3, joystick_4]
 
 def screen_fadeout():
     for frame in range (0,len(transition_dots)):
@@ -1707,20 +1710,20 @@ def init_track(filename):
 
     track = pysprint_tracks.Track()
 
-    #TODO: validate json with jsonschema 
+    #TODO: validate json with jsonschema
     track.load_track_definition(filename)
     track.background = pygame.image.load(track.background_filename)
 
     if not track.thumbnail_filename is None:
         track.thumbnail = pygame.image.load(track.thumbnail_filename)
     track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
-    
+
     if not track.track_upper_mask_filename is None:
         track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
         track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
     track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
     track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
-    
+
     logger.debug(f"Adding track {track.track_number} to the track list")
     tracks[track.track_number-1] = track
 
@@ -1831,15 +1834,15 @@ def game_loop():
                     smp_manager.get_sample("get_ready").play()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
-                        track.blit_obstacles(False)
-                        track.blit_bonus(False)
-                        track.blit_wrench(False)
+                        track.blit_obstacles(False, False)
+                        track.blit_bonus(False, False)
+                        track.blit_wrench(False, False)
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay(False)
-                        track.blit_obstacles(True)
-                        track.blit_bonus(True)
-                        track.blit_wrench(True)
+                        track.blit_obstacles(True, True)
+                        track.blit_bonus(True, True)
+                        track.blit_wrench(True, True)
                         for car in cars:
                             car.blit(track, True)
                         print_get_ready()
@@ -2070,15 +2073,15 @@ def game_loop():
 
                             trace_frame_time("Test Finish ", frame_start)
                             track.blit_background(True)
-                            track.blit_obstacles(True)
-                            track.blit_bonus(True)
-                            track.blit_wrench(True)
+                            track.blit_obstacles(True, False)
+                            track.blit_bonus(True, False)
+                            track.blit_wrench(True, False)
                             for car in cars:
                                 car.blit(track, False)
                             track.blit_overlay(True)
-                            track.blit_obstacles(True)
-                            track.blit_bonus(True)
-                            track.blit_wrench(True)
+                            track.blit_obstacles(True,True)
+                            track.blit_bonus(True,True)
+                            track.blit_wrench(True,True)
                             for car in cars:
                                 car.blit(track, True)
                             for car in cars:

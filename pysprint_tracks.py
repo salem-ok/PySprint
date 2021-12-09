@@ -8,7 +8,10 @@ from numpy.lib.polynomial import poly
 import pygame
 from pygame import Surface, gfxdraw, draw
 
-DEBUG_OBSTACLES = False
+from loguru import logger
+from gfx.cone import Cone
+
+DEBUG_OBSTACLES = True
 DEBUG_RAMPS = False
 
 #Spills
@@ -146,7 +149,6 @@ class Track:
         self.display_water_spill = False
         self.display_cones = False
         self.on_bridge_or_ramp_pole = False
-        self.on_bridge_or_ramp_tornado = False
         self.on_bridge_or_ramp_oil_spill = False
         self.on_bridge_or_ramp_grease_spill = False
         self.on_bridge_or_ramp_water_spill = False
@@ -168,11 +170,13 @@ class Track:
         self.external_pole_position = None
         self.internal_pole_position = None
         self.middle_pole_position = None
+
         #Traffic Cones
-        self.traffic_cones_positions = None
-        self.on_bridge_or_ramp_grease_traffic_cones = None
+        self.traffic_cones = []
+
         #All static Obstacles Gates
         self.obstacle_gates = []
+
         #Tornado
         self.tornado_position = None
         self.tornado_timer = None
@@ -479,13 +483,7 @@ class Track:
         self.update_track_mask()
         game_display.blit(surf,(0,0))
 
-
-    def blit_overlay(self, race_started):
-        surf = self.track_overlay.copy()
-        if not self.road_gates_anchors is None:
-            for i in range(0, len(self.road_gates_anchors)):
-                surf.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
-
+    def blit_tornado(self, race_started):
         if self.display_tornado:
             #Display Tornado
             if self.tornado_position is None:
@@ -513,7 +511,14 @@ class Track:
                     self.tornado_position = (rand_x,rand_y)
                     self.tornado_timer = now + 100
                 self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
-                surf.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
+                game_display.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
+
+    def blit_overlay(self, race_started):
+        surf = self.track_overlay.copy()
+        if not self.road_gates_anchors is None:
+            for i in range(0, len(self.road_gates_anchors)):
+                surf.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+
         if DEBUG_RAMPS:
             for ramp in self.ramp_surfs:
                 surf.blit(ramp,(0,0))
@@ -831,11 +836,6 @@ class Track:
 
         self.display_cones = False
         self.cones_count = 0
-        if nb_cones_max>0:
-            if random.randint(0,1)>0:
-                self.display_cones = True
-            if self.display_cones:
-                self.cones_count = random.randint(3,nb_cones_max)
 
         if DEBUG_OBSTACLES:
             self.display_pole = True
@@ -845,6 +845,24 @@ class Track:
             self.display_water_spill = True
             self.display_cones = True
             self.cones_count = 16
+            nb_cones_max = 16
+
+        if nb_cones_max > 0:
+            if random.randint(0,1)>0:
+                self.display_cones = True
+
+            if self.display_cones:
+                self.cones_count = random.randint(3, nb_cones_max)
+                if DEBUG_OBSTACLES:
+                    self.cones_count = 16
+                logger.debug(f"Creating {self.cones_count} cones")
+                for i in range(self.cones_count):
+                    cone = Cone(display=game_display, image=traffic_cone, shade_image=traffic_cone_shade)
+
+                    self.traffic_cones.append(cone)
+                    logger.debug(f"Cone at {cone.pos} added")
+
+
 
     def blit_obstacles(self, race_started, overlay_blitted = False):
 
@@ -993,17 +1011,17 @@ class Track:
                     game_display.blit(grease_spill_image,self.grease_spill_position)
 
         #Display Traffic Cones
-        if self.display_cones:
-            if self.traffic_cones_positions is None:
-                self.traffic_cones_positions = []
-                self.on_bridge_or_ramp_grease_traffic_cones = []
-                for i in range(1,self.cones_count):
-                    result = self.get_random_position(traffic_cone.get_height(),traffic_cone_shade.get_width())
-                    self.traffic_cones_positions.append(result[0])
-                    self.on_bridge_or_ramp_grease_traffic_cones.append(result[1])
+        if race_started:
+            for cone in self.traffic_cones:
 
-            if race_started:
-                for i in range(0,len(self.traffic_cones_positions)):
-                    if not overlay_blitted or self.on_bridge_or_ramp_grease_traffic_cones[i]:
-                        game_display.blit(traffic_cone,self.traffic_cones_positions[i])
-                        game_display.blit(traffic_cone_shade,self.traffic_cones_positions[i])
+                # should be done before
+                if cone.pos is None:
+                    pos, on_object = self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width())
+                    cone.update(pos) if not on_object else cone.disable()
+
+                if not overlay_blitted:
+                    cone.blit()
+
+        #blit Tornado last so it always is on top:
+        self.blit_tornado(race_started)
+
