@@ -140,7 +140,6 @@ loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground
 credits_screen              = tex_manager.get_texture("credits_screen")
 splash_screen               = tex_manager.get_texture("splash_screen")
 start_race_screen           = tex_manager.get_texture("start_race_screen")
-high_score_screen           = tex_manager.get_texture("high_score_screen")
 lap_records_screen          = tex_manager.get_texture("lap_records_screen")
 race_podium_screen          = tex_manager.get_texture("race_podium_screen")
 checkered_background        = tex_manager.get_texture("checkered_background")
@@ -449,63 +448,6 @@ def display_splash_screen():
     screen_fadeout()
     return key_pressed
 
-# def display_high_scores():
-#     screen_exit = False
-#     key_pressed = False
-#     screen_fadein(high_score_screen)
-#     top3 = (250, 100)
-#     top12 = (60, 225)
-#     top21 = (245, 225)
-#     top30 = (425, 225)
-#     for i in range (0,3):
-#         score = high_scores["high_scores"][i]["score"]
-#         name = high_scores["high_scores"][i]["name"]
-#         game_display.blit(small_font.render('{:2d}'.format(i+1), False, white_color), (top3[0], top3[1] + i * 15))
-#         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top3[0] + 25, top3[1] + i * 15))
-#         game_display.blit(small_font.render(name, False, white_color), (top3[0] + 110, top3[1] + i * 15))
-
-#     for i in range (0,9):
-#         score = high_scores["high_scores"][i+3]["score"]
-#         name = high_scores["high_scores"][i+3]["name"]
-#         if i+4<10:
-#             game_display.blit(small_font.render('{:2d}'.format(i+4), False, white_color), (top12[0] + 5, top12[1] + i * 15))
-#         else:
-#             game_display.blit(small_font.render('{:2d}'.format(i+4), False, white_color), (top12[0], top12[1] + i * 15))
-#         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top12[0] + 30, top12[1] + i * 15))
-#         game_display.blit(small_font.render(name, False, white_color), (top12[0] + 110, top12[1] + i * 15))
-
-#     for i in range (0,9):
-#         score = high_scores["high_scores"][i+12]["score"]
-#         name = high_scores["high_scores"][i+12]["name"]
-#         game_display.blit(small_font.render('{:2d}'.format(i+13), False, white_color), (top21[0], top21[1] + i * 15))
-#         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top21[0] + 30, top21[1] + i * 15))
-#         game_display.blit(small_font.render(name, False, white_color), (top21[0] + 115, top21[1] + i * 15))
-
-#     for i in range (0,9):
-#         score = high_scores["high_scores"][i+21]["score"]
-#         name = high_scores["high_scores"][i+21]["name"]
-#         game_display.blit(small_font.render('{:2d}'.format(i+22), False, white_color), (top30[0], top30[1] + i * 15))
-#         game_display.blit(small_font.render('{:06d}'.format(score,), False, white_color), (top30[0] + 30, top30[1] + i * 15))
-#         game_display.blit(small_font.render(name, False, white_color), (top30[0] + 115, top30[1] + i * 15))
-
-#     pygame.display.update()
-#     screen_start_time = pygame.time.get_ticks()
-#     while not screen_exit:
-#         if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-#             screen_exit = True
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 screen_exit = True
-#                 key_pressed = pygame.K_ESCAPE
-#             if event.type == pygame.KEYDOWN:
-#                 screen_exit = True
-#                 key_pressed = event.key
-#         if any_joystick_button_pressed():
-#             screen_exit = True
-#             key_pressed = JOYSTICK_BUTTON_PRESSED
-#     screen_fadeout()
-
-#     return key_pressed
 
 def display_lap_records():
     screen_exit = False
