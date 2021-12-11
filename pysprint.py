@@ -404,29 +404,6 @@ def display_loading_screen(loop):
     screen_fadeout()
     return key_pressed
 
-# def display_credits_screen():
-#     screen_exit = False
-#     key_pressed = False
-#     screen_fadein(credits_screen)
-#     pygame.display.update()
-#     screen_start_time = pygame.time.get_ticks()
-#     while not screen_exit:
-#         if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-#             screen_exit = True
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 screen_exit = True
-#                 key_pressed = pygame.K_ESCAPE
-#             if event.type == pygame.KEYDOWN:
-#                 screen_exit = True
-#                 key_pressed = event.key
-#         if any_joystick_button_pressed():
-#             screen_exit = True
-#             key_pressed = JOYSTICK_BUTTON_PRESSED
-
-#     screen_fadeout()
-#     return key_pressed
-
 def display_splash_screen():
     screen_exit = False
     key_pressed = False
