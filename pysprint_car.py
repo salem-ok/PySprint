@@ -1004,9 +1004,11 @@ class Car:
                 y_test = -self.vector_simulation_length
         result  = (x_test,y_test)
         return result
+    def is_on_ramp_or_bridge(self):
+        return self.on_bridge or self.on_ramp
 
     def test_bonus(self, track: pysprint_tracks.Track):
-        if track.bonus_frame_index >=0:
+        if track.bonus_frame_index >=0 and track.on_bridge_or_ramp_bonus==self.is_on_ramp_or_bridge():
             bonus_mask = pysprint_tracks.bonus_frames_masks[track.bonus_frame_index]
             x_test = 0
             y_test = 0
@@ -1015,7 +1017,7 @@ class Car:
             return False
 
     def test_wrench(self, track: pysprint_tracks.Track):
-        if track.wrench_displayed:
+        if track.wrench_displayed and track.on_bridge_or_ramp_wrench==self.is_on_ramp_or_bridge():
             return  pysprint_tracks.wrench_mask.overlap(self.car_mask, (round(self.x_position-track.wrench_position[0]),round(self.y_position-track.wrench_position[1])))
         else:
             return False
@@ -1046,12 +1048,12 @@ class Car:
 
         Returns:
             Cone: if found, the cone which collided
-        """        
+        """
         for cone in track.traffic_cones:
-            if cone.pos and cone.enabled:
+            if cone.pos and cone.enabled and cone.is_on_bridge==self.is_on_ramp_or_bridge():
                 if pysprint_tracks.traffic_cone_mask.overlap(self.car_mask, (round(self.x_position - cone.pos[0]), round(self.y_position - cone.pos[1]))):
                     logger.debug(f"Overlap between cone {cone.pos} in state {cone.enabled} and car {(self.x_position, self.y_position)}")
-                    return cone     
+                    return cone
         return None
 
     def test_collision(self, track: pysprint_tracks.Track, simulate_next_step):
@@ -1214,17 +1216,17 @@ class Car:
                 return False
 
     def detect_spills(self, track: pysprint_tracks.Track):
-        if track.display_oil_spill:
+        if track.display_oil_spill and track.on_bridge_oil_spill==self.is_on_ramp_or_bridge():
             if self.test_spill(pysprint_tracks.oil_spill_mask,track.oil_spill_position):
                 if not self.on_spill:
                     self.init_oil_spill_loop()
                 return True
-        if track.display_water_spill:
+        if track.display_water_spill and track.on_bridge_water_spill==self.is_on_ramp_or_bridge():
             if self.test_spill(pysprint_tracks.water_spill_mask,track.water_spill_position):
                 if not self.on_spill:
                     self.init_water_spill_loop()
                 return True
-        if track.display_grease_spill:
+        if track.display_grease_spill and track.on_bridge_grease_spill==self.is_on_ramp_or_bridge():
             if self.test_spill(pysprint_tracks.grease_spill_mask,track.grease_spill_position):
                 if not self.on_spill:
                     self.init_grease_spill_loop()
@@ -1240,16 +1242,17 @@ class Car:
         return False
 
     def detect_poles(self, track: pysprint_tracks.Track):
-        position_to_test = None
-        if track.poles_frame_indexes[0]>0:
-            position_to_test = track.external_pole_position
-        if track.poles_frame_indexes[1]:
-            position_to_test = track.middle_pole_position
-        if track.poles_frame_indexes[2]:
-            position_to_test = track.internal_pole_position
-        if self.test_pole(track,position_to_test):
-            self.init_pole_loop(track,position_to_test)
-            return True
+        if  track.on_bridge_pole==self.is_on_ramp_or_bridge():
+            position_to_test = None
+            if track.poles_frame_indexes[0]>0:
+                position_to_test = track.external_pole_position
+            if track.poles_frame_indexes[1]:
+                position_to_test = track.middle_pole_position
+            if track.poles_frame_indexes[2]:
+                position_to_test = track.internal_pole_position
+            if self.test_pole(track,position_to_test):
+                self.init_pole_loop(track,position_to_test)
+                return True
         return False
 
 

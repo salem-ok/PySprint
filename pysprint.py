@@ -63,7 +63,7 @@ DEBUG_FLAG = False
 DISPLAY_FPS = True
 DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
-DEBUG_AI = False
+DEBUG_AI = True
 DISABLE_DRONES = False
 
 #Flag Events
@@ -138,10 +138,10 @@ loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground
 credits_screen              = tex_manager.get_texture("credits_screen")
 splash_screen               = tex_manager.get_texture("splash_screen")
 start_race_screen           = tex_manager.get_texture("start_race_screen")
-high_score_screen           = tex_manager.get_texture("high_score_screen") 
-lap_records_screen          = tex_manager.get_texture("lap_records_screen") 
-race_podium_screen          = tex_manager.get_texture("race_podium_screen") 
-checkered_background        = tex_manager.get_texture("checkered_background") 
+high_score_screen           = tex_manager.get_texture("high_score_screen")
+lap_records_screen          = tex_manager.get_texture("lap_records_screen")
+race_podium_screen          = tex_manager.get_texture("race_podium_screen")
+checkered_background        = tex_manager.get_texture("checkered_background")
 item_screen                 = tex_manager.get_texture("item_screen")
 
 blue_selection_wheel        = tex_manager.get_texture("blue_selection_wheel")
@@ -259,7 +259,7 @@ red_vertical_helicopter_frames      = tex_manager.get_textures(f"red_vertical_he
 
 dust_cloud_frames       = tex_manager.get_textures(f"dust_cloud")
 explosion_frames        = tex_manager.get_textures(f"explosion")
- 
+
 # cars
 car_sprites_masks       = tex_manager.get_masks(f"blue_drone")
 blue_drone_sprites      = tex_manager.get_textures(f"blue_drone")
