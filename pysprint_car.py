@@ -1760,7 +1760,7 @@ class Car:
             self.test_on_bridge(track)
             #ignore obstacles and collisons while the car is mid-air
             if not (self.jumping and not self.landing and not self.falling):
-                if track.display_tornado:
+                if track.enable_tornado:
                     #Check for Tornado - priority behaviour over spills
                     self.on_tornado = self.detect_tornado(track)
                 if not self.on_tornado:
@@ -1769,7 +1769,7 @@ class Car:
                 if track.display_cones:
                     #check for Traffic Cones
                     self.detect_cones(track)
-                if track.display_pole:
+                if track.enable_pole:
                     #Check for Poles
                     self.detect_poles(track)
             if not self.on_spill and not self.on_tornado:
