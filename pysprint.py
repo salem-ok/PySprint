@@ -130,11 +130,10 @@ attract_mode_display_duration = 5000
 podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
 # fonts
-pysprint_tracks.tiny_font   = font_manager.get_truetype_font("tiny_font") #pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
-small_font                  = font_manager.get_truetype_font("small_font") #pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
-shadow_font                 = font_manager.get_truetype_font("shadow_font") #pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
-big_font                    = font_manager.get_truetype_font("big_font") #pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
-big_shadow_font             = font_manager.get_truetype_font("big_shadow_font") #pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
+small_font                  = font_manager.get_truetype_font("small_font") 
+shadow_font                 = font_manager.get_truetype_font("shadow_font")
+big_font                    = font_manager.get_truetype_font("big_font")
+big_shadow_font             = font_manager.get_truetype_font("big_shadow_font")
 
 # ---------------------------------------------------------------------------------------------
 # TODO: move to pysprint_car

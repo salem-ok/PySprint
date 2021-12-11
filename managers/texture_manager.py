@@ -76,7 +76,7 @@ class TextureManager(object):
             for i, img in enumerate(imgs):
                 imgs_dict[i] = img
 
-            # logger.debug(imgs_dict)
+            # logger.debug(imgs_dict)   
             return imgs_dict
         else:
             return imgs
