@@ -449,48 +449,6 @@ def display_splash_screen():
     screen_fadeout()
     return key_pressed
 
-
-# def display_lap_records():
-#     screen_exit = False
-#     key_pressed = -1
-#     screen_fadein(lap_records_screen)
-#     top4 = (55, 270)
-#     top8 = (335, 270)
-#     for i in range(0,4):
-#         time = best_laps["best_laps"][i]["time"]
-#         name = best_laps["best_laps"][i]["name"]
-#         game_display.blit(small_font.render('Track', False, white_color), (top4[0], top4[1] + i * 15))
-#         game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top4[0] + 70, top4[1] + i * 15))
-#         game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top4[0] + 95, top4[1] + i * 15))
-#         game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top4[0] + 150, top4[1] + i * 15))
-
-#     for i in range(0,4):
-#         time = best_laps["best_laps"][i+4]["time"]
-#         name = best_laps["best_laps"][i+4]["name"]
-#         game_display.blit(small_font.render('Track', False, white_color), (top8[0], top8[1] + i * 15))
-#         game_display.blit(small_font.render('{}'.format(i+5), False, white_color), (top8[0] + 70, top8[1] + i * 15))
-#         game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top8[0] + 95, top8[1] + i * 15))
-#         game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top8[0] + 150, top8[1] + i * 15))
-
-#     pygame.display.update()
-#     screen_start_time = pygame.time.get_ticks()
-#     while not screen_exit:
-#         if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-#             screen_exit = True
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 screen_exit = True
-#                 key_pressed = pygame.K_ESCAPE
-#             if event.type == pygame.KEYDOWN:
-#                 screen_exit = True
-#                 key_pressed = event.key
-#         if any_joystick_button_pressed():
-#             screen_exit = True
-#             key_pressed = JOYSTICK_BUTTON_PRESSED
-#     screen_fadeout()
-#     return key_pressed
-
-
 def print_get_ready():
     prepare_surf = big_font.render("GET READY", False, white_color)
     shadow_prepare_surf = big_shadow_font.render("GET READY", False, black_color)
