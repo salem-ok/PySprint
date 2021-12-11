@@ -12,6 +12,7 @@ import os
 #New awesome imports from shazz :D
 from managers.sample_manager import SampleManager
 from managers.texture_manager import TextureManager
+from managers.font_manager import FontManager
 from pathlib import Path
 from loguru import logger
 
@@ -56,6 +57,7 @@ FADEOUT_DURATION = 1000
 SampleManager.create_manager("sfx", "configuration/atarist_sfx.json")
 smp_manager = SampleManager.create_manager("music", "configuration/atarist_music.json")
 tex_manager = TextureManager.create_manager("sprites", "configuration/atarist_tex.json")
+font_manager = FontManager.create_manager("fonts", "configuration/atarist_fonts.json")
 
 cars = []
 
@@ -128,11 +130,11 @@ attract_mode_display_duration = 5000
 podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
 # fonts
-pysprint_tracks.tiny_font   = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
-small_font                  = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
-shadow_font                 = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
-big_font                    = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
-big_shadow_font             = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
+pysprint_tracks.tiny_font   = font_manager.get_truetype_font("tiny_font") #pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
+small_font                  = font_manager.get_truetype_font("small_font") #pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+shadow_font                 = font_manager.get_truetype_font("shadow_font") #pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
+big_font                    = font_manager.get_truetype_font("big_font") #pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
+big_shadow_font             = font_manager.get_truetype_font("big_shadow_font") #pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
 
 # ---------------------------------------------------------------------------------------------
 # TODO: move to pysprint_car
@@ -282,39 +284,7 @@ green_car_sprites       = tex_manager.get_textures(f"green_car")
 yellow_drone_sprites    = tex_manager.get_textures(f"yellow_drone")
 yellow_car_sprites      = tex_manager.get_textures(f"yellow_car")
 
-scrolling_font = {
-    'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
-    'B':pygame.image.load('Assets/ScrollingFontB.png').convert_alpha(),
-    'C':pygame.image.load('Assets/ScrollingFontC.png').convert_alpha(),
-    'D':pygame.image.load('Assets/ScrollingFontD.png').convert_alpha(),
-    'E':pygame.image.load('Assets/ScrollingFontE.png').convert_alpha(),
-    'F':pygame.image.load('Assets/ScrollingFontF.png').convert_alpha(),
-    'G':pygame.image.load('Assets/ScrollingFontG.png').convert_alpha(),
-    'H':pygame.image.load('Assets/ScrollingFontH.png').convert_alpha(),
-    'I':pygame.image.load('Assets/ScrollingFontI.png').convert_alpha(),
-    'J':pygame.image.load('Assets/ScrollingFontJ.png').convert_alpha(),
-    'K':pygame.image.load('Assets/ScrollingFontK.png').convert_alpha(),
-    'L':pygame.image.load('Assets/ScrollingFontL.png').convert_alpha(),
-    'M':pygame.image.load('Assets/ScrollingFontM.png').convert_alpha(),
-    'N':pygame.image.load('Assets/ScrollingFontN.png').convert_alpha(),
-    'O':pygame.image.load('Assets/ScrollingFontO.png').convert_alpha(),
-    'P':pygame.image.load('Assets/ScrollingFontP.png').convert_alpha(),
-    'Q':pygame.image.load('Assets/ScrollingFontQ.png').convert_alpha(),
-    'R':pygame.image.load('Assets/ScrollingFontR.png').convert_alpha(),
-    'S':pygame.image.load('Assets/ScrollingFontS.png').convert_alpha(),
-    'T':pygame.image.load('Assets/ScrollingFontT.png').convert_alpha(),
-    'U':pygame.image.load('Assets/ScrollingFontU.png').convert_alpha(),
-    'V':pygame.image.load('Assets/ScrollingFontV.png').convert_alpha(),
-    'W':pygame.image.load('Assets/ScrollingFontW.png').convert_alpha(),
-    'X':pygame.image.load('Assets/ScrollingFontX.png').convert_alpha(),
-    'Y':pygame.image.load('Assets/ScrollingFontY.png').convert_alpha(),
-    'Z':pygame.image.load('Assets/ScrollingFontZ.png').convert_alpha(),
-    '.':pygame.image.load('Assets/ScrollingFontDOT.png').convert_alpha(),
-    ' ':pygame.image.load('Assets/ScrollingFontSPACE.png').convert_alpha(),
-    '_':pygame.image.load('Assets/ScrollingFont_.png').convert_alpha(),
-    ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
-}
-
+scrolling_font = font_manager.get_bitmap_font("scrolling")
 
 keyboard_1 = {}
 keyboard_1['ACCELERATE'] = pygame.K_RCTRL
