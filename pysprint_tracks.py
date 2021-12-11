@@ -13,6 +13,9 @@ from gfx.cone import Cone
 
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
+DISABLE_LOGGING = False
+if DISABLE_LOGGING:
+    logger.remove()
 
 #Spills
 oil_spill_image = None

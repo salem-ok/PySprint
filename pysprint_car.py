@@ -26,6 +26,9 @@ DEBUG_CRASH = False
 DEBUG_AI = False
 DEBUG_GATE_TRACKING = False
 DEBUG_RAMPS = False
+DISABLE_LOGGING = False
+if DISABLE_LOGGING:
+    logger.remove()
 
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500

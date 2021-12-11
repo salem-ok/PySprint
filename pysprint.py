@@ -14,6 +14,7 @@ from managers.texture_manager import TextureManager
 from pathlib import Path
 from loguru import logger
 
+
 pygame.init()
 pygame.joystick.init()
 
@@ -57,6 +58,7 @@ tracks = {}
 
 
 FPS = 30
+
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
@@ -65,6 +67,9 @@ DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
 DEBUG_AI = False
 DISABLE_DRONES = False
+DISABLE_LOGGING = False
+if DISABLE_LOGGING:
+    logger.remove()
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
