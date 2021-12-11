@@ -18,7 +18,7 @@ from loguru import logger
 pygame.init()
 pygame.joystick.init()
 
-version = "0.37"
+version = "0.38"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
