@@ -3,9 +3,8 @@ from typing import List, Dict
 from pathlib import Path
 import json
 from loguru import logger
-from pygame import Surface
+from pygame.font import Font
 import pygame
-
 
 class FontManager(object):
 
@@ -55,14 +54,14 @@ class FontManager(object):
             for letter, path in details.items():
                 self.bitmap_fonts[name][letter] = pygame.image.load(str(path)).convert_alpha()
 
-    def get_truetype_font(self, name):
+    def get_truetype_font(self, name) -> Font:
 
         if name not in self.ttfs.keys():
             raise ValueError(f"Truetype font {name} in not defined in configuration! Only {list(self.ttf.keys())}")
 
         return self.ttfs[name]
 
-    def get_bitmap_font(self, name):
+    def get_bitmap_font(self, name) -> Dict:
 
         if name not in self.bitmap_fonts.keys():
             raise ValueError(f"Bitmap font {name} in not defined in configuration! Only {list(self.bitmap_fonts.keys())}")
