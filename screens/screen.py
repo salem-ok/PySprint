@@ -42,3 +42,6 @@ class Screen:
 
             pygame.display.update()
             clock.tick(len(self.transition_dots)*1.5)
+    
+    def display(self):
+        pass
