@@ -612,23 +612,23 @@ class Car:
 
                 if sprite_rect.colliderect(wall_rect):
                     if DEBUG_COLLISION:
-                        print('found matching pair of points ({},{})'.format(polygon_border[i],polygon_border[next_index]))
+                        logger.debug('found matching pair of points ({},{})'.format(polygon_border[i],polygon_border[next_index]))
                     self.a_intersect_side = polygon_border[i]
                     self.b_intersect_side = polygon_border[next_index]
                     if (abs(polygon_border[i][0]-polygon_border[next_index][0]) <= self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1]) > self.diagonal_detection_tolerance):
                         if DEBUG_COLLISION:
-                            print('x delta <={} - looks vertical enough'.format(self.diagonal_detection_tolerance))
+                            logger.debug('x delta <={} - looks vertical enough'.format(self.diagonal_detection_tolerance))
                         if bumping:
                             self.bumping_vertical = True
                         return True
                     if (abs(polygon_border[i][0]-polygon_border[next_index][0])>self.diagonal_detection_tolerance) and (abs(polygon_border[i][1]-polygon_border[next_index][1])<=self.diagonal_detection_tolerance):
                         if DEBUG_COLLISION:
-                            print('y delta <={} - looks horizontal enough'.format(self.diagonal_detection_tolerance))
+                            logger.debug('y delta <={} - looks horizontal enough'.format(self.diagonal_detection_tolerance))
                         if bumping:
                             self.bumping_horizontal = True
                         return True
                     if DEBUG_COLLISION:
-                        print('Diagonal Bumping')
+                        logger.debug('Diagonal Bumping')
                     if bumping:
                         self.bumping_diagonal = True
                         self.bumping_horizontal = False
@@ -653,7 +653,7 @@ class Car:
 
         sine_angle = self.get_sine((sprite_x_vector,sprite_y_vector), new_vector)
         if DEBUG_RAMPS:
-            print('sine:{} - sprite_angle = {}'.format(sine_angle,self.sprite_angle))
+            logger.debug('sine:{} - sprite_angle = {}'.format(sine_angle,self.sprite_angle))
 
         if (sine_angle > self.turning_angle_threshold) or ( sine_angle < -self.turning_angle_threshold):
             if sine_angle < 0:
@@ -665,7 +665,7 @@ class Car:
                 if self.sprite_angle>=16:
                     self.sprite_angle-=16
         if DEBUG_RAMPS:
-            print('New Sprite angle = {}'.format(self.sprite_angle))
+            logger.debug('New Sprite angle = {}'.format(self.sprite_angle))
 
 
     def calculate_jumping_vector(self,track: pysprint_tracks.Track):
@@ -680,7 +680,7 @@ class Car:
         self.y_vector = new_vector[1]
         self.vy = self.vy + 0.5 * gravity * dt
         if DEBUG_RAMPS:
-            print('(x,y): ({},{})  vector({},{}) - vx:{} - vy:{}'.format(self.x_position,self.y_position,self.x_vector,self.y_vector,self.vx,self.vy))
+            logger.debug('(x,y): ({},{})  vector({},{}) - vx:{} - vy:{}'.format(self.x_position,self.y_position,self.x_vector,self.y_vector,self.vx,self.vy))
 
     def calculate_skidding_vector(self):
         #Start Skidding
@@ -695,7 +695,7 @@ class Car:
         skidding_angle = self.sin_angle
         if regain_traction:
             if DEBUG_BUMP:
-                print("Regaining traction on skidding")
+                logger.debug("Regaining traction on skidding")
             if not skidding_y == 0:
                 skidding_y = skidding_y * abs(self.speed * skidding_angle) / abs(self.y_vector)
 
@@ -703,7 +703,7 @@ class Car:
                 skidding_x = skidding_x * math.sqrt(abs(self.speed*self.speed-skidding_y*skidding_y))  / abs(skidding_x)
         else:
             if DEBUG_BUMP:
-                print("Skidding without Traction")
+                logger.debug("Skidding without Traction")
 
         self.calculate_vector_from_sprite()
         self.x_vector = (self.x_vector + skidding_x*self.skidding_weight)/(self.skidding_weight+1)
@@ -913,7 +913,7 @@ class Car:
                 if not self.car_collision_grace_timer is None:
                     if pygame.time.get_ticks() < self.car_collision_grace_timer:
                         if DEBUG__CAR_COLLISION:
-                            print('No Colllision (too recent): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                            logger.debug('No Colllision (too recent): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                     else:
                         self.car_collision_grace_timer = None
                 if self.car_collision_grace_timer is None:
@@ -926,18 +926,18 @@ class Car:
                         if (abs(angle_delta) < 10) and (abs(angle_delta) >6):
                             if self.speed>0.5*self.speed_max and cars[i].speed>0.5*cars[i].speed_max:
                                 if DEBUG__CAR_COLLISION:
-                                    print('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                                    logger.debug('Frontal Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                                 self.init_frontal_car_collision_loop(cars[i])
                                 cars[i].init_frontal_car_collision_loop(self)
                         ##No Collision: sprite angles are equal or close (+/- 2 step)
                         elif abs(angle_delta) <= 2 or abs(angle_delta) >=13:
                             if DEBUG__CAR_COLLISION:
-                                print('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                                logger.debug('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                         #Sprites angle is equidisant from right angles and cars opposite directions
                         # elif (abs(angle_delta)==6) or (abs(angle_delta)==10) and ((self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone)):
                         #     #If cars are at high speed, force spinning (if one of them is not a drone, as drones are almost always at max speed)
                         #     if DEBUG__CAR_COLLISION:
-                        #         print('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                        #         logger.debug('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                         #     self.init_frontal_car_collision_loop(cars[i])
                         #     cars[i].init_frontal_car_collision_loop(self)
                         else:
@@ -947,13 +947,13 @@ class Car:
                             if (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone) and (abs(angle_delta)==5) or (abs(angle_delta)==11):
                                 #If cars are at high speed, force spinning when angle is open (if one of them is not a drone, as drones are almost always at max speed)
                                 if DEBUG__CAR_COLLISION:
-                                    print('High Speed Colllision (open angle): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                                    logger.debug('High Speed Colllision (open angle): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                                 self.init_frontal_car_collision_loop(cars[i])
                                 cars[i].init_frontal_car_collision_loop(self)
                             elif (self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (abs(angle_delta)==3) or (abs(angle_delta)==13):
                                 #If cars are at high speed, ignore when angle is closed
                                 if DEBUG__CAR_COLLISION:
-                                    print('No Colllision (high speed-closed angle"): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
+                                    logger.debug('No Colllision (high speed-closed angle"): {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
                             else:
                                 other_front_collision = False
                                 if collision[0]>=self.front_area[cars[i].sprite_angle][0][0] and collision[0]<=self.front_area[cars[i].sprite_angle][1][0]:
@@ -968,7 +968,7 @@ class Car:
                                 else:
                                     other_collision = (-1,-1)
                                 if DEBUG__CAR_COLLISION:
-                                    print('Side Colllision: {}-sprite:{}-front:{} - {}-sprite:{}-front:{} - ({},{}) - ({},{})'.format(cars[i].color_text,cars[i].sprite_angle,other_front_collision,self.color_text,self.sprite_angle,front_collision,collision[0],collision[1],other_collision[0],other_collision[1]))
+                                    logger.debug('Side Colllision: {}-sprite:{}-front:{} - {}-sprite:{}-front:{} - ({},{}) - ({},{})'.format(cars[i].color_text,cars[i].sprite_angle,other_front_collision,self.color_text,self.sprite_angle,front_collision,collision[0],collision[1],other_collision[0],other_collision[1]))
                                 if not front_collision == other_front_collision:
                                     if other_front_collision:
                                         #Side collisions between drones are excluded
@@ -978,7 +978,7 @@ class Car:
                                             if not cars[i].side_colliding_offender:
                                                 cars[i].init_side_car_collision_offender_loop(self, collision)
                                             if DEBUG__CAR_COLLISION:
-                                                print('Side Colllision: Victim: {} - Offender: {}'.format(self.color_text,cars[i].color_text))
+                                                logger.debug('Side Colllision: Victim: {} - Offender: {}'.format(self.color_text,cars[i].color_text))
                                     else:
                                         #Side collisions between drones are excluded
                                         if not(self.is_drone and cars[i].is_drone):
@@ -987,7 +987,7 @@ class Car:
                                             if not cars[i].side_colliding_victim:
                                                 cars[i].init_side_car_collision_victim_loop(self, collision)
                                             if DEBUG__CAR_COLLISION:
-                                                print('Side Colllision: Victim: {} - Offender: {}'.format(cars[i].color_text,self.color_text))
+                                                logger.debug('Side Colllision: Victim: {} - Offender: {}'.format(cars[i].color_text,self.color_text))
 
     def get_simulation_vector(self):
         x_test = 0
@@ -1125,7 +1125,7 @@ class Car:
             #Test if the car is still collidign and keep moving backwards until not the case
             if intersect_point:
                 if DEBUG_COLLISION:
-                    print('Car stuck outside of borders at ({},{}) - Repositionning'.format(self.x_position, self.y_position))
+                    logger.debug('Car stuck outside of borders at ({},{}) - Repositionning'.format(self.x_position, self.y_position))
                 self.y_vector = 0
                 self.x_vector = 0
 
@@ -1152,7 +1152,7 @@ class Car:
 
     def detect_collision(self, track: pysprint_tracks.Track):
         if DEBUG_COLLISION:
-            print('Checking for Collision at ({},{})'.format(self.x_position, self.y_position))
+            logger.debug('Checking for Collision at ({},{})'.format(self.x_position, self.y_position))
         intersect_point = self.test_collision(track,False)
         collision = False
         if intersect_point:
@@ -1184,7 +1184,7 @@ class Car:
         #if overlap between car and circuit mask > collision_area_threshold pixels  crash is forced to avoid traversing walls and gates
         area = self.test_collision_area(track,False)
         if DEBUG_CRASH:
-            print('collision area : {}'.format(area))
+            logger.debug('collision area : {}'.format(area))
 
         if  area > self.collision_area_threshold:
             return True
@@ -1379,10 +1379,10 @@ class Car:
                     #Despite overlap detected no intersection with any side of the Track polygons has been found
                     #Unable to determine the orientation of the colliding border
                     if DEBUG_BUMP:
-                        print('No Macthing Border Side found')
+                        logger.debug('No Macthing Border Side found')
                     self.end_bump_loop()
         if DEBUG_BUMP or DEBUG__CAR_COLLISION:
-            print('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
+            logger.debug('{} - Bump Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
 
     def init_crash_loop(self, intersect_point):
@@ -1405,7 +1405,7 @@ class Car:
 
         self.collision_time = pygame.time.get_ticks()
         if DEBUG_CRASH:
-            print('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
+            logger.debug('{} - Crash Initiated({},{})'.format(self.collision_time, self.x_intersect, self.y_intersect))
         self.animation_index = 0
         self.helicopter_index = 0
 
@@ -1490,11 +1490,11 @@ class Car:
 
                 self.fix_sprite_angle_on_ramp(track)
         if DEBUG_RAMPS:
-            print('{} - Entering (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
+            logger.debug('{} - Entering (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
 
     def init_leaving_ramp(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
-            print('{} - Leaving (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
+            logger.debug('{} - Leaving (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
         if self.take_off or self.mid_air or self.landing:
             #Leaving the ramp while mid-air, taking off or landing means crash
             self.init_crash_loop((self.x_intersect,self.y_position))
@@ -1528,11 +1528,11 @@ class Car:
         self.current_bridge_poly = bridge_index
         self.on_bridge = True
         if DEBUG_RAMPS:
-            print('{} - Entering (bridge): ({})'.format(self.color_text,self.current_bridge_poly))
+            logger.debug('{} - Entering (bridge): ({})'.format(self.color_text,self.current_bridge_poly))
 
     def init_leaving_bridge(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
-            print('{} - Leaving (bridge): ({})'.format(self.color_text,self.current_bridge_poly))
+            logger.debug('{} - Leaving (bridge): ({})'.format(self.color_text,self.current_bridge_poly))
         self.current_bridge_poly = None
         self.on_bridge = False
 
@@ -1569,7 +1569,7 @@ class Car:
             self.take_off = True
             self.decelerating = True
             if DEBUG_RAMPS:
-                print('{} - Jumping (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
+                logger.debug('{} - Jumping (ramp,poly): ({},{})'.format(self.color_text,self.current_ramp_poly[0],self.current_ramp_poly[1]))
             self.ignore_controls = True
             if track.player_shortcut_bookend_gates is None:
                 if track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][0]][0] > track.internal_gate_points[track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]][len(track.ramp_gates[self.previous_ramp_poly[0]][self.previous_ramp_poly[1]])-1]][0]:
@@ -1594,7 +1594,7 @@ class Car:
 
     def init_mid_air(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
-            print('{} - Init Mid-Air'.format(self.color_text))
+            logger.debug('{} - Init Mid-Air'.format(self.color_text))
         self.take_off = False
         self.decelerating = True
         self.mid_air = True
@@ -1616,7 +1616,7 @@ class Car:
 
     def init_landing(self, track: pysprint_tracks.Track):
         if DEBUG_RAMPS:
-            print('{} - Init Landing'.format(self.color_text))
+            logger.debug('{} - Init Landing'.format(self.color_text))
         self.smp_manager.get_sample("collision").play()
         self.landing = True
         self.mid_air = False
@@ -1645,14 +1645,14 @@ class Car:
         self.vy = 20*self.speed * math.sin(math.radians(self.fall_angle))
         self.fall_start_timer = pygame.time.get_ticks()
         if DEBUG_RAMPS:
-            print('{} - Falling'.format(self.color_text))
+            logger.debug('{} - Falling'.format(self.color_text))
 
     def end_fall_loop(self):
         self.falling = False
         self.fall_start_timer = None
         #Leave cotrols ignored as fall is followed by a crash
         if DEBUG_RAMPS:
-            print('{} - End Falling Loop'.format(self.color_text))
+            logger.debug('{} - End Falling Loop'.format(self.color_text))
 
 
 
@@ -1662,7 +1662,7 @@ class Car:
         self.landing = False
         self.touch_down = True
         if DEBUG_RAMPS:
-            print('{} - Ending Jump (ramp,poly): ({},{})'.format(self.color_text,self.previous_ramp_poly[0],self.previous_ramp_poly[1]))
+            logger.debug('{} - Ending Jump (ramp,poly): ({},{})'.format(self.color_text,self.previous_ramp_poly[0],self.previous_ramp_poly[1]))
         self.ignore_controls = False
         self.collision_time = pygame.time.get_ticks()
         self.animation_index = 0
@@ -1691,7 +1691,7 @@ class Car:
         self.set_bumping(False)
         end_time = pygame.time.get_ticks()
         if DEBUG_BUMP or DEBUG__CAR_COLLISION:
-            print('{} - Bump Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
+            logger.debug('{} - Bump Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
 
     def end_crash_loop(self):
         self.crashing = False
@@ -1704,7 +1704,7 @@ class Car:
             self.end_fall_loop()
         end_time = pygame.time.get_ticks()
         if DEBUG_CRASH:
-            print('{} - Crash Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
+            logger.debug('{} - Crash Terminated - Duration: {})'.format(end_time,end_time-self.collision_time))
 
     def end_spinning_loop(self):
         self.spinning = False
@@ -1855,7 +1855,7 @@ class Car:
             self.furthest_past_gate = next_gate
             self.last_passed_gate = self.furthest_past_gate
             if DEBUG_GATE_TRACKING and not self.is_drone:
-                print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate))
+                logger.debug('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate))
 
         else:
             #Check if colliding with the closest gate to check for any other gate being passed than the next expected one (if driving aginst the race general direction)
@@ -1869,7 +1869,7 @@ class Car:
                     self.last_passed_gate = gate_to_check
                 self.most_recent_passed_gate = gate_to_check
                 if DEBUG_GATE_TRACKING and not self.is_drone:
-                    print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
+                    logger.debug('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
 
         #Check if colliding with the next mandatory gate
         if len(self.mandatory_gates_crossed)<len(track.mandatory_gates):
@@ -1884,7 +1884,7 @@ class Car:
                 self.most_recent_passed_gate = gate_to_check
                 self.check_mandatory_gate(gate_to_check,track)
                 if DEBUG_GATE_TRACKING and not self.is_drone:
-                    print('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
+                    logger.debug('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
 
 
     def test_on_ramp(self, track: pysprint_tracks.Track):
@@ -2000,7 +2000,7 @@ class Car:
                     if self.passed_finish_line_wrong_way:
                         self.passed_finish_line_wrong_way = False
                         if DEBUG_FINISH:
-                            print('{} - Passed the line in the right direction after going the wrong way)'.format(pygame.time.get_ticks()))
+                            logger.debug('{} - Passed the line in the right direction after going the wrong way)'.format(pygame.time.get_ticks()))
                     else:
                         #Check if all mandatory gates were passed before awarding a new lap
                         if not track.mandatory_gates is None:
@@ -2013,7 +2013,7 @@ class Car:
                             finish_time = pygame.time.get_ticks()
                             self.lap_times[self.lap_count] = finish_time - self.current_lap_start
                             if DEBUG_FINISH:
-                                print('{} - New Lap {} - Duration: {})'.format(finish_time, self.lap_count, self.lap_times[self.lap_count]))
+                                logger.debug('{} - New Lap {} - Duration: {})'.format(finish_time, self.lap_count, self.lap_times[self.lap_count]))
                             self.lap_count+=1
                             self.average_lap =  sum(self.lap_times)/self.lap_count
                             if self.best_lap == 0:
@@ -2025,17 +2025,17 @@ class Car:
                             if self.lap_count == race_laps:
                                 #Race finished
                                 if DEBUG_FINISH:
-                                    print('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_lap, self.best_lap))
+                                    logger.debug('{} - Race Finished - Duration: {} - Average lap: {} - Best Lap: {})'.format(finish_time, sum(self.lap_times), self.average_lap, self.best_lap))
                                 return True
                             self.current_lap_start = finish_time
                             return False
                         else:
                             if DEBUG_FINISH:
-                                print('{} - Passed the line in the right directionbut not all mandatory gates passed)'.format(pygame.time.get_ticks()))
+                                logger.debug('{} - Passed the line in the right directionbut not all mandatory gates passed)'.format(pygame.time.get_ticks()))
                 else:
                     self.passed_finish_line_wrong_way = True
                     if DEBUG_FINISH:
-                        print('{} - Passed the line in the wrong direction)'.format(pygame.time.get_ticks()))
+                        logger.debug('{} - Passed the line in the wrong direction)'.format(pygame.time.get_ticks()))
         else:
             self.on_finish_line = False
 
@@ -2086,7 +2086,7 @@ class Car:
             #Blit Dust Cloud if Bumping
             if self.bumping or self.touch_down:
                 if DEBUG_BUMP:
-                    print('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
+                    logger.debug('{} - Blit Bump Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
                 if self.animation_index <= 4:
                     game_display.blit(dust_cloud_frames[self.animation_index], (self.x_intersect, self.y_intersect))
             #Blit Explosion & Helicopter
@@ -2117,7 +2117,7 @@ class Car:
 
     def display_bump_cloud(self):
         if DEBUG_BUMP or DEBUG__CAR_COLLISION:
-            print('{} - Increment Bump Frame'.format(pygame.time.get_ticks()))
+            logger.debug('{} - Increment Bump Frame'.format(pygame.time.get_ticks()))
         if self.animation_index < len(dust_cloud_frames):
             self.animation_index += 1
 
@@ -2130,7 +2130,7 @@ class Car:
 
     def display_explosion_horizontal(self):
         if DEBUG_CRASH:
-            print('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
+            logger.debug('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
         if self.animation_index < len(explosion_frames):
             self.animation_index += 1
         if self.helicopter_x < display_width:
@@ -2144,7 +2144,7 @@ class Car:
 
     def display_explosion_vertical(self):
         if DEBUG_CRASH:
-            print('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
+            logger.debug('{} - Blit Crash Frame - Index: {}'.format(pygame.time.get_ticks(), self.animation_index))
         if self.animation_index < len(explosion_frames):
             self.animation_index += 1
         if self.helicopter_y > 0 - self.vertical_helicopter_frames[0].get_height():
@@ -2300,7 +2300,7 @@ class Car:
         angle = self.get_sine((self.x_vector,self.y_vector), self.ideal_vector)
 
         if DEBUG_AI:
-            print('{} - Next Gate:{} - Current Vector: ({:.2f},{:.2f}) - Ideal Vector: ({:.2f},{:.2f}) - Angle: {:.2f}° - Cosine Angle: {:.2f}°'.format(self.color_text, self.next_gate, self.x_vector, self.y_vector, self.ideal_vector[0], self.ideal_vector[1],angle, cosine_angle))
+            logger.debug('{} - Next Gate:{} - Current Vector: ({:.2f},{:.2f}) - Ideal Vector: ({:.2f},{:.2f}) - Angle: {:.2f}° - Cosine Angle: {:.2f}°'.format(self.color_text, self.next_gate, self.x_vector, self.y_vector, self.ideal_vector[0], self.ideal_vector[1],angle, cosine_angle))
         need_to_turn = False
         if self.on_ramp:
             if (angle > self.turning_angle_threshold*2) or ( angle < -self.turning_angle_threshold*2):

@@ -11,8 +11,8 @@ from pygame import Surface, gfxdraw, draw
 from loguru import logger
 from gfx.cone import Cone
 
-DEBUG_OBSTACLES = True
-DEBUG_RAMPS = True
+DEBUG_OBSTACLES = False
+DEBUG_RAMPS = False
 
 #Spills
 oil_spill_image = None

@@ -63,7 +63,7 @@ DEBUG_FLAG = False
 DISPLAY_FPS = True
 DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
-DEBUG_AI = True
+DEBUG_AI = False
 DISABLE_DRONES = False
 
 #Flag Events
@@ -360,7 +360,7 @@ def display_loading_screen(loop):
     screen_fadein(loading_screen_foreground)
     screen_exit = False
     key_pressed = False
-    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. THANKS TO JOHNATHAN THOMAS FOR THE SPRITES RIP AND COGWEASEL FOR THE SPLASH SCREEN. ORIGINAL CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
+    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. THANKS TO SHAZZ: CODE REVIEW AND REFACTORING. JOHNATHAN THOMAS: SPRITES RIP. COGWEASEL: SPLASH SCREEN. ORIGINAL CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
     left_end = 148
     scroll_y = 370
@@ -1497,7 +1497,7 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
 
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS_DETAILED:
-        print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
+        logger.debug('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
 
 def accelerate_pressed(key_pressed, play_sound = False):
     if key_pressed == JOYSTICK_BUTTON_PRESSED:
@@ -1638,7 +1638,7 @@ def activate_cars():
                         if personalities[i]>=0:
                             car.drone_personality = i
                             if DEBUG_AI:
-                                print('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
+                                logger.debug('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
                             car.speed_max = car.drone_speed * car.drone_personality_modifiers[i]
                             car.bump_speed = car.drone_bump_speed * car.drone_personality_modifiers[i]
                             car.rotation_step = car.drone_rotation_step * car.drone__invert_personality_modifiers[i]
@@ -1746,14 +1746,14 @@ def check_option_key_pressed(key_pressed,scaled_screen):
                 game_display = pygame.display.set_mode((display_width, display_height), pygame.SCALED)
                 return True
         except:
-            print("Could not Scale Window - probably an old version of pygame Library < 2.0.0")
+            logger.debug("Could not Scale Window - probably an old version of pygame Library < 2.0.0")
 
 def game_loop():
 
     game_exit = False
     race_finished = False
     scaled_screen = False
-    print('{} - Joystick(s) detected'.format(pygame.joystick.get_count()))
+    logger.debug('{} - Joystick(s) detected'.format(pygame.joystick.get_count()))
 
     for i in range (pygame.joystick.get_count()):
         joy = pygame.joystick.Joystick(i)
@@ -1952,7 +1952,7 @@ def game_loop():
                                 #Draw Green Flag at Race Start
                                 if event.type == GREENFLAG:
                                     if DEBUG_FLAG:
-                                        print('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                        logger.debug('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
                                     if wave_up:
                                         animation_index += 1
                                     else:
@@ -1973,7 +1973,7 @@ def game_loop():
                                 #Draw White Flag for Last lap
                                 if event.type == WHITEFLAG:
                                     if DEBUG_FLAG:
-                                        print('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                        logger.debug('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
                                     if wave_up:
                                         animation_index += 1
                                     else:
@@ -1994,7 +1994,7 @@ def game_loop():
                                 #Draw Checkered Flag
                                 if event.type == CHECKEREDFLAG:
                                     if DEBUG_FLAG:
-                                        print('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                        logger.debug('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
                                     if wave_up:
                                         animation_index += 1
                                     else:
@@ -2018,19 +2018,19 @@ def game_loop():
                                 #Spin the car
                                 if car.spinning and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
-                                        print('{} - Spin Timer triggerred'.format(current_ticks))
+                                        logger.debug('{} - Spin Timer triggerred'.format(current_ticks))
                                     car.display_spinning()
                                     car.collision_time = current_ticks
                                 #Draw Dust Cloud
                                 if (car.bumping or car.touch_down) and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
-                                        print('{} - Bump Timer triggerred'.format(current_ticks))
+                                        logger.debug('{} - Bump Timer triggerred'.format(current_ticks))
                                     car.display_bump_cloud()
                                     car.collision_time = current_ticks
                                 #Draw Explosion
                                 if car.crashing and (current_ticks - car.collision_time) >= car.crash_animation_timer:
                                     if DEBUG_CRASH:
-                                        print('{} - Crash Timer triggerred'.format(current_ticks))
+                                        logger.debug('{} - Crash Timer triggerred'.format(current_ticks))
                                     car.display_explosion()
                                     car.collision_time = current_ticks
 
@@ -2159,7 +2159,7 @@ def game_loop():
                             pygame.display.update()
                             trace_frame_time("Display Updated ", frame_start)
                             if DEBUG_FPS:
-                                print(' Frame: {}ms - {} FPS'.format(frame_duration, current_fps))
+                                logger.debug(' Frame: {}ms - {} FPS'.format(frame_duration, current_fps))
 
                             clock.tick(FPS)
 
