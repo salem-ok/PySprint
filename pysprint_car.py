@@ -22,7 +22,7 @@ DEBUG_FINISH = False
 DEBUG_COLLISION = False
 DEBUG__CAR_COLLISION = False
 DEBUG_BUMP = False
-DEBUG_CRASH = False
+DEBUG_CRASH = True
 DEBUG_AI = False
 DEBUG_GATE_TRACKING = False
 DEBUG_RAMPS = False
@@ -1398,12 +1398,12 @@ class Car:
         vertical = random.randint(0,1)
         if vertical == 1:
             self.vertical_helicopter = True
-            self.helicopter_x = self.x_intersect - self.vertical_helicopter_frames[0].get_width()
+            self.helicopter_x = self.x_intersect - self.vertical_helicopter_frames[0].get_width()/2
             self.helicopter_y = display_height + self.vertical_helicopter_frames[0].get_height()
         else:
             self.vertical_helicopter = False
             self.helicopter_x = - self.helicopter_frames[0].get_width()
-            self.helicopter_y = self.y_intersect - self.helicopter_frames[0].get_height()
+            self.helicopter_y = self.y_intersect - self.helicopter_frames[0].get_height()/2
 
 
         self.collision_time = pygame.time.get_ticks()
