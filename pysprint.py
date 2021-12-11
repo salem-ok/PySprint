@@ -191,7 +191,7 @@ pysprint_tracks.bonus_shade_frames  = tex_manager.get_textures(f"bonus_frame_sha
 # For the Background
 pysprint_tracks.road_gate_frames        = tex_manager.get_textures(f"gate")
 pysprint_tracks.road_gate_shade_frames  = tex_manager.get_textures(f"gate_shade")
-pysprint_tracks.road_gate_mask_frames   = tex_manager.get_masks(f"gate")
+pysprint_tracks.road_gate_mask_frames   = tex_manager.get_textures(f"gate_mask")
 # ---------------------------------------------------------------------------------------------
 
 crowd_flags = tex_manager.get_textures(f"gate_crowd_flag")
@@ -199,7 +199,7 @@ wrench_count_sprites    = tex_manager.get_textures(f"wrench_count")
 
 hammer_frames           = tex_manager.get_textures(f"hammer")
 saw_frames              = tex_manager.get_textures(f"saw")
-head_scratch_frames     = tex_manager.get_texture(f"head_scratch")
+head_scratch_frames     = tex_manager.get_textures(f"head_scratch")
 blow_frames             = tex_manager.get_textures(f"blow")
 
 # podiums

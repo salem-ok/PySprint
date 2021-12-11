@@ -1867,12 +1867,13 @@ class Car:
             gate_rect = track.gate_surfs[gate_to_check]
             if sprite_rect.colliderect(gate_rect):
                 #if gate is passed
-                if abs(gate_to_check-self.last_passed_gate)==1:
-                    #Only update last passed gate for closest gate adjacent to the next or previous gate
-                    self.last_passed_gate = gate_to_check
-                self.most_recent_passed_gate = gate_to_check
-                if DEBUG_GATE_TRACKING and not self.is_drone:
-                    logger.debug('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
+                if not self.last_passed_gate is None:
+                    if abs(gate_to_check-self.last_passed_gate)==1:
+                        #Only update last passed gate for closest gate adjacent to the next or previous gate
+                        self.last_passed_gate = gate_to_check
+                    self.most_recent_passed_gate = gate_to_check
+                    if DEBUG_GATE_TRACKING and not self.is_drone:
+                        logger.debug('{} - Furthest passed gate = {} - mandatory:{} - Last Passed gate: {} - Most Recent: {}'.format(self.color_text,self.furthest_past_gate, self.mandatory_gates_crossed,self.last_passed_gate, self.most_recent_passed_gate))
 
         #Check if colliding with the next mandatory gate
         if len(self.mandatory_gates_crossed)<len(track.mandatory_gates):
