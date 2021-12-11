@@ -820,7 +820,7 @@ class Track:
             self.enable_pole = False
             self.enable_tornado = False
 
-        # select nb_obstacles unique integers between 0 and 4
+        # select nb_obstacles **unique** integers between 0 and 4
         rnd_obstacles = random.sample(range(0, 5), nb_obstacles)
         for new_obstacle in rnd_obstacles:
             if new_obstacle == 0:
