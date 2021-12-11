@@ -15,6 +15,7 @@ from managers.texture_manager import TextureManager
 from screens.highscores_screen import HighscoresScreen
 from screens.laprecords_screen import LapRecordsScreen
 from screens.credits_screen import CreditsScreen
+from screens.splash_screen import SplashScreen
 
 from pathlib import Path
 from loguru import logger
@@ -139,7 +140,6 @@ pysprint_car.vector_surf.set_colorkey((0,0,0))
 
 # Screens
 loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground")
-splash_screen               = tex_manager.get_texture("splash_screen")
 start_race_screen           = tex_manager.get_texture("start_race_screen")
 race_podium_screen          = tex_manager.get_texture("race_podium_screen")
 checkered_background        = tex_manager.get_texture("checkered_background")
@@ -340,6 +340,8 @@ control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2,
 highscores_screen   = HighscoresScreen(display=game_display, high_scores=high_scores)
 laprecords_screen   = LapRecordsScreen(display=game_display, best_laps=best_laps)
 credits_screen      = CreditsScreen(display=game_display)
+splash_screen       = SplashScreen(display=game_display)
+
 
 def screen_fadeout():
     for frame in range (0,len(transition_dots)):
@@ -403,71 +405,6 @@ def display_loading_screen(loop):
         clock.tick(FPS)
     screen_fadeout()
     return key_pressed
-
-def display_splash_screen():
-    screen_exit = False
-    key_pressed = False
-    screen_fadein(splash_screen)
-    pygame.display.update()
-    screen_start_time = pygame.time.get_ticks()
-    while not screen_exit:
-        if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-            screen_exit = True
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                screen_exit = True
-                key_pressed = pygame.K_ESCAPE
-            if event.type == pygame.KEYDOWN:
-                screen_exit = True
-                key_pressed = event.key
-        if any_joystick_button_pressed():
-            screen_exit = True
-            key_pressed = JOYSTICK_BUTTON_PRESSED
-
-    screen_fadeout()
-    return key_pressed
-
-
-# def display_lap_records():
-#     screen_exit = False
-#     key_pressed = -1
-#     screen_fadein(lap_records_screen)
-#     top4 = (55, 270)
-#     top8 = (335, 270)
-#     for i in range(0,4):
-#         time = best_laps["best_laps"][i]["time"]
-#         name = best_laps["best_laps"][i]["name"]
-#         game_display.blit(small_font.render('Track', False, white_color), (top4[0], top4[1] + i * 15))
-#         game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top4[0] + 70, top4[1] + i * 15))
-#         game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top4[0] + 95, top4[1] + i * 15))
-#         game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top4[0] + 150, top4[1] + i * 15))
-
-#     for i in range(0,4):
-#         time = best_laps["best_laps"][i+4]["time"]
-#         name = best_laps["best_laps"][i+4]["name"]
-#         game_display.blit(small_font.render('Track', False, white_color), (top8[0], top8[1] + i * 15))
-#         game_display.blit(small_font.render('{}'.format(i+5), False, white_color), (top8[0] + 70, top8[1] + i * 15))
-#         game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top8[0] + 95, top8[1] + i * 15))
-#         game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top8[0] + 150, top8[1] + i * 15))
-
-#     pygame.display.update()
-#     screen_start_time = pygame.time.get_ticks()
-#     while not screen_exit:
-#         if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-#             screen_exit = True
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 screen_exit = True
-#                 key_pressed = pygame.K_ESCAPE
-#             if event.type == pygame.KEYDOWN:
-#                 screen_exit = True
-#                 key_pressed = event.key
-#         if any_joystick_button_pressed():
-#             screen_exit = True
-#             key_pressed = JOYSTICK_BUTTON_PRESSED
-#     screen_fadeout()
-#     return key_pressed
-
 
 def print_get_ready():
     prepare_surf = big_font.render("GET READY", False, white_color)
@@ -1778,7 +1715,11 @@ def game_loop():
             key_pressed = display_loading_screen(False)
             #Attract mode
             while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
-                key_pressed = display_splash_screen()
+                splash_screen.fadein()
+                splash_screen.display()
+                key_pressed = wait_action()
+                splash_screen.fadeout()
+
                 scaled_screen = check_option_key_pressed(key_pressed,scaled_screen)
                 
                 if not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
