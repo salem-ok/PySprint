@@ -1,23 +1,29 @@
 import pygame
-from pygame import draw
 import pygame.display
 import pygame.mixer
-from pygame import gfxdraw, init
+from pygame import gfxdraw
 import numpy as np
 import pysprint_car
 import pysprint_tracks
 import random
 import json
+import os
 
-#New awesome imports from shazz
+#New awesome imports from shazz :D
 from managers.sample_manager import SampleManager
+from managers.texture_manager import TextureManager
 from pathlib import Path
 from loguru import logger
+
+#Set working directory where the file is located to launch from OS X buldled App
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 pygame.init()
 pygame.joystick.init()
 
-version = "0.37"
+version = "0.38"
 display_width = 640
 display_height = 400
 pysprint_car.display_width = 640
@@ -25,18 +31,11 @@ pysprint_car.display_height = 400
 pysprint_tracks.display_width = 640
 pysprint_tracks.display_height = 400
 
-# Create sample managers
-FADEOUT_DURATION = 1000
-SampleManager.create_manager("sfx", "Assets/sound/smp_sfx.json")
-smp_manager = SampleManager.create_manager("music", "Assets/sound/smp_music.json")
-
 with open(".highscores.json") as high_scores_file:
     high_scores = json.load(high_scores_file)
 
 with open(".bestlaps.json") as best_laps_file:
     best_laps = json.load(best_laps_file)
-
-
 
 race_laps = 4
 pysprint_car.race_laps = race_laps
@@ -52,12 +51,19 @@ clock = pygame.time.Clock()
 pysprint_car.game_display = game_display
 pysprint_tracks.game_display = game_display
 
+# Create sample managers
+FADEOUT_DURATION = 1000
+SampleManager.create_manager("sfx", "configuration/atarist_sfx.json")
+smp_manager = SampleManager.create_manager("music", "configuration/atarist_music.json")
+tex_manager = TextureManager.create_manager("sprites", "configuration/atarist_tex.json")
+
 cars = []
 
 tracks = {}
 
 
 FPS = 30
+
 DEBUG_BUMP = False
 DEBUG_CRASH = False
 DEBUG_FLAG = False
@@ -66,6 +72,10 @@ DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
 DEBUG_AI = False
 DISABLE_DRONES = False
+DISABLE_LOGGING = False
+DEBUG_SELECT_ITEM = False
+if DISABLE_LOGGING:
+    logger.remove()
 
 #Flag Events
 GREENFLAG = pygame.USEREVENT
@@ -97,7 +107,6 @@ green_customization = (330, 340)
 yellow_customization = (330, 202)
 red_customization = (12, 340)
 
-
 blue_thumb = (51, 120)
 green_thumb = (369, 258)
 yellow_thumb = (369, 120)
@@ -113,317 +122,165 @@ score_top_left_green = (161,0)
 score_top_left_red = (321,0)
 score_top_left_yellow = (481,0)
 
-
-
-#Load Assets
+attract_mode_display_duration = 5000
 
 #Sound Assets
 podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
+# fonts
+pysprint_tracks.tiny_font   = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
+small_font                  = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
+shadow_font                 = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
+big_font                    = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
+big_shadow_font             = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
+
+# ---------------------------------------------------------------------------------------------
+# TODO: move to pysprint_car
+# ---------------------------------------------------------------------------------------------
 #Graphic assets
-pysprint_car.transparency = pygame.image.load('Assets/Transparency.png').convert_alpha()
+pysprint_car.transparency = tex_manager.get_texture("transparency")
 pysprint_car.vector_surf = pygame.Surface((display_width,display_height))
 pysprint_car.vector_surf.fill((0,0,0))
 pysprint_car.vector_surf.set_colorkey((0,0,0))
+# ---------------------------------------------------------------------------------------------
 
+# Screens
+loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground")
+credits_screen              = tex_manager.get_texture("credits_screen")
+splash_screen               = tex_manager.get_texture("splash_screen")
+start_race_screen           = tex_manager.get_texture("start_race_screen")
+high_score_screen           = tex_manager.get_texture("high_score_screen")
+lap_records_screen          = tex_manager.get_texture("lap_records_screen")
+race_podium_screen          = tex_manager.get_texture("race_podium_screen")
+checkered_background        = tex_manager.get_texture("checkered_background")
+item_screen                 = tex_manager.get_texture("item_screen")
 
-tiny_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
-pysprint_tracks.tiny_font = tiny_font
-small_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
-shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
-big_font = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
-big_shadow_font = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
+blue_selection_wheel        = tex_manager.get_texture("blue_selection_wheel")
+yellow_selection_wheel      = tex_manager.get_texture("yellow_selection_wheel")
+red_selection_wheel         = tex_manager.get_texture("red_selection_wheel")
+green_selection_wheel       = tex_manager.get_texture("green_selection_wheel")
 
-loading_screen_foreground = pygame.image.load('Assets/SuperSprintLoadingScreenForeground.png').convert_alpha()
-credits_screen = pygame.image.load('Assets/SuperSprintCreditsScreen.png').convert_alpha()
-splash_screen = pygame.image.load('Assets/SuperSprintSplashScreen.png').convert_alpha()
-start_race_screen = pygame.image.load('Assets/SuperSprintStartRaceScreen.png').convert_alpha()
-high_score_screen = pygame.image.load('Assets/SuperSprintHighScores.png').convert_alpha()
-lap_records_screen = pygame.image.load('Assets/SuperSprintLapRecords.png').convert_alpha()
-race_podium_screen = pygame.image.load('Assets/SuperSprintRacePodium.png').convert_alpha()
-checkered_background = pygame.image.load('Assets/CheckeredBackground.png').convert_alpha()
-item_screen = pygame.image.load('Assets/SuperSprintItemScreen.png').convert_alpha()
-
-blue_selection_wheel = pygame.image.load('Assets/BlueSelectionWheel.png').convert_alpha()
-yellow_selection_wheel = pygame.image.load('Assets/YellowSelectionWheel.png').convert_alpha()
-red_selection_wheel = pygame.image.load('Assets/RedSelectionWheel.png').convert_alpha()
-green_selection_wheel = pygame.image.load('Assets/GreenSelectionWheel.png').convert_alpha()
+# ---------------------------------------------------------------------------------------------
+# TODO: move to pysprint_tracks
+# ---------------------------------------------------------------------------------------------
 
 #Traffic Cone
-pysprint_tracks.traffic_cone = pygame.image.load('Assets/TrafficCone.png').convert_alpha()
-pysprint_tracks.traffic_cone_shade = pygame.image.load('Assets/TrafficConeShade.png').convert_alpha()
-pysprint_tracks.traffic_cone_mask =  pygame.mask.from_surface(pysprint_tracks.traffic_cone, 50)
+pysprint_tracks.traffic_cone        = tex_manager.get_texture("traffic_cone")
+pysprint_tracks.traffic_cone_shade  = tex_manager.get_texture("traffic_cone_shade")
+pysprint_tracks.traffic_cone_mask   = tex_manager.get_mask("traffic_cone")
 
 #Tornado Frames:
-pysprint_tracks.tornado_frames = {
-    0:pygame.image.load('Assets/TornadoFrame0.png').convert_alpha(),
-    1:pygame.image.load('Assets/TornadoFrame1.png').convert_alpha()
-}
-pysprint_tracks.tornado_frames_masks = {
-    0:pygame.mask.from_surface(pysprint_tracks.tornado_frames[0], 50),
-    1:pygame.mask.from_surface(pysprint_tracks.tornado_frames[1], 50)
-}
+pysprint_tracks.tornado_frames       = tex_manager.get_textures(f"tornado_frame")
+pysprint_tracks.tornado_frames_masks = tex_manager.get_masks(f"tornado_frame")
 
 #Poles Frames:
-pysprint_tracks.poles_frames = {
-    0:pygame.image.load('Assets/PoleFrame0.png').convert_alpha(),
-    1:pygame.image.load('Assets/PoleFrame1.png').convert_alpha(),
-    2:pygame.image.load('Assets/PoleFrame2.png').convert_alpha(),
-    3:pygame.image.load('Assets/PoleFrame3.png').convert_alpha()
-}
-
-pysprint_tracks.poles_frames_masks = {
-    0:pygame.mask.from_surface(pysprint_tracks.poles_frames[0], 50),
-    1:pygame.mask.from_surface(pysprint_tracks.poles_frames[1], 50),
-    2:pygame.mask.from_surface(pysprint_tracks.poles_frames[2], 50),
-    3:pygame.mask.from_surface(pysprint_tracks.poles_frames[3], 50)
-}
-
+pysprint_tracks.poles_frames        = tex_manager.get_textures(f"pole_frame")
+pysprint_tracks.poles_frames_masks  = tex_manager.get_masks(f"pole_frame")
 
 #Spills
-pysprint_tracks.oil_spill_image = pygame.image.load('Assets/OilSpill.png').convert_alpha()
-pysprint_tracks.oil_spill_mask = pygame.mask.from_surface(pysprint_tracks.oil_spill_image, 50)
-pysprint_tracks.water_spill_image = pygame.image.load('Assets/WaterSpill.png').convert_alpha()
-pysprint_tracks.water_spill_mask = pygame.mask.from_surface(pysprint_tracks.water_spill_image, 50)
-pysprint_tracks.grease_spill_image = pygame.image.load('Assets/GreaseSpill.png').convert_alpha()
-pysprint_tracks.grease_spill_mask = pygame.mask.from_surface(pysprint_tracks.grease_spill_image, 50)
+pysprint_tracks.oil_spill_image     = tex_manager.get_texture("oil_spill")
+pysprint_tracks.oil_spill_mask      = tex_manager.get_mask("oil_spill")
+pysprint_tracks.water_spill_image   = tex_manager.get_texture("water_spill")
+pysprint_tracks.water_spill_mask    = tex_manager.get_mask("water_spill")
+pysprint_tracks.grease_spill_image  = tex_manager.get_texture("grease_spill")
+pysprint_tracks.grease_spill_mask   = tex_manager.get_mask("grease_spill")
 
 #Wrenches
-pysprint_tracks.wrench_image = pygame.image.load('Assets/Wrench.png').convert_alpha()
-pysprint_tracks.wrench_mask = pygame.mask.from_surface(pysprint_tracks.oil_spill_image, 50)
-
-wrench_count_sprites = {
-    0:pygame.image.load('Assets/0_WrenchCount.png').convert_alpha(),
-    1:pygame.image.load('Assets/1_WrenchCount.png').convert_alpha(),
-    2:pygame.image.load('Assets/2_WrenchCount.png').convert_alpha(),
-    3:pygame.image.load('Assets/3_WrenchCount.png').convert_alpha(),
-    3:pygame.image.load('Assets/3_WrenchCount.png').convert_alpha(),
-    4:pygame.image.load('Assets/4_WrenchCount.png').convert_alpha(),
-    5:pygame.image.load('Assets/5_WrenchCount.png').convert_alpha(),
-    6:pygame.image.load('Assets/6_WrenchCount.png').convert_alpha(),
-    7:pygame.image.load('Assets/7_WrenchCount.png').convert_alpha(),
-    8:pygame.image.load('Assets/8_WrenchCount.png').convert_alpha(),
-    9:pygame.image.load('Assets/9_WrenchCount.png').convert_alpha(),
-}
-
-
+pysprint_tracks.wrench_image    = tex_manager.get_texture("wrench")
+pysprint_tracks.wrench_mask     = tex_manager.get_mask("wrench")
 
 #Bonus Frames:
-pysprint_tracks.bonus_frames = {
-    0:pygame.image.load('Assets/BonusFrame0.png').convert_alpha(),
-    1:pygame.image.load('Assets/BonusFrame1.png').convert_alpha(),
-    2:pygame.image.load('Assets/BonusFrame2.png').convert_alpha(),
-    3:pygame.image.load('Assets/BonusFrame3.png').convert_alpha()
-}
-
-pysprint_tracks.bonus_frames_masks = {
-    0:pygame.mask.from_surface(pysprint_tracks.bonus_frames[0], 50),
-    1:pygame.mask.from_surface(pysprint_tracks.bonus_frames[1], 50),
-    2:pygame.mask.from_surface(pysprint_tracks.bonus_frames[2], 50),
-    3:pygame.mask.from_surface(pysprint_tracks.bonus_frames[3], 50)
-}
-
-
-pysprint_tracks.bonus_shade_frames = {
-    0:pygame.image.load('Assets/BonusFrame0Shade.png').convert_alpha(),
-    1:pygame.image.load('Assets/BonusFrame1Shade.png').convert_alpha(),
-    2:pygame.image.load('Assets/BonusFrame2Shade.png').convert_alpha()
-}
-
-
+pysprint_tracks.bonus_frames        = tex_manager.get_textures(f"bonus_frame")
+pysprint_tracks.bonus_frames_masks  = tex_manager.get_masks(f"bonus_frame")
+pysprint_tracks.bonus_shade_frames  = tex_manager.get_textures(f"bonus_frame_shade")
 
 # For the Background
-pysprint_tracks.road_gate_frames = {
-    0:pygame.image.load('Assets/Gate0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Gate1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Gate2.png').convert_alpha(),
-    3:pygame.image.load('Assets/Gate3.png').convert_alpha(),
-    4:pygame.image.load('Assets/Gate4.png').convert_alpha()
-}
+pysprint_tracks.road_gate_frames        = tex_manager.get_textures(f"gate")
+pysprint_tracks.road_gate_shade_frames  = tex_manager.get_textures(f"gate_shade")
+pysprint_tracks.road_gate_mask_frames   = tex_manager.get_textures(f"gate_mask")
+# ---------------------------------------------------------------------------------------------
 
-# For the Overlay
-pysprint_tracks.road_gate_shade_frames = {
-    0:pygame.image.load('Assets/GateShade0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GateShade1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GateShade2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GateShade3.png').convert_alpha(),
-    4:pygame.image.load('Assets/GateShade4.png').convert_alpha()
-}
+crowd_flags = tex_manager.get_textures(f"gate_crowd_flag")
+wrench_count_sprites    = tex_manager.get_textures(f"wrench_count")
 
-# For the Overlay
-pysprint_tracks.road_gate_mask_frames = {
-    0:pygame.image.load('Assets/GateMask0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GateMask1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GateMask2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GateMask3.png').convert_alpha(),
-    4:pygame.image.load('Assets/GateMask4.png').convert_alpha()
-}
+hammer_frames           = tex_manager.get_textures(f"hammer")
+saw_frames              = tex_manager.get_textures(f"saw")
+head_scratch_frames     = tex_manager.get_textures(f"head_scratch")
+blow_frames             = tex_manager.get_textures(f"blow")
 
+# podiums
+first_car_blue          = tex_manager.get_texture("podium_first_blue_car")
+first_car_red           = tex_manager.get_texture("podium_first_red_car")
+first_car_green         = tex_manager.get_texture("podium_first_green_car")
+first_car_yellow        = tex_manager.get_texture("podium_first_yellow_car")
 
+first_car_blue_drone    = tex_manager.get_texture("podium_first_blue_drone")
+first_car_red_drone     = tex_manager.get_texture("podium_first_red_drone")
+first_car_green_drone   = tex_manager.get_texture("podium_first_green_drone")
+first_car_yellow_drone  = tex_manager.get_texture("podium_first_yellow_drone")
 
-crowd_flags = {
-    0:pygame.image.load('Assets/CrowdFlags0.png').convert_alpha(),
-    1:pygame.image.load('Assets/CrowdFlags1.png').convert_alpha(),
-    2:pygame.image.load('Assets/CrowdFlags2.png').convert_alpha(),
-    3:pygame.image.load('Assets/CrowdFlags3.png').convert_alpha(),
-    4:pygame.image.load('Assets/CrowdFlags4.png').convert_alpha(),
-    5:pygame.image.load('Assets/CrowdFlags5.png').convert_alpha()
-}
+second_car_blue         = tex_manager.get_texture("podium_second_car_blue")
+second_car_red          = tex_manager.get_texture("podium_second_car_red")
+second_car_green        = tex_manager.get_texture("podium_second_car_green")
+second_car_yellow       = tex_manager.get_texture("podium_second_car_yellow")
 
-hammer_frames_loader = {
-    0:pygame.image.load('Assets/Hammer0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Hammer1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Hammer2.png').convert_alpha()
-}
-hammer_frames = {
-    0:hammer_frames_loader[0],
-    1:hammer_frames_loader[1],
-    2:hammer_frames_loader[2],
-    3:hammer_frames_loader[2],
-    4:hammer_frames_loader[2]
-}
+second_car_blue_drone   = tex_manager.get_texture("podium_second_car_blue_drone")
+second_car_red_drone    = tex_manager.get_texture("podium_second_car_red_drone")
+second_car_green_drone  = tex_manager.get_texture("podium_second_car_green_drone")
+second_car_yellow_drone = tex_manager.get_texture("podium_second_car_yellow_drone")
 
-saw_frames_loader =  {
-    0:pygame.image.load('Assets/Saw0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Saw1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Saw2.png').convert_alpha()
-}
+third_car_blue          = tex_manager.get_texture("podium_third_car_blue")
+third_car_red           = tex_manager.get_texture("podium_third_car_red")
+third_car_green         = tex_manager.get_texture("podium_third_car_green")
+third_car_yellow        = tex_manager.get_texture("podium_third_car_yellow")
 
-saw_frames =  {
-    0:saw_frames_loader[0],
-    1:saw_frames_loader[1],
-    2:saw_frames_loader[2],
-    3:saw_frames_loader[1],
-    4:saw_frames_loader[0]
-}
+third_car_blue_drone    = tex_manager.get_texture("podium_third_car_blue_drone")
+third_car_red_drone     = tex_manager.get_texture("podium_third_car_red_drone")
+third_car_green_drone   = tex_manager.get_texture("podium_third_car_green_drone")
+third_car_yellow_drone  = tex_manager.get_texture("podium_third_car_yellow_drone")
 
-head_scratch_frames_loader =  {
-    0:pygame.image.load('Assets/HeadScratch0.png').convert_alpha(),
-    1:pygame.image.load('Assets/HeadScratch1.png').convert_alpha(),
-    2:pygame.image.load('Assets/HeadScratch2.png').convert_alpha()
-}
+fourth_car_blue         = tex_manager.get_texture("podium_fourth_car_blue")
+fourth_car_red          = tex_manager.get_texture("podium_fourth_car_red")
+fourth_car_green        = tex_manager.get_texture("podium_fourth_car_green")
+fourth_car_yellow       = tex_manager.get_texture("podium_fourth_car_yellow")
 
+fourth_car_blue_drone   = tex_manager.get_texture("podium_fourth_car_blue_drone")
+fourth_car_red_drone    = tex_manager.get_texture("podium_fourth_car_red_drone")
+fourth_car_green_drone  = tex_manager.get_texture("podium_fourth_car_green_drone")
+fourth_car_yellow_drone = tex_manager.get_texture("podium_fourth_car_yellow_drone")
 
-head_scratch_frames =  {
-    0:head_scratch_frames_loader[0],
-    1:head_scratch_frames_loader[1],
-    2:head_scratch_frames_loader[0],
-    3:head_scratch_frames_loader[1],
-    4:head_scratch_frames_loader[0],
-    5:head_scratch_frames_loader[1],
-    6:head_scratch_frames_loader[1],
-    7:head_scratch_frames_loader[2],
-    8:head_scratch_frames_loader[2],
-    9:head_scratch_frames_loader[2],
-    10:head_scratch_frames_loader[1],
-    11:head_scratch_frames_loader[2],
-    12:head_scratch_frames_loader[1],
-    13:head_scratch_frames_loader[2]
-}
+engine_idle             = tex_manager.get_textures(f"engine_idle")
+prepare_to_race         = tex_manager.get_textures(f"prepare_to_race")
+transition_dots         = tex_manager.get_textures(f"transition_dots")
 
-blow_frames_loader =  {
-    0:pygame.image.load('Assets/Blow0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Blow1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Blow2.png').convert_alpha(),
-    3:pygame.image.load('Assets/Blow3.png').convert_alpha(),
-    4:pygame.image.load('Assets/Blow4.png').convert_alpha()
-}
+green_flag_frames       = tex_manager.get_textures(f"green_flag")
+white_flag_frames       = tex_manager.get_textures(f"white_flag")
+checkered_flag_frames   = tex_manager.get_textures(f"checkered_flag")
 
+# choper
+yellow_helicopter_frames            = tex_manager.get_textures(f"yellow_horizontal_helicopter")
+blue_helicopter_frames              = tex_manager.get_textures(f"blue_horizontal_helicopter")
+green_helicopter_frames             = tex_manager.get_textures(f"green_horizontal_helicopter")
+red_helicopter_frames               = tex_manager.get_textures(f"red_horizontal_helicopter")
 
-blow_frames =  {
-    0:blow_frames_loader[1],
-    1:blow_frames_loader[0],
-    2:blow_frames_loader[1],
-    3:blow_frames_loader[0],
-    4:blow_frames_loader[1],
-    5:blow_frames_loader[2],
-    6:blow_frames_loader[3],
-    7:blow_frames_loader[4],
-    8:blow_frames_loader[4],
-    9:blow_frames_loader[4],
-    10:blow_frames_loader[4],
-    11:blow_frames_loader[4],
-    12:blow_frames_loader[4],
-    13:blow_frames_loader[4],
-    14:blow_frames_loader[4],
-    15:blow_frames_loader[4],
-    16:blow_frames_loader[4]
-}
+yellow_vertical_helicopter_frames   = tex_manager.get_textures(f"yellow_vertical_helicopter")
+blue_vertical_helicopter_frames     = tex_manager.get_textures(f"blue_vertical_helicopter")
+green_vertical_helicopter_frames    = tex_manager.get_textures(f"green_vertical_helicopter")
+red_vertical_helicopter_frames      = tex_manager.get_textures(f"red_vertical_helicopter")
 
-first_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarBlueCar.png').convert_alpha()
-first_car_red = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRedCar.png').convert_alpha()
-first_car_green = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCar.png').convert_alpha()
-first_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCar.png').convert_alpha()
+dust_cloud_frames       = tex_manager.get_textures(f"dust_cloud")
+explosion_frames        = tex_manager.get_textures(f"explosion")
 
-first_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarBlueCarDrone.png').convert_alpha()
-first_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarRedCarDrone.png').convert_alpha()
-first_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarGreenCarDrone.png').convert_alpha()
-first_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFirstCarYellowCarDrone.png').convert_alpha()
-
-second_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCar.png').convert_alpha()
-second_car_red = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCar.png').convert_alpha()
-second_car_green = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarGreenCar.png').convert_alpha()
-second_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarYellowCar.png').convert_alpha()
-
-second_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarBlueCarDrone.png').convert_alpha()
-second_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarRedCarDrone.png').convert_alpha()
-second_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarGreenCarDrone.png').convert_alpha()
-second_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumSecondCarYellowCarDrone.png').convert_alpha()
-
-third_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarBlueCar.png').convert_alpha()
-third_car_red = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarRedCar.png').convert_alpha()
-third_car_green = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarGreenCar.png').convert_alpha()
-third_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarYellowCar.png').convert_alpha()
-
-third_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarBlueCarDrone.png').convert_alpha()
-third_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarRedCarDrone.png').convert_alpha()
-third_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarGreenCarDrone.png').convert_alpha()
-third_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumThirdCarYellowCarDrone.png').convert_alpha()
-
-fourth_car_blue = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarBlueCar.png').convert_alpha()
-fourth_car_red = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCar.png').convert_alpha()
-fourth_car_green = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCar.png').convert_alpha()
-fourth_car_yellow = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCar.png').convert_alpha()
-
-fourth_car_blue_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarBlueCarDrone.png').convert_alpha()
-fourth_car_red_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarRedCarDrone.png').convert_alpha()
-fourth_car_green_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarGreenCarDrone.png').convert_alpha()
-fourth_car_yellow_drone = pygame.image.load('Assets/SuperSprintRacePodiumFourthCarYellowCarDrone.png').convert_alpha()
-
-
-engine_idle = {
-    0:pygame.image.load('Assets/EngineIdle0.png').convert_alpha(),
-    1:pygame.image.load('Assets/EngineIdle1.png').convert_alpha(),
-    2:pygame.image.load('Assets/EngineIdle2.png').convert_alpha(),
-}
-
-prepare_to_race = {
-    0:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
-    1:pygame.image.load('Assets/PrePareToRace1.png').convert_alpha(),
-    2:pygame.image.load('Assets/PrePareToRace2.png').convert_alpha(),
-    3:pygame.image.load('Assets/PrePareToRace3.png').convert_alpha(),
-    4:pygame.image.load('Assets/PrePareToRace4.png').convert_alpha(),
-    5:pygame.image.load('Assets/PrePareToRace5.png').convert_alpha(),
-    6:pygame.image.load('Assets/PrePareToRace6.png').convert_alpha(),
-    7:pygame.image.load('Assets/PrePareToRace7.png').convert_alpha(),
-    8:pygame.image.load('Assets/PrePareToRace8.png').convert_alpha(),
-    9:pygame.image.load('Assets/PrePareToRace2.png').convert_alpha(),
-    10:pygame.image.load('Assets/PrePareToRace1.png').convert_alpha(),
-    11:pygame.image.load('Assets/PrePareToRace0.png').convert_alpha(),
-}
-attract_mode_display_duration = 5000
-
-transition_dots = {
-    0:pygame.image.load('Assets/TransitionDot0.png').convert_alpha(),
-    1:pygame.image.load('Assets/TransitionDot1.png').convert_alpha(),
-    2:pygame.image.load('Assets/TransitionDot2.png').convert_alpha(),
-    3:pygame.image.load('Assets/TransitionDot3.png').convert_alpha(),
-    4:pygame.image.load('Assets/TransitionDot4.png').convert_alpha(),
-    5:pygame.image.load('Assets/TransitionDot5.png').convert_alpha(),
-    6:pygame.image.load('Assets/TransitionDot6.png').convert_alpha(),
-    7:pygame.image.load('Assets/TransitionDot7.png').convert_alpha()
-}
-
+# cars
+car_sprites_masks       = tex_manager.get_masks(f"blue_drone")
+blue_drone_sprites      = tex_manager.get_textures(f"blue_drone")
+blue_car_sprites        = tex_manager.get_textures(f"blue_car")
+red_drone_sprites       = tex_manager.get_textures(f"red_drone")
+red_car_sprites         = tex_manager.get_textures(f"red_car")
+green_drone_sprites     = tex_manager.get_textures(f"green_drone")
+green_car_sprites       = tex_manager.get_textures(f"green_car")
+yellow_drone_sprites    = tex_manager.get_textures(f"yellow_drone")
+yellow_car_sprites      = tex_manager.get_textures(f"yellow_car")
 
 scrolling_font = {
     'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
@@ -458,297 +315,6 @@ scrolling_font = {
     ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
 }
 
-green_flag_frames = {
-    0:pygame.image.load('Assets/GreenFlag0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GreenFlag1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GreenFlag2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GreenFlag3.png').convert_alpha(),
-    4:pygame.image.load('Assets/GreenFlag4.png').convert_alpha(),
-    5:pygame.image.load('Assets/GreenFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/GreenFlag6.png').convert_alpha()
-}
-
-white_flag_frames = {
-    0:pygame.image.load('Assets/WhiteFlag0.png').convert_alpha(),
-    1:pygame.image.load('Assets/WhiteFlag1.png').convert_alpha(),
-    2:pygame.image.load('Assets/WhiteFlag2.png').convert_alpha(),
-    3:pygame.image.load('Assets/WhiteFlag3.png').convert_alpha(),
-    4:pygame.image.load('Assets/WhiteFlag4.png').convert_alpha(),
-    5:pygame.image.load('Assets/WhiteFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/WhiteFlag6.png').convert_alpha()
-}
-
-checkered_flag_frames = {
-    0:pygame.image.load('Assets/CheckeredFlag0.png').convert_alpha(),
-    1:pygame.image.load('Assets/CheckeredFlag1.png').convert_alpha(),
-    2:pygame.image.load('Assets/CheckeredFlag2.png').convert_alpha(),
-    3:pygame.image.load('Assets/CheckeredFlag3.png').convert_alpha(),
-    4:pygame.image.load('Assets/CheckeredFlag4.png').convert_alpha(),
-    5:pygame.image.load('Assets/CheckeredFlag5.png').convert_alpha(),
-    6:pygame.image.load('Assets/CheckeredFlag6.png').convert_alpha()
-}
-
-
-yellow_helicopter_frames = {
-    0:pygame.image.load('Assets/YellowHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/YellowHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/YellowHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/YellowHelicopter3.png').convert_alpha()
-}
-
-blue_helicopter_frames = {
-    0:pygame.image.load('Assets/BlueHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/BlueHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/BlueHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/BlueHelicopter3.png').convert_alpha()
-}
-
-green_helicopter_frames = {
-    0:pygame.image.load('Assets/GreenHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GreenHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GreenHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GreenHelicopter3.png').convert_alpha()
-}
-
-red_helicopter_frames = {
-    0:pygame.image.load('Assets/RedHelicopter0.png').convert_alpha(),
-    1:pygame.image.load('Assets/RedHelicopter1.png').convert_alpha(),
-    2:pygame.image.load('Assets/RedHelicopter2.png').convert_alpha(),
-    3:pygame.image.load('Assets/RedHelicopter3.png').convert_alpha()
-}
-
-yellow_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/YellowHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/YellowHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/YellowHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/YellowHelicopterV3.png').convert_alpha()
-}
-
-blue_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/BlueHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/BlueHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/BlueHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/BlueHelicopterV3.png').convert_alpha()
-}
-
-green_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/GreenHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/GreenHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/GreenHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/GreenHelicopterV3.png').convert_alpha()
-}
-
-red_vertical_helicopter_frames = {
-    0:pygame.image.load('Assets/RedHelicopterV0.png').convert_alpha(),
-    1:pygame.image.load('Assets/RedHelicopterV1.png').convert_alpha(),
-    2:pygame.image.load('Assets/RedHelicopterV2.png').convert_alpha(),
-    3:pygame.image.load('Assets/RedHelicopterV3.png').convert_alpha()
-}
-
-
-
-dust_cloud_frames = {
-    0:pygame.image.load('Assets/DustCloud0.png').convert_alpha(),
-    1:pygame.image.load('Assets/DustCloud1.png').convert_alpha(),
-    2:pygame.image.load('Assets/DustCloud2.png').convert_alpha(),
-    3:pygame.image.load('Assets/DustCloud3.png').convert_alpha(),
-    4:pygame.image.load('Assets/DustCloud4.png').convert_alpha()
-}
-
-
-explosion_frames = {
-    0:pygame.image.load('Assets/Explosion0.png').convert_alpha(),
-    1:pygame.image.load('Assets/Explosion1.png').convert_alpha(),
-    2:pygame.image.load('Assets/Explosion2.png').convert_alpha(),
-    3:pygame.image.load('Assets/Explosion3.png').convert_alpha(),
-    4:pygame.image.load('Assets/Explosion4.png').convert_alpha(),
-    5:pygame.image.load('Assets/Explosion5.png').convert_alpha(),
-    6:pygame.image.load('Assets/Explosion6.png').convert_alpha(),
-    7:pygame.image.load('Assets/Explosion7.png').convert_alpha(),
-    8:pygame.image.load('Assets/Explosion8.png').convert_alpha(),
-    9:pygame.image.load('Assets/Explosion9.png').convert_alpha(),
-    10:pygame.image.load('Assets/Explosion10.png').convert_alpha(),
-    11:pygame.image.load('Assets/Explosion11.png').convert_alpha(),
-    12:pygame.image.load('Assets/Explosion12.png').convert_alpha(),
-    13:pygame.image.load('Assets/Explosion13.png').convert_alpha(),
-    14:pygame.image.load('Assets/Explosion14.png').convert_alpha(),
-    15:pygame.image.load('Assets/Explosion15.png').convert_alpha(),
-    16:pygame.image.load('Assets/Explosion16.png').convert_alpha(),
-    17:pygame.image.load('Assets/Explosion17.png').convert_alpha(),
-    18:pygame.image.load('Assets/Explosion18.png').convert_alpha()
-}
-
-blue_drone_sprites = {
-        0:pygame.image.load('Assets/BlueCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/BlueCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/BlueCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/BlueCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/BlueCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/BlueCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/BlueCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/BlueCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/BlueCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/BlueCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/BlueCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/BlueCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/BlueCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/BlueCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/BlueCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/BlueCarDrone15.png').convert_alpha()
-}
-
-car_sprites_masks = {
-        0:pygame.mask.from_surface(blue_drone_sprites[0], 50),
-        1:pygame.mask.from_surface(blue_drone_sprites[1], 50),
-        2:pygame.mask.from_surface(blue_drone_sprites[2], 50),
-        3:pygame.mask.from_surface(blue_drone_sprites[3], 50),
-        4:pygame.mask.from_surface(blue_drone_sprites[4], 50),
-        5:pygame.mask.from_surface(blue_drone_sprites[5], 50),
-        6:pygame.mask.from_surface(blue_drone_sprites[6], 50),
-        7:pygame.mask.from_surface(blue_drone_sprites[7], 50),
-        8:pygame.mask.from_surface(blue_drone_sprites[8], 50),
-        9:pygame.mask.from_surface(blue_drone_sprites[9], 50),
-        10:pygame.mask.from_surface(blue_drone_sprites[10], 50),
-        11:pygame.mask.from_surface(blue_drone_sprites[11], 50),
-        12:pygame.mask.from_surface(blue_drone_sprites[12], 50),
-        13:pygame.mask.from_surface(blue_drone_sprites[13], 50),
-        14:pygame.mask.from_surface(blue_drone_sprites[14], 50),
-        15:pygame.mask.from_surface(blue_drone_sprites[15], 50)
-}
-
-blue_car_sprites = {
-        0:pygame.image.load('Assets/BlueCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/BlueCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/BlueCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/BlueCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/BlueCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/BlueCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/BlueCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/BlueCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/BlueCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/BlueCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/BlueCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/BlueCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/BlueCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/BlueCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/BlueCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/BlueCar15.png').convert_alpha()
-}
-
-red_drone_sprites = {
-        0:pygame.image.load('Assets/RedCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/RedCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/RedCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/RedCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/RedCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/RedCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/RedCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/RedCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/RedCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/RedCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/RedCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/RedCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/RedCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/RedCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/RedCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/RedCarDrone15.png').convert_alpha()
-}
-
-red_car_sprites = {
-        0:pygame.image.load('Assets/RedCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/RedCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/RedCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/RedCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/RedCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/RedCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/RedCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/RedCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/RedCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/RedCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/RedCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/RedCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/RedCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/RedCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/RedCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/RedCar15.png').convert_alpha()
-}
-
-yellow_drone_sprites = {
-        0:pygame.image.load('Assets/YellowCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/YellowCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/YellowCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/YellowCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/YellowCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/YellowCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/YellowCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/YellowCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/YellowCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/YellowCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/YellowCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/YellowCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/YellowCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/YellowCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/YellowCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/YellowCarDrone15.png').convert_alpha()
-}
-
-yellow_car_sprites = {
-        0:pygame.image.load('Assets/YellowCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/YellowCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/YellowCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/YellowCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/YellowCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/YellowCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/YellowCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/YellowCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/YellowCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/YellowCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/YellowCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/YellowCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/YellowCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/YellowCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/YellowCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/YellowCar15.png').convert_alpha()
-}
-
-green_drone_sprites = {
-        0:pygame.image.load('Assets/GreenCarDrone0.png').convert_alpha(),
-        1:pygame.image.load('Assets/GreenCarDrone1.png').convert_alpha(),
-        2:pygame.image.load('Assets/GreenCarDrone2.png').convert_alpha(),
-        3:pygame.image.load('Assets/GreenCarDrone3.png').convert_alpha(),
-        4:pygame.image.load('Assets/GreenCarDrone4.png').convert_alpha(),
-        5:pygame.image.load('Assets/GreenCarDrone5.png').convert_alpha(),
-        6:pygame.image.load('Assets/GreenCarDrone6.png').convert_alpha(),
-        7:pygame.image.load('Assets/GreenCarDrone7.png').convert_alpha(),
-        8:pygame.image.load('Assets/GreenCarDrone8.png').convert_alpha(),
-        9:pygame.image.load('Assets/GreenCarDrone9.png').convert_alpha(),
-        10:pygame.image.load('Assets/GreenCarDrone10.png').convert_alpha(),
-        11:pygame.image.load('Assets/GreenCarDrone11.png').convert_alpha(),
-        12:pygame.image.load('Assets/GreenCarDrone12.png').convert_alpha(),
-        13:pygame.image.load('Assets/GreenCarDrone13.png').convert_alpha(),
-        14:pygame.image.load('Assets/GreenCarDrone14.png').convert_alpha(),
-        15:pygame.image.load('Assets/GreenCarDrone15.png').convert_alpha()
-}
-
-green_car_sprites = {
-        0:pygame.image.load('Assets/GreenCar0.png').convert_alpha(),
-        1:pygame.image.load('Assets/GreenCar1.png').convert_alpha(),
-        2:pygame.image.load('Assets/GreenCar2.png').convert_alpha(),
-        3:pygame.image.load('Assets/GreenCar3.png').convert_alpha(),
-        4:pygame.image.load('Assets/GreenCar4.png').convert_alpha(),
-        5:pygame.image.load('Assets/GreenCar5.png').convert_alpha(),
-        6:pygame.image.load('Assets/GreenCar6.png').convert_alpha(),
-        7:pygame.image.load('Assets/GreenCar7.png').convert_alpha(),
-        8:pygame.image.load('Assets/GreenCar8.png').convert_alpha(),
-        9:pygame.image.load('Assets/GreenCar9.png').convert_alpha(),
-        10:pygame.image.load('Assets/GreenCar10.png').convert_alpha(),
-        11:pygame.image.load('Assets/GreenCar11.png').convert_alpha(),
-        12:pygame.image.load('Assets/GreenCar12.png').convert_alpha(),
-        13:pygame.image.load('Assets/GreenCar13.png').convert_alpha(),
-        14:pygame.image.load('Assets/GreenCar14.png').convert_alpha(),
-        15:pygame.image.load('Assets/GreenCar15.png').convert_alpha()
-}
-
 
 keyboard_1 = {}
 keyboard_1['ACCELERATE'] = pygame.K_RCTRL
@@ -762,21 +328,24 @@ keyboard_2['LEFT'] = pygame.K_x
 keyboard_2['RIGHT'] = pygame.K_c
 keyboard_2['METHOD'] = "KEYBOARD 2"
 
-joystick_1  ={
-    'METHOD':"JOYSTICK 1"
-}
-joystick_2  ={
-    'METHOD':"JOYSTICK 2"
-}
-joystick_3  ={
-    'METHOD':"JOYSTICK 3"
-}
-joystick_4  ={
-    'METHOD':"JOYSTICK 4"
+joystick_1 = {
+    'METHOD': 'JOYSTICK 1'
 }
 
+joystick_2 = {
+    'METHOD': 'JOYSTICK 2'
+}
 
-control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2, joystick_3, joystick_4]
+joystick_3 = {
+    'METHOD': 'JOYSTICK 3'
+}
+
+joystick_4 = {
+    'METHOD': 'JOYSTICK 4'
+}
+
+control_methods = [keyboard_1, keyboard_2, joystick_1, joystick_2,
+                   joystick_3, joystick_4]
 
 def screen_fadeout():
     for frame in range (0,len(transition_dots)):
@@ -802,7 +371,7 @@ def display_loading_screen(loop):
     screen_fadein(loading_screen_foreground)
     screen_exit = False
     key_pressed = False
-    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. THANKS TO JOHNATHAN THOMAS FOR THE SPRITES RIP AND COGWEASEL FOR THE SPLASH SCREEN. ORIGINAL CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
+    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. THANKS TO SHAZZ: CODE REVIEW AND REFACTORING. JOHNATHAN THOMAS: SPRITES RIP. COGWEASEL: SPLASH SCREEN. ORIGINAL CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
     right_end = 490
     left_end = 148
     scroll_y = 370
@@ -1546,7 +1115,8 @@ def display_track_selection():
             break
     car = cars[master_car_index]
     smp_manager.get_sample("track_select_music").play()
-
+    joy_axis_timer=-1
+    joy_axis_interval = 200
     while not screen_exit:
         if track_index<0:
             track_index = len(tracks)-1
@@ -1596,18 +1166,38 @@ def display_track_selection():
                 #Any axis beyond that is probably an analog shoulder button
                 if i < 2:
                     if axis < 0 and axis < -0.5:
-                        left_pressed = True
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            left_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
                     if axis > 0 and axis > 0.5:
-                        right_pressed = True
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            right_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
+
 
             hats = car.joystick.get_numhats()
             for i in range(hats):
                 hat = car.joystick.get_hat(i)
                 if hat[0] == -1:
-                    left_pressed = True
-
+                    (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                    if not ignore:
+                        left_pressed = True
+                        logger.debug("pressed axis = {}".format(axis))
+                    else:
+                        logger.debug("pressed ignred = {}".format(axis))
                 if hat[0] == 1:
-                    right_pressed = True
+                    (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                    if not ignore:
+                        right_pressed = True
+                        logger.debug("pressed axis = {}".format(axis))
+                    else:
+                        logger.debug("pressed ignred = {}".format(axis))
 
         if left_pressed:
             track_index-=1
@@ -1637,6 +1227,13 @@ def display_track_selection():
     screen_fadeout()
     return track_index
 
+def ignore_joystick_axis(joy_axis_timer, joy_axis_interval):
+    if joy_axis_timer ==-1:
+        joy_axis_timer = pygame.time.get_ticks()
+    else:
+        if pygame.time.get_ticks()-joy_axis_timer<joy_axis_interval:
+            return (True, joy_axis_timer)
+    return (False, pygame.time.get_ticks())
 
 def display_car_item_selection(car:pysprint_car.Car):
     screen_exit = False
@@ -1676,6 +1273,8 @@ def display_car_item_selection(car:pysprint_car.Car):
     selection_confirmed = False
     grant_item_counter = -1
     grant_item_timer = -1
+    joy_axis_timer = -1
+    joy_axis_interval = 700
     smp_manager.get_sample("track_select_music").play()
     while not screen_exit:
         car_item_background.blit(white_background,(0,0))
@@ -1819,9 +1418,6 @@ def display_car_item_selection(car:pysprint_car.Car):
         game_display.blit(surf, (27,336))
         game_display.blit(surf, (412,210))
         draw_score(car,None)
-
-
-
         pygame.display.update()
 
         key_pressed = -1
@@ -1850,18 +1446,37 @@ def display_car_item_selection(car:pysprint_car.Car):
                     #Any axis beyond that is probably an analog shoulder button
                     if i < 2:
                         if axis < 0 and axis < -0.5:
-                            left_pressed = True
+                            (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                            if not ignore:
+                                left_pressed = True
+                                logger.debug("pressed axis = {}".format(axis))
+                            else:
+                                logger.debug("pressed ignred = {}".format(axis))
                         if axis > 0 and axis > 0.5:
-                            right_pressed = True
+                            (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                            if not ignore:
+                                right_pressed = True
+                                logger.debug("pressed axis = {}".format(axis))
+                            else:
+                                logger.debug("pressed ignred = {}".format(axis))
 
                 hats = car.joystick.get_numhats()
                 for i in range(hats):
                     hat = car.joystick.get_hat(i)
                     if hat[0] == -1:
-                        left_pressed = True
-
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            left_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
                     if hat[0] == 1:
-                        right_pressed = True
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            right_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
 
             if left_pressed:
                 selected_item+=1
@@ -1872,7 +1487,7 @@ def display_car_item_selection(car:pysprint_car.Car):
                 selected_item = 0
             if selected_item <0:
                 selected_item = 3
-            #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Track is selected
+            #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Item is selected
             if key_pressed == car.accelerate_key:
                 selection_confirmed = True
                 smp_manager.get_sample("track_select_music").stop(fadeout_ms=FADEOUT_DURATION)
@@ -1884,6 +1499,7 @@ def display_car_item_selection(car:pysprint_car.Car):
                     button = joy.get_button(j)
                     if button == 1:
                         selection_confirmed = True
+                        smp_manager.get_sample("track_select_music").stop(fadeout_ms=FADEOUT_DURATION)
             if selection_confirmed:
                 grant_item_counter = 0
                 if selected_item ==0:
@@ -1939,7 +1555,7 @@ def draw_score(car: pysprint_car.Car, track: pysprint_tracks.Track):
 
 def trace_frame_time(trace_event, frame_start):
     if DEBUG_FPS_DETAILED:
-        print('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
+        logger.debug('{} - Duration: {}'.format(trace_event, pygame.time.get_ticks() - frame_start))
 
 def accelerate_pressed(key_pressed, play_sound = False):
     if key_pressed == JOYSTICK_BUTTON_PRESSED:
@@ -2080,7 +1696,7 @@ def activate_cars():
                         if personalities[i]>=0:
                             car.drone_personality = i
                             if DEBUG_AI:
-                                print('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
+                                logger.debug('{} Drone Personality : {}'.format(car.color_text, car.drone_personalities[car.drone_personality][0]))
                             car.speed_max = car.drone_speed * car.drone_personality_modifiers[i]
                             car.bump_speed = car.drone_bump_speed * car.drone_personality_modifiers[i]
                             car.rotation_step = car.drone_rotation_step * car.drone__invert_personality_modifiers[i]
@@ -2152,20 +1768,20 @@ def init_track(filename):
 
     track = pysprint_tracks.Track()
 
-    #TODO: validate json with jsonschema 
+    #TODO: validate json with jsonschema
     track.load_track_definition(filename)
     track.background = pygame.image.load(track.background_filename)
 
     if not track.thumbnail_filename is None:
         track.thumbnail = pygame.image.load(track.thumbnail_filename)
     track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
-    
+
     if not track.track_upper_mask_filename is None:
         track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
         track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
     track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
     track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
-    
+
     logger.debug(f"Adding track {track.track_number} to the track list")
     tracks[track.track_number-1] = track
 
@@ -2188,14 +1804,14 @@ def check_option_key_pressed(key_pressed,scaled_screen):
                 game_display = pygame.display.set_mode((display_width, display_height), pygame.SCALED)
                 return True
         except:
-            print("Could not Scale Window - probably an old version of pygame Library < 2.0.0")
+            logger.debug("Could not Scale Window - probably an old version of pygame Library < 2.0.0")
 
 def game_loop():
 
     game_exit = False
     race_finished = False
     scaled_screen = False
-    print('{} - Joystick(s) detected'.format(pygame.joystick.get_count()))
+    logger.debug('{} - Joystick(s) detected'.format(pygame.joystick.get_count()))
 
     for i in range (pygame.joystick.get_count()):
         joy = pygame.joystick.Joystick(i)
@@ -2234,7 +1850,10 @@ def game_loop():
                 track_index = display_track_selection()
                 for car in cars:
                     if not car.is_drone:
-                        car.wrench_count = tracks[track_index].wrenches
+                        if DEBUG_SELECT_ITEM:
+                            car.wrench_count = 20
+                        else:
+                            car.wrench_count = tracks[track_index].wrenches
             for car in cars:
                 if not car.is_drone:
                     while car.wrench_count>=4:
@@ -2276,15 +1895,15 @@ def game_loop():
                     smp_manager.get_sample("get_ready").play()
                     while pygame.time.get_ticks() - get_ready_time < 1500:
                         track.blit_background(False)
-                        track.blit_obstacles(False)
-                        track.blit_bonus(False)
-                        track.blit_wrench(False)
+                        track.blit_obstacles(False, False)
+                        track.blit_bonus(False, False)
+                        track.blit_wrench(False, False)
                         for car in cars:
                             car.blit(track, False)
                         track.blit_overlay(False)
-                        track.blit_obstacles(True)
-                        track.blit_bonus(True)
-                        track.blit_wrench(True)
+                        track.blit_obstacles(True, True)
+                        track.blit_bonus(True, True)
+                        track.blit_wrench(True, True)
                         for car in cars:
                             car.blit(track, True)
                         print_get_ready()
@@ -2394,7 +2013,7 @@ def game_loop():
                                 #Draw Green Flag at Race Start
                                 if event.type == GREENFLAG:
                                     if DEBUG_FLAG:
-                                        print('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                        logger.debug('{} - Green Flag Timer triggerred'.format(pygame.time.get_ticks()))
                                     if wave_up:
                                         animation_index += 1
                                     else:
@@ -2415,7 +2034,7 @@ def game_loop():
                                 #Draw White Flag for Last lap
                                 if event.type == WHITEFLAG:
                                     if DEBUG_FLAG:
-                                        print('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                        logger.debug('{} - White Flag Timer triggerred'.format(pygame.time.get_ticks()))
                                     if wave_up:
                                         animation_index += 1
                                     else:
@@ -2436,7 +2055,7 @@ def game_loop():
                                 #Draw Checkered Flag
                                 if event.type == CHECKEREDFLAG:
                                     if DEBUG_FLAG:
-                                        print('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
+                                        logger.debug('{} - Checkered Flag Timer triggerred'.format(pygame.time.get_ticks()))
                                     if wave_up:
                                         animation_index += 1
                                     else:
@@ -2460,19 +2079,19 @@ def game_loop():
                                 #Spin the car
                                 if car.spinning and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
-                                        print('{} - Spin Timer triggerred'.format(current_ticks))
+                                        logger.debug('{} - Spin Timer triggerred'.format(current_ticks))
                                     car.display_spinning()
                                     car.collision_time = current_ticks
                                 #Draw Dust Cloud
                                 if (car.bumping or car.touch_down) and (current_ticks - car.collision_time) >= car.bump_animation_timer:
                                     if DEBUG_BUMP:
-                                        print('{} - Bump Timer triggerred'.format(current_ticks))
+                                        logger.debug('{} - Bump Timer triggerred'.format(current_ticks))
                                     car.display_bump_cloud()
                                     car.collision_time = current_ticks
                                 #Draw Explosion
                                 if car.crashing and (current_ticks - car.collision_time) >= car.crash_animation_timer:
                                     if DEBUG_CRASH:
-                                        print('{} - Crash Timer triggerred'.format(current_ticks))
+                                        logger.debug('{} - Crash Timer triggerred'.format(current_ticks))
                                     car.display_explosion()
                                     car.collision_time = current_ticks
 
@@ -2515,15 +2134,15 @@ def game_loop():
 
                             trace_frame_time("Test Finish ", frame_start)
                             track.blit_background(True)
-                            track.blit_obstacles(True)
-                            track.blit_bonus(True)
-                            track.blit_wrench(True)
+                            track.blit_obstacles(True, False)
+                            track.blit_bonus(True, False)
+                            track.blit_wrench(True, False)
                             for car in cars:
                                 car.blit(track, False)
                             track.blit_overlay(True)
-                            track.blit_obstacles(True)
-                            track.blit_bonus(True)
-                            track.blit_wrench(True)
+                            track.blit_obstacles(True,True)
+                            track.blit_bonus(True,True)
+                            track.blit_wrench(True,True)
                             for car in cars:
                                 car.blit(track, True)
                             for car in cars:
@@ -2601,7 +2220,7 @@ def game_loop():
                             pygame.display.update()
                             trace_frame_time("Display Updated ", frame_start)
                             if DEBUG_FPS:
-                                print(' Frame: {}ms - {} FPS'.format(frame_duration, current_fps))
+                                logger.debug(' Frame: {}ms - {} FPS'.format(frame_duration, current_fps))
 
                             clock.tick(FPS)
 

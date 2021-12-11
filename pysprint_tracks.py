@@ -14,6 +14,9 @@ from gfx.spill import Spill
 
 DEBUG_OBSTACLES = True
 DEBUG_RAMPS = False
+DISABLE_LOGGING = False
+if DISABLE_LOGGING:
+    logger.remove()
 
 #Spills
 oil_spill_image = None
@@ -146,8 +149,13 @@ class Track:
         self.enable_pole = False
         self.enable_tornado = False
         self.display_cones = False
+
         self.on_bridge_or_ramp_pole = False
         self.on_bridge_or_ramp_tornado = False
+        self.on_bridge_pole = False
+        self.on_bridge_oil_spill = False
+        self.on_bridge_grease_spill = False
+        self.on_bridge_water_spill = False
 
         #Spills
         self.oil_spills = []
@@ -168,14 +176,14 @@ class Track:
         self.external_pole_position = None
         self.internal_pole_position = None
         self.middle_pole_position = None
-        
+
         #Traffic Cones
         self.traffic_cones = []
         self.cones_count = 0
 
         #All static Obstacles Gates
         self.obstacle_gates = []
-        
+
         #Tornado
         self.tornado_position = None
         self.tornado_timer = None
@@ -482,6 +490,34 @@ class Track:
         self.update_track_mask()
         game_display.blit(surf,(0,0))
 
+    def blit_tornado(self, race_started):
+        #Display Tornado
+        if self.tornado_position is None:
+            self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
+            self.tornado_frame_index = 0
+            self.tornado_timer = pygame.time.get_ticks()
+            self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
+        if race_started:
+            now =  pygame.time.get_ticks()
+            if now >=self.tornado_timer:
+                if self.tornado_frame_index == 0:
+                    self.tornado_frame_index = 1
+                else:
+                    self.tornado_frame_index = 0
+                rand_x = random.randint(self.tornado_position[0]-5,self.tornado_position[0]+5)
+                if rand_x >= self.track_mask.get_width()-tornado_frames[0].get_width():
+                    rand_x = self.tornado_position[0] - 5
+                if rand_x < 0:
+                    rand_x = 0
+                rand_y = random.randint(self.tornado_position[1]-5,self.tornado_position[1]+5)
+                if rand_y >= self.track_mask.get_height()-tornado_frames[0].get_height():
+                    rand_y = self.tornado_position[1] - 5
+                if rand_y<0:
+                    rand_y = 0
+                self.tornado_position = (rand_x,rand_y)
+                self.tornado_timer = now + 100
+            self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
+            game_display.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
 
     def blit_overlay(self, race_started):
         surf = self.track_overlay.copy()
@@ -489,34 +525,6 @@ class Track:
             for i in range(0, len(self.road_gates_anchors)):
                 surf.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
 
-        if self.enable_tornado:
-            #Display Tornado
-            if self.tornado_position is None:
-                self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
-                self.tornado_frame_index = 0
-                self.tornado_timer = pygame.time.get_ticks()
-                self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
-            if race_started:
-                now =  pygame.time.get_ticks()
-                if now >=self.tornado_timer:
-                    if self.tornado_frame_index == 0:
-                        self.tornado_frame_index = 1
-                    else:
-                        self.tornado_frame_index = 0
-                    rand_x = random.randint(self.tornado_position[0]-5,self.tornado_position[0]+5)
-                    if rand_x >= self.track_mask.get_width()-tornado_frames[0].get_width():
-                        rand_x = self.tornado_position[0] - 5
-                    if rand_x < 0:
-                        rand_x = 0
-                    rand_y = random.randint(self.tornado_position[1]-5,self.tornado_position[1]+5)
-                    if rand_y >= self.track_mask.get_height()-tornado_frames[0].get_height():
-                        rand_y = self.tornado_position[1] - 5
-                    if rand_y<0:
-                        rand_y = 0
-                    self.tornado_position = (rand_x,rand_y)
-                    self.tornado_timer = now + 100
-                self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
-                surf.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
         if DEBUG_RAMPS:
             for ramp in self.ramp_surfs:
                 surf.blit(ramp,(0,0))
@@ -563,6 +571,24 @@ class Track:
                     ramps_found.append((i,j))
         return len(ramps_found)>0
 
+    def test_ramp_gate(self, random_gate):
+        #Ignore shortcuts
+        if not self.ramp_gates is None and self.player_shortcut_bookend_gates is None:
+            for i in self.ramp_gates:
+                for j in i:
+                    for k in j:
+                        if k==random_gate:
+                            return True
+        return False
+
+    def test_bridge_gate(self, random_gate):
+        if not self.bridge_gates is None:
+            for i in self.bridge_gates:
+                for j in i:
+                    for k in j:
+                        if k==random_gate:
+                            return True
+        return False
 
     def get_random_position(self, height, width, force_gate = None):
         #Pick a gate at random and place the object randomly on the gate
@@ -571,31 +597,26 @@ class Track:
             while not free_gate:
                 random_gate = random.randint(0, len(self.external_gate_points)-1)
                 free_gate = True
-                for gate_index in self.obstacle_gates:
-                    if random_gate == gate_index:
-                        free_gate=False
+                if self.test_ramp_gate(random_gate):
+                    free_gate=False
+                else:
+                    for gate_index in self.obstacle_gates:
+                        if random_gate == gate_index:
+                            free_gate=False
         else:
             random_gate = force_gate
-
+        is_bridge_gate = self.test_bridge_gate(random_gate)
         self.obstacle_gates.append(random_gate)
-        is_ramp_or_bridge_gate = False
-        if not self.ramp_gates is None:
-            for i in self.ramp_gates:
-                for j in i:
-                    for k in j:
-                        if k==random_gate:
-                            is_ramp_or_bridge_gate = True
-        if not self.bridge_gates is None:
-            for i in self.bridge_gates:
-                for j in i:
-                    for k in j:
-                        if k==random_gate:
-                            is_ramp_or_bridge_gate = True
 
         #define a box with the gate ahead of the one that was picked at randow and place the obstacle randomly inside it
         next_random_gate = random_gate + 1
+
         if next_random_gate>=len(self.external_gate_points):
             next_random_gate = 0
+
+        if is_bridge_gate:
+            if not self.test_bridge_gate(next_random_gate):
+                is_bridge_gate = False
 
         ext_x = round(self.external_gate_points[random_gate][0] - (width/2))
         ext_y = round(self.external_gate_points[random_gate][1] - (height/2))
@@ -656,7 +677,7 @@ class Track:
             random_x+=move_x*3
             random_y+=move_y*3
 
-        return ((random_x,random_y), is_ramp_or_bridge_gate)
+        return ((random_x,random_y), is_bridge_gate)
 
 
     def hide_bonus(self):
@@ -843,7 +864,7 @@ class Track:
                 self.water_spills.append(spill)
 
 
-        self.display_cones = True
+        self.display_cones = False
         self.cones_count = 0
         
         logger.debug(f"Creating at max {nb_cones_max} cones")
@@ -855,13 +876,15 @@ class Track:
 
             if self.display_cones:
                 self.cones_count = random.randint(3, nb_cones_max)
-
+                if DEBUG_OBSTACLES:
+                    self.cones_count = 16
                 logger.debug(f"Creating {self.cones_count} cones")
                 for i in range(self.cones_count):
                     cone = Cone(display=game_display, image=traffic_cone, shade_image=traffic_cone_shade)
 
                     self.traffic_cones.append(cone)
                     logger.debug(f"Cone at {cone.pos} added")
+
 
     def blit_obstacles(self, race_started, overlay_blitted = False):
 
@@ -875,13 +898,13 @@ class Track:
                         for j in i:
                             for k in j:
                                 if k==self.poles_gate_index:
-                                    self.on_bridge_or_ramp_pole = True
+                                    self.on_bridge_pole = True
                 if not self.bridge_gates is None:
                     for i in self.bridge_gates:
                         for j in i:
                             for k in j:
                                 if k==self.poles_gate_index:
-                                    self.on_bridge_or_ramp_pole = True
+                                    self.on_bridge_pole = True
 
                 ext_x = self.external_gate_points[self.poles_gate_index][0] - 5
                 ext_y = self.external_gate_points[self.poles_gate_index][1] - 8
@@ -977,7 +1000,7 @@ class Track:
                     self.pole_mask = poles_frames_masks[self.poles_frame_indexes[1]]
                 if self.poles_frame_indexes[2]:
                     self.pole_mask = poles_frames_masks[self.poles_frame_indexes[2]]
-                if not overlay_blitted or self.on_bridge_or_ramp_pole:
+                if not overlay_blitted or self.on_bridge_pole:
                     game_display.blit(poles_frames[self.poles_frame_indexes[0]],self.external_pole_position)
                     game_display.blit(poles_frames[self.poles_frame_indexes[1]],self.middle_pole_position)
                     game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
@@ -989,7 +1012,7 @@ class Track:
                 if spill.pos is None:
                     pos, is_on_object = self.get_random_position(oil_spill_image.get_height(), oil_spill_image.get_width())
                     spill.update(pos) if not is_on_object else spill.disable()
-            elif not overlay_blitted:
+            elif not overlay_blitted: #or self.on_bridge_oil_spill:
                 spill.blit()
 
         for spill in self.grease_spills:
@@ -998,7 +1021,7 @@ class Track:
                 if spill.pos is None:
                     pos, is_on_object = self.get_random_position(grease_spill_image.get_height(), grease_spill_image.get_width())
                     spill.update(pos) if not is_on_object else spill.disable()
-            elif not overlay_blitted:
+            elif not overlay_blitted: #or self.on_bridge_grease_spill:
                 spill.blit()
 
         for spill in self.water_spills:
@@ -1007,7 +1030,7 @@ class Track:
                 if spill.pos is None:
                     pos, is_on_object = self.get_random_position(water_spill_image.get_height(), water_spill_image.get_width())
                     spill.update(pos) if not is_on_object else spill.disable()
-            elif not overlay_blitted:
+            elif not overlay_blitted: #or self.on_bridge_water_spill:
                 spill.blit()
 
         #Display Traffic Cones
@@ -1016,11 +1039,13 @@ class Track:
 
                 # should be done before
                 if cone.pos is None:
-                    pos, is_on_object = self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width())
-                    cone.update(pos) if not is_on_object else cone.disable()
+                    pos, on_object = self.get_random_position(traffic_cone.get_height(), traffic_cone_shade.get_width())
+                    cone.update(pos)
+                    cone.set_on_bridge_or_ramp(on_object)
 
-                if not overlay_blitted:
+                if not overlay_blitted or cone.is_on_bridge:
                     cone.blit()
-                else:
-                    logger.debug("Not blitting cones !")
 
+        #blit Tornado last so it always is on top:
+        if self.enable_tornado:
+            self.blit_tornado(race_started)

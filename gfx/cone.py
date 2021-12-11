@@ -6,6 +6,10 @@ class Cone:
         self.shade_image = shade_image
         self.pos = None
         self.enabled = True
+        self.is_on_bridge= False
+
+    def set_on_bridge_or_ramp(self, on_object):
+        self.is_on_bridge= on_object
 
     def update(self, pos):
         self.pos = pos
