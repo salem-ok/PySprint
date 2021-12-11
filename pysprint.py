@@ -68,6 +68,7 @@ DEBUG_FPS_DETAILED = False
 DEBUG_AI = False
 DISABLE_DRONES = False
 DISABLE_LOGGING = False
+DEBUG_SELECT_ITEM = True
 if DISABLE_LOGGING:
     logger.remove()
 
@@ -1109,7 +1110,8 @@ def display_track_selection():
             break
     car = cars[master_car_index]
     smp_manager.get_sample("track_select_music").play()
-
+    joy_axis_timer=-1
+    joy_axis_interval = 200
     while not screen_exit:
         if track_index<0:
             track_index = len(tracks)-1
@@ -1159,18 +1161,38 @@ def display_track_selection():
                 #Any axis beyond that is probably an analog shoulder button
                 if i < 2:
                     if axis < 0 and axis < -0.5:
-                        left_pressed = True
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            left_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
                     if axis > 0 and axis > 0.5:
-                        right_pressed = True
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            right_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
+
 
             hats = car.joystick.get_numhats()
             for i in range(hats):
                 hat = car.joystick.get_hat(i)
                 if hat[0] == -1:
-                    left_pressed = True
-
+                    (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                    if not ignore:
+                        left_pressed = True
+                        logger.debug("pressed axis = {}".format(axis))
+                    else:
+                        logger.debug("pressed ignred = {}".format(axis))
                 if hat[0] == 1:
-                    right_pressed = True
+                    (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                    if not ignore:
+                        right_pressed = True
+                        logger.debug("pressed axis = {}".format(axis))
+                    else:
+                        logger.debug("pressed ignred = {}".format(axis))
 
         if left_pressed:
             track_index-=1
@@ -1200,6 +1222,13 @@ def display_track_selection():
     screen_fadeout()
     return track_index
 
+def ignore_joystick_axis(joy_axis_timer, joy_axis_interval):
+    if joy_axis_timer ==-1:
+        joy_axis_timer = pygame.time.get_ticks()
+    else:
+        if pygame.time.get_ticks()-joy_axis_timer<joy_axis_interval:
+            return (True, joy_axis_timer)
+    return (False, pygame.time.get_ticks())
 
 def display_car_item_selection(car:pysprint_car.Car):
     screen_exit = False
@@ -1239,6 +1268,8 @@ def display_car_item_selection(car:pysprint_car.Car):
     selection_confirmed = False
     grant_item_counter = -1
     grant_item_timer = -1
+    joy_axis_timer = -1
+    joy_axis_interval = 700
     smp_manager.get_sample("track_select_music").play()
     while not screen_exit:
         car_item_background.blit(white_background,(0,0))
@@ -1382,9 +1413,6 @@ def display_car_item_selection(car:pysprint_car.Car):
         game_display.blit(surf, (27,336))
         game_display.blit(surf, (412,210))
         draw_score(car,None)
-
-
-
         pygame.display.update()
 
         key_pressed = -1
@@ -1413,18 +1441,37 @@ def display_car_item_selection(car:pysprint_car.Car):
                     #Any axis beyond that is probably an analog shoulder button
                     if i < 2:
                         if axis < 0 and axis < -0.5:
-                            left_pressed = True
+                            (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                            if not ignore:
+                                left_pressed = True
+                                logger.debug("pressed axis = {}".format(axis))
+                            else:
+                                logger.debug("pressed ignred = {}".format(axis))
                         if axis > 0 and axis > 0.5:
-                            right_pressed = True
+                            (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                            if not ignore:
+                                right_pressed = True
+                                logger.debug("pressed axis = {}".format(axis))
+                            else:
+                                logger.debug("pressed ignred = {}".format(axis))
 
                 hats = car.joystick.get_numhats()
                 for i in range(hats):
                     hat = car.joystick.get_hat(i)
                     if hat[0] == -1:
-                        left_pressed = True
-
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            left_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
                     if hat[0] == 1:
-                        right_pressed = True
+                        (ignore, joy_axis_timer) = ignore_joystick_axis(joy_axis_timer,joy_axis_interval)
+                        if not ignore:
+                            right_pressed = True
+                            logger.debug("pressed axis = {}".format(axis))
+                        else:
+                            logger.debug("pressed ignred = {}".format(axis))
 
             if left_pressed:
                 selected_item+=1
@@ -1435,7 +1482,7 @@ def display_car_item_selection(car:pysprint_car.Car):
                 selected_item = 0
             if selected_item <0:
                 selected_item = 3
-            #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Track is selected
+            #If the First car that pushed accelerate to start a new game (i.e; Master car) presses accelerate, the Item is selected
             if key_pressed == car.accelerate_key:
                 selection_confirmed = True
                 smp_manager.get_sample("track_select_music").stop(fadeout_ms=FADEOUT_DURATION)
@@ -1447,6 +1494,7 @@ def display_car_item_selection(car:pysprint_car.Car):
                     button = joy.get_button(j)
                     if button == 1:
                         selection_confirmed = True
+                        smp_manager.get_sample("track_select_music").stop(fadeout_ms=FADEOUT_DURATION)
             if selection_confirmed:
                 grant_item_counter = 0
                 if selected_item ==0:
@@ -1797,7 +1845,10 @@ def game_loop():
                 track_index = display_track_selection()
                 for car in cars:
                     if not car.is_drone:
-                        car.wrench_count = tracks[track_index].wrenches
+                        if DEBUG_SELECT_ITEM:
+                            car.wrench_count = 20
+                        else:
+                            car.wrench_count = tracks[track_index].wrenches
             for car in cars:
                 if not car.is_drone:
                     while car.wrench_count>=4:
