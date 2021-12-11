@@ -7,6 +7,7 @@ import pysprint_car
 import pysprint_tracks
 import random
 import json
+import os
 
 #New awesome imports from shazz :D
 from managers.sample_manager import SampleManager
@@ -14,6 +15,10 @@ from managers.texture_manager import TextureManager
 from pathlib import Path
 from loguru import logger
 
+#Set working directory where the file is located to launch from OS X buldled App
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 pygame.init()
 pygame.joystick.init()
@@ -68,7 +73,7 @@ DEBUG_FPS_DETAILED = False
 DEBUG_AI = False
 DISABLE_DRONES = False
 DISABLE_LOGGING = False
-DEBUG_SELECT_ITEM = True
+DEBUG_SELECT_ITEM = False
 if DISABLE_LOGGING:
     logger.remove()
 
