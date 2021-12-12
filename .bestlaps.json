@@ -1,1 +1,36 @@
-{"best_laps": [{"time": 5.3, "name": "OLI"}, {"time": 8.0, "name": "A"}, {"time": 8.5, "name": "AAA"}, {"time": 9.4, "name": "A"}, {"time": 6.1, "name": "A"}, {"time": 13.8, "name": "A"}, {"time": 11.5, "name": "P4C"}, {"time": 17.1, "name": "OLI"}]}
+{
+    "best_laps": [
+        {
+            "time": 6.0,
+            "name": "SAL"
+        },
+        {
+            "time": 8.5,
+            "name": "SHA"
+        },
+        {
+            "time": 8.8,
+            "name": "COG"
+        },
+        {
+            "time": 9.9,
+            "name": "STH"
+        },
+        {
+            "time": 6.8,
+            "name": "MAN"
+        },
+        {
+            "time": 13.8,
+            "name": "JON"
+        },
+        {
+            "time": 11.5,
+            "name": "IVB"
+        },
+        {
+            "time": 19.1,
+            "name": "RAF"
+        }
+    ]
+}
