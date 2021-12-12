@@ -10,8 +10,9 @@ from pygame import Surface, gfxdraw, draw
 
 from loguru import logger
 from gfx.cone import Cone
+from gfx.spill import Spill
 
-DEBUG_OBSTACLES = False
+DEBUG_OBSTACLES = True
 DEBUG_RAMPS = False
 DISABLE_LOGGING = True
 if DISABLE_LOGGING:
@@ -145,22 +146,25 @@ class Track:
         self.wrench_position = None
         self.on_bridge_or_ramp_wrench = False
         #Obstacles
-        self.display_pole = False
-        self.display_tornado = False
-        self.display_oil_spill = False
-        self.display_grease_spill = False
-        self.display_water_spill = False
+        self.enable_pole = False
+        self.enable_tornado = False
         self.display_cones = False
+
+        self.on_bridge_or_ramp_pole = False
+        self.on_bridge_or_ramp_tornado = False
         self.on_bridge_pole = False
         self.on_bridge_oil_spill = False
         self.on_bridge_grease_spill = False
         self.on_bridge_water_spill = False
 
-        self.cones_count = 0
         #Spills
-        self.oil_spill_position = None
-        self.water_spill_position = None
-        self.grease_spill_position = None
+        self.oil_spills = []
+        self.oil_spill_count = 1
+        self.grease_spills = []
+        self.grease_spill_count = 1
+        self.water_spills = []
+        self.water_spill_count = 1   
+
         #Timer for Poles display animation
         self.poles_timer = None
         self.poles_popping_up = False
@@ -175,6 +179,7 @@ class Track:
 
         #Traffic Cones
         self.traffic_cones = []
+        self.cones_count = 0
 
         #All static Obstacles Gates
         self.obstacle_gates = []
@@ -486,34 +491,33 @@ class Track:
         game_display.blit(surf,(0,0))
 
     def blit_tornado(self, race_started):
-        if self.display_tornado:
-            #Display Tornado
-            if self.tornado_position is None:
-                self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
-                self.tornado_frame_index = 0
-                self.tornado_timer = pygame.time.get_ticks()
-                self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
-            if race_started:
-                now =  pygame.time.get_ticks()
-                if now >=self.tornado_timer:
-                    if self.tornado_frame_index == 0:
-                        self.tornado_frame_index = 1
-                    else:
-                        self.tornado_frame_index = 0
-                    rand_x = random.randint(self.tornado_position[0]-5,self.tornado_position[0]+5)
-                    if rand_x >= self.track_mask.get_width()-tornado_frames[0].get_width():
-                        rand_x = self.tornado_position[0] - 5
-                    if rand_x < 0:
-                        rand_x = 0
-                    rand_y = random.randint(self.tornado_position[1]-5,self.tornado_position[1]+5)
-                    if rand_y >= self.track_mask.get_height()-tornado_frames[0].get_height():
-                        rand_y = self.tornado_position[1] - 5
-                    if rand_y<0:
-                        rand_y = 0
-                    self.tornado_position = (rand_x,rand_y)
-                    self.tornado_timer = now + 100
-                self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
-                game_display.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
+        #Display Tornado
+        if self.tornado_position is None:
+            self.tornado_position = (random.randint(0, self.track_mask.get_width()-tornado_frames[0].get_width()),random.randint(0, self.track_mask.get_height()-tornado_frames[0].get_height()))
+            self.tornado_frame_index = 0
+            self.tornado_timer = pygame.time.get_ticks()
+            self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
+        if race_started:
+            now =  pygame.time.get_ticks()
+            if now >=self.tornado_timer:
+                if self.tornado_frame_index == 0:
+                    self.tornado_frame_index = 1
+                else:
+                    self.tornado_frame_index = 0
+                rand_x = random.randint(self.tornado_position[0]-5,self.tornado_position[0]+5)
+                if rand_x >= self.track_mask.get_width()-tornado_frames[0].get_width():
+                    rand_x = self.tornado_position[0] - 5
+                if rand_x < 0:
+                    rand_x = 0
+                rand_y = random.randint(self.tornado_position[1]-5,self.tornado_position[1]+5)
+                if rand_y >= self.track_mask.get_height()-tornado_frames[0].get_height():
+                    rand_y = self.tornado_position[1] - 5
+                if rand_y<0:
+                    rand_y = 0
+                self.tornado_position = (rand_x,rand_y)
+                self.tornado_timer = now + 100
+            self.tornado_mask = tornado_frames_masks[self.tornado_frame_index]
+            game_display.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
 
     def blit_overlay(self, race_started):
         surf = self.track_overlay.copy()
@@ -820,50 +824,54 @@ class Track:
                 max_obstacles = 5
                 nb_cones_max = 4 + 2 * int(round((race_counter-24)/6))
 
-        nb_obstacles = random.randint(min_obstacles,max_obstacles)
-        #if we have 5 obstacles, we display all of them
-        #if less, we randomly pick the obstacles
-        self.display_pole = False
-        self.display_tornado = False
-        self.display_oil_spill = False
-        self.display_grease_spill = False
-        self.display_water_spill = False
+        nb_obstacles = random.randint(min_obstacles, max_obstacles)
 
-        if nb_obstacles < 5:
-            obstacle_count = 0
-            while obstacle_count < nb_obstacles:
-                new_obstacle = random.randint(0,4)
-                if new_obstacle == 0 and not self.display_pole:
-                    obstacle_count+=1
-                    self.display_pole = True
-                elif new_obstacle == 1 and not self.display_tornado:
-                    obstacle_count+=1
-                    self.display_tornado = True
-                elif new_obstacle == 2 and not self.display_oil_spill:
-                    obstacle_count+=1
-                    self.display_oil_spill = True
-                elif new_obstacle == 3 and not self.display_grease_spill:
-                    obstacle_count+=1
-                    self.display_grease_spill = True
-                elif new_obstacle == 4 and not self.display_water_spill:
-                    obstacle_count+=1
-                    self.display_water_spill = True
+        if DEBUG_OBSTACLES:
+            logger.debug("DEBUG mode: enabling all obstacles and max cones")
+            self.enable_pole = True
+            self.enable_tornado = True
+            self.cones_count = 16
+
+            nb_cones_max = 16            
+            nb_obstacles = 5
+        else:
+            logger.debug(f"nb obstacles: {nb_obstacles} in [{min_obstacles}, {max_obstacles}]")
+            #if we have 5 obstacles, we display all of them
+            #if less, we randomly pick the obstacles
+            self.enable_pole = False
+            self.enable_tornado = False
+
+        # select nb_obstacles **unique** integers between 0 and 4
+        rnd_obstacles = random.sample(range(0, 5), nb_obstacles)
+        for new_obstacle in rnd_obstacles:
+            if new_obstacle == 0:
+                logger.debug(f"Enabling poles")
+                self.enable_pole = True
+            elif new_obstacle == 1:
+                logger.debug(f"Enabling tornado")
+                self.enable_tornado = True
+            elif new_obstacle == 2:
+                logger.debug(f"Enabling oil spill")
+                spill = Spill(display=game_display, image=oil_spill_image)
+                self.oil_spills.append(spill)
+            elif new_obstacle == 3:
+                logger.debug(f"Enabling grease spill")
+                spill = Spill(display=game_display, image=grease_spill_image)
+                self.grease_spills.append(spill)
+            elif new_obstacle == 4:
+                logger.debug(f"Enabling water spill")
+                spill = Spill(display=game_display, image=water_spill_image)
+                self.water_spills.append(spill)
+
 
         self.display_cones = False
         self.cones_count = 0
-
-        if DEBUG_OBSTACLES:
-            self.display_pole = True
-            self.display_tornado = True
-            self.display_oil_spill = True
-            self.display_grease_spill = True
-            self.display_water_spill = True
-            self.display_cones = True
-            self.cones_count = 16
-            nb_cones_max = 16
-
+        
+        logger.debug(f"Creating at max {nb_cones_max} cones")
         if nb_cones_max > 0:
-            if random.randint(0,1)>0:
+
+            # TODO: why ?
+            if random.randint(0, 1) > 0:
                 self.display_cones = True
 
             if self.display_cones:
@@ -878,10 +886,9 @@ class Track:
                     logger.debug(f"Cone at {cone.pos} added")
 
 
-
     def blit_obstacles(self, race_started, overlay_blitted = False):
 
-        if self.display_pole:
+        if self.enable_pole:
             if self.poles_gate_index is None:
                 self.poles_gate_index = self.get_random_poles_position()
                 self.obstacle_gates.append(self.poles_gate_index)
@@ -999,31 +1006,32 @@ class Track:
                     game_display.blit(poles_frames[self.poles_frame_indexes[2]],self.internal_pole_position)
 
         #Display spills
-        if self.display_oil_spill:
-            if self.oil_spill_position is None:
-                result = self.get_random_position(oil_spill_image.get_height(),oil_spill_image.get_width())
-                self.oil_spill_position = result[0]
-                self.on_bridge_oil_spill = result[1]
-            if race_started:
-                if not overlay_blitted or self.on_bridge_oil_spill:
-                    game_display.blit(oil_spill_image,self.oil_spill_position)
+        for spill in self.oil_spills:
 
-        if self.display_water_spill:
-            if self.water_spill_position is None:
-                result = self.get_random_position(water_spill_image.get_height(),water_spill_image.get_width())
-                self.water_spill_position = result[0]
-                self.on_bridge_water_spill = result[1]
-            if race_started:
-                if not overlay_blitted or self.on_bridge_water_spill:
-                    game_display.blit(water_spill_image,self.water_spill_position)
-        if self.display_grease_spill:
-            if self.grease_spill_position is None:
-                result = self.get_random_position(grease_spill_image.get_height(),grease_spill_image.get_width())
-                self.grease_spill_position = result[0]
-                self.on_bridge_grease_spill = result[1]
-            if race_started:
-                if not overlay_blitted or self.on_bridge_grease_spill:
-                    game_display.blit(grease_spill_image,self.grease_spill_position)
+            if not race_started:    
+                if spill.pos is None:
+                    pos, is_on_object = self.get_random_position(oil_spill_image.get_height(), oil_spill_image.get_width())
+                    spill.update(pos) if not is_on_object else spill.disable()
+            elif not overlay_blitted: #or self.on_bridge_oil_spill:
+                spill.blit()
+
+        for spill in self.grease_spills:
+
+            if not race_started:    
+                if spill.pos is None:
+                    pos, is_on_object = self.get_random_position(grease_spill_image.get_height(), grease_spill_image.get_width())
+                    spill.update(pos) if not is_on_object else spill.disable()
+            elif not overlay_blitted: #or self.on_bridge_grease_spill:
+                spill.blit()
+
+        for spill in self.water_spills:
+
+            if not race_started:    
+                if spill.pos is None:
+                    pos, is_on_object = self.get_random_position(water_spill_image.get_height(), water_spill_image.get_width())
+                    spill.update(pos) if not is_on_object else spill.disable()
+            elif not overlay_blitted: #or self.on_bridge_water_spill:
+                spill.blit()
 
         #Display Traffic Cones
         if race_started:
@@ -1039,5 +1047,5 @@ class Track:
                     cone.blit()
 
         #blit Tornado last so it always is on top:
-        self.blit_tornado(race_started)
-
+        if self.enable_tornado:
+            self.blit_tornado(race_started)

@@ -1219,18 +1219,25 @@ class Car:
                 return False
 
     def detect_spills(self, track: pysprint_tracks.Track):
-        if track.display_oil_spill and track.on_bridge_oil_spill==self.is_on_ramp_or_bridge():
-            if self.test_spill(pysprint_tracks.oil_spill_mask,track.oil_spill_position):
+
+        # oil spills
+        for spill in track.oil_spills:
+            #if track.display_oil_spill and track.on_bridge_oil_spill==self.is_on_ramp_or_bridge():
+            if self.test_spill(pysprint_tracks.oil_spill_mask, spill.pos):
                 if not self.on_spill:
                     self.init_oil_spill_loop()
                 return True
-        if track.display_water_spill and track.on_bridge_water_spill==self.is_on_ramp_or_bridge():
-            if self.test_spill(pysprint_tracks.water_spill_mask,track.water_spill_position):
+
+        for spill in track.water_spills:
+            # if track.display_water_spill and track.on_bridge_water_spill==self.is_on_ramp_or_bridge():
+            if self.test_spill(pysprint_tracks.water_spill_mask, spill.pos):
                 if not self.on_spill:
                     self.init_water_spill_loop()
                 return True
-        if track.display_grease_spill and track.on_bridge_grease_spill==self.is_on_ramp_or_bridge():
-            if self.test_spill(pysprint_tracks.grease_spill_mask,track.grease_spill_position):
+
+        for spill in track.grease_spills:
+            # if track.display_grease_spill and track.on_bridge_grease_spill==self.is_on_ramp_or_bridge():
+            if self.test_spill(pysprint_tracks.grease_spill_mask, spill.pos):
                 if not self.on_spill:
                     self.init_grease_spill_loop()
                 return True
@@ -1762,7 +1769,7 @@ class Car:
             self.test_on_bridge(track)
             #ignore obstacles and collisons while the car is mid-air
             if not (self.jumping and not self.landing and not self.falling):
-                if track.display_tornado:
+                if track.enable_tornado:
                     #Check for Tornado - priority behaviour over spills
                     self.on_tornado = self.detect_tornado(track)
                 if not self.on_tornado:
@@ -1771,7 +1778,7 @@ class Car:
                 if track.display_cones:
                     #check for Traffic Cones
                     self.detect_cones(track)
-                if track.display_pole:
+                if track.enable_pole:
                     #Check for Poles
                     self.detect_poles(track)
             if not self.on_spill and not self.on_tornado:
