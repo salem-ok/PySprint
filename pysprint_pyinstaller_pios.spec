@@ -7,7 +7,16 @@ block_cipher = None
 a = Analysis(['pysprint.py'],
              pathex=[],
              binaries=[],
-             datas=[('LICENSE','.'),('README.md','.'),('.highscores.json','.'),('.bestlaps.json','.'),('Assets/*.*','Assets')],
+             datas=[
+                 ('LICENSE','.'),
+                 ('README.md','.'),
+                 ('.highscores.json','.'),
+                 ('.bestlaps.json','.'),
+                 ('Assets/*.*','Assets'),
+                 ('Assets/sound/*.*','Assets/sound'),
+                 ('Assets/tracks/*.*','Assets/tracks'),
+                 ('configuration/*.*','configuration')
+            ],
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},
