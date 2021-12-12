@@ -11,9 +11,44 @@ The idea is to:
 
 ## Prerequisites:
 
-- The game requires the pygame and numpy packages to run if you download the source and want to run it interpreted.
-- The first beta release is pre-compiled and packages for Linux, Mac OS & Windows just download, unzip and execute:
-  [Download Binaries](https://github.com/salem-ok/PySprint/releases/tag/v0.29-beta)
+- The game requires the pygame, loguru, pathlib and numpy packages to run if you download the source and want to run it interpreted
+- [Release v0.38 Notes](https://github.com/salem-ok/PySprint/releases/tag/v0.38)
+
+## Installation
+
+1.  Windows:
+
+    Windows for 64bit Intel or AMD CPUs (built & tested  on Windows 10)
+    Installation:
+     - Download and launch the [pysprint-v0.38-windows-amd64.exe](https://github.com/salem-ok/PySprint/releases/download/v0.38/pysprint-v0.38-windows-amd64.exe) setup program and follow instructions
+     - Double click on the PySprint shortcut on you desktop or in your Start menu to run
+
+
+2. Mac OS
+
+    Mac OS for 64bit Intel CPUs (built & tested on MacOS Big Sur 11.6)
+    Installation:
+     - Download and open the [pysprint-v0.38-macos-amd64.dmg](https://github.com/salem-ok/PySprint/releases/download/v0.38/pysprint-v0.38-macos-amd64.dmg) file
+     - Drag and drop the pysprint App int you Applications folder (or any other folder)
+     - Double click on the App to run
+
+3. Linux
+
+     Linux for 64bit Intel or AMD CPUs  (built & tested on Ubuntu 21.04)
+     Installation:
+     - Download and unzip the [pysprint-v0.38-linux-amd64.zip](https://github.com/salem-ok/PySprint/releases/download/v0.38/pysprint-v0.38-linux-amd64.zip)
+     - Open a terminal in the 'pysprint' folder
+     - run ./pysprint
+
+4. Raspberry PI OS
+
+    Linux for ARM CPU (built & tested  Raspbian GNU/Linux 10 (buster) on a Raspberry Pi 4)
+    Installation:
+     - Download and unzip [pysprint-v0.38-linux-arm.zip](url[)](https://github.com/salem-ok/PySprint/releases/download/v0.38/pysprint-v0.38-linux-arm.zip)
+     - Open a terminal in the 'pysprint' folder
+     - run ./pysprint
+
+
 
 ## FAQ:
 - Feel free to check existing questions and add you own:
@@ -34,7 +69,7 @@ The game starts in **"Attract mode"** cycling through several screens -Spash Scr
 
 ![PySprint Options Screen](https://github.com/salem-ok/PySprint/blob/main/ImageSource/OptionsScreen.png?raw=true)
 
-  - Hit F4 to toggle Scaled Window Mode (will not work with pygame version < 2.0.0)
+  - Hit F4 to toggle Scaled Window Mode (will not work on the Raspberry Pi)
   - Hit ESC or close the Window to Quit the Game
   - Hit acclerate for any player to start a game:
       - The first player to hit accelerate selects the track (left-right to choose, accelerate to select).
