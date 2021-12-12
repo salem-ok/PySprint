@@ -822,12 +822,14 @@ def display_start_race_screen():
 
                         car.reset_game_over()
 
+        try:
+            with open(".highscores.json","w") as high_scores_file:
+                json.dump(high_scores, high_scores_file)
 
-        with open(".highscores.json","w") as high_scores_file:
-            json.dump(high_scores, high_scores_file)
-
-        with open(".bestlaps.json","w") as best_laps_file:
-            json.dump(best_laps, best_laps_file)
+            with open(".bestlaps.json","w") as best_laps_file:
+                json.dump(best_laps, best_laps_file)
+        except:
+            logger.debug("Failed to save High Scores & Best Lap tables")
     smp_manager.get_sample("prepare_to_race_music").stop(fadeout_ms=FADEOUT_DURATION)
     screen_fadeout()
     return pygame.K_SPACE
@@ -905,14 +907,14 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
             break
 
         clock.tick(10)
-    if not screen_exit:
-        #Update Score on top screen
-        for i in range(0, len(ranking)):
-            #Pre_calculate and pre-render scores based on lap_times
-            cars[ranking[i]].score += avg_lap_scores[i]
-            cars[ranking[i]].score += best_lap_scores[i]
-            cars[ranking[i]].score += score_positions[i]
+    #Update Score on top screen
+    for i in range(0, len(ranking)):
+        #Pre_calculate and pre-render scores based on lap_times
+        cars[ranking[i]].score += avg_lap_scores[i]
+        cars[ranking[i]].score += best_lap_scores[i]
+        cars[ranking[i]].score += score_positions[i]
 
+    if not screen_exit:
         #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
         wave_count = 0
         frame_count = 0
