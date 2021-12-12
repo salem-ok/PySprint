@@ -13,7 +13,7 @@ from gfx.cone import Cone
 
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
-DISABLE_LOGGING = False
+DISABLE_LOGGING = True
 if DISABLE_LOGGING:
     logger.remove()
 
