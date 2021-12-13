@@ -26,7 +26,7 @@ DEBUG_CRASH = False
 DEBUG_AI = False
 DEBUG_GATE_TRACKING = False
 DEBUG_RAMPS = False
-DISABLE_LOGGING = False
+DISABLE_LOGGING = True
 if DISABLE_LOGGING:
     logger.remove()
 
