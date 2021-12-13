@@ -1,22 +1,58 @@
 {
-    "tiny_font": {
-        "ttf_file": "Assets/SupersprintST-Regular.ttf",
-        "size": 10
+    "truetype": {
+        "tiny_font": {
+            "ttf_file": "Assets/SupersprintST-Regular.ttf",
+            "size": 10
+        },
+        "small_font": {
+            "ttf_file": "Assets/SupersprintST-Regular.ttf",
+            "size": 15
+        },
+        "shadow_font": {
+            "ttf_file": "Assets/SupersprintST-Regular-Stroke.ttf",
+            "size": 15
+        },    
+        "big_font": {
+            "ttf_file": "Assets/SupersprintST-Regular.ttf",
+            "size": 20
+        },
+        "big_shadow_font": {
+            "ttf_file": "Assets/SupersprintST-Regular-Stroke.ttf",
+            "size": 20
+        }
     },
-    "small_font": {
-        "ttf_file": "Assets/SupersprintST-Regular.ttf",
-        "size": 15
-    },
-    "shadow_font": {
-        "ttf_file": "Assets/SupersprintST-Regular-Stroke.ttf",
-        "size": 15
-    },    
-    "big_font": {
-        "ttf_file": "Assets/SupersprintST-Regular.ttf",
-        "size": 20
-    },
-    "big_shadow_font": {
-        "ttf_file": "Assets/SupersprintST-Regular-Stroke.ttf.ttf",
-        "size": 20
+    "bitmap": {
+        "scrolling": {
+            "A": "Assets/ScrollingFontA.png",
+            "B": "Assets/ScrollingFontB.png",
+            "C": "Assets/ScrollingFontC.png",
+            "D": "Assets/ScrollingFontD.png",
+            "E": "Assets/ScrollingFontE.png",
+            "F": "Assets/ScrollingFontF.png",
+            "G": "Assets/ScrollingFontG.png",
+            "H": "Assets/ScrollingFontH.png",
+            "I": "Assets/ScrollingFontI.png",
+            "J": "Assets/ScrollingFontJ.png",
+            "K": "Assets/ScrollingFontK.png",
+            "L": "Assets/ScrollingFontL.png",
+            "M": "Assets/ScrollingFontM.png",
+            "N": "Assets/ScrollingFontN.png",
+            "O": "Assets/ScrollingFontO.png",
+            "P": "Assets/ScrollingFontP.png",
+            "Q": "Assets/ScrollingFontQ.png",
+            "R": "Assets/ScrollingFontR.png",
+            "S": "Assets/ScrollingFontS.png",
+            "T": "Assets/ScrollingFontT.png",
+            "U": "Assets/ScrollingFontU.png",
+            "V": "Assets/ScrollingFontV.png",
+            "W": "Assets/ScrollingFontW.png",
+            "X": "Assets/ScrollingFontX.png",
+            "Y": "Assets/ScrollingFontY.png",
+            "Z": "Assets/ScrollingFontZ.png",
+            ".": "Assets/ScrollingFontDOT.png",
+            " ": "Assets/ScrollingFontSPACE.png",
+            "_": "Assets/ScrollingFont_.png",
+            ":": "Assets/ScrollingFontSemiColon.png" 
+        }
     }
 }

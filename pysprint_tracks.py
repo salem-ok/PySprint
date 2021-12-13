@@ -10,6 +10,7 @@ from pygame import Surface, gfxdraw, draw
 
 from loguru import logger
 from gfx.cone import Cone
+from managers.font_manager import FontManager 
 
 DEBUG_OBSTACLES = False
 DEBUG_RAMPS = False
@@ -49,7 +50,6 @@ bonus_shade_frames = None
 bonus_position = None
 bonus_display_interval = 6000
 bonus_display_duration = 10000
-tiny_font = None
 
 #Poles Frames
 poles_frames = None
@@ -75,6 +75,9 @@ def calculate_distance(point1,point2):
 class Track:
 
     def __init__(self):
+
+        self.font_manager = FontManager.get_manager("fonts")
+
         self.difficulty_level = None
         self.wrenches = None
         self.background_filename = None
@@ -728,6 +731,8 @@ class Track:
         if self.bonus_frame_index>=0:
             if not overlay_blitted or self.on_bridge_or_ramp_bonus:
                 slice_index = self.bonus_frame_index
+
+                tiny_font = self.font_manager.get_truetype_font("tiny_font")
                 bonus_value_surf = tiny_font.render(self.bonus_value[0:slice_index], False, (255, 255, 255))
                 game_display.blit(bonus_frames[self.bonus_frame_index],self.bonus_position)
                 game_display.blit(bonus_value_surf,(self.bonus_position[0]+1,self.bonus_position[1]+3))
