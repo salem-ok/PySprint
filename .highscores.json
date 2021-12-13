@@ -1,1 +1,124 @@
-{"high_scores": [{"score": 20410, "name": "P4C"}, {"score": 12910, "name": "SPK"}, {"score": 12620, "name": "H4I"}, {"score": 9160, "name": "A"}, {"score": 7960, "name": "A"}, {"score": 7300, "name": "A"}, {"score": 7280, "name": "AAA"}, {"score": 7240, "name": "OLI"}, {"score": 6960, "name": "DAT"}, {"score": 6590, "name": "279"}, {"score": 6230, "name": "A"}, {"score": 6120, "name": "AAA"}, {"score": 5660, "name": "DA6"}, {"score": 5440, "name": "EAT"}, {"score": 5320, "name": "AAA"}, {"score": 4590, "name": "OLI"}, {"score": 4330, "name": "A"}, {"score": 4080, "name": "EAT"}, {"score": 4040, "name": "AAA"}, {"score": 3940, "name": "DAB"}, {"score": 3910, "name": "OLI"}, {"score": 3600, "name": "AAA"}, {"score": 3590, "name": "ICA"}, {"score": 3500, "name": "HAA"}, {"score": 3490, "name": "EAA"}, {"score": 3420, "name": "A"}, {"score": 3120, "name": "GAC"}, {"score": 3110, "name": "AAA"}, {"score": 3110, "name": "AAA"}, {"score": 3080, "name": "AAA"}]}
+{
+    "high_scores": [
+        {
+            "score": 40000,
+            "name": "SAL"
+        },
+        {
+            "score": 30000,
+            "name": "SHA"
+        },
+        {
+            "score": 25000,
+            "name": "COG"
+        },
+        {
+            "score": 20000,
+            "name": "STH"
+        },
+        {
+            "score": 17500,
+            "name": "MAN"
+        },
+        {
+            "score": 15000,
+            "name": "JON"
+        },
+        {
+            "score": 12500,
+            "name": "IVB"
+        },
+        {
+            "score": 10000,
+            "name": "RAF"
+        },
+        {
+            "score": 9000,
+            "name": "ATA"
+        },
+        {
+            "score": 8000,
+            "name": "RI"
+        },
+        {
+            "score": 7000,
+            "name": "ST"
+        },
+        {
+            "score": 6000,
+            "name": "RLZ"
+        },
+        {
+            "score": 5000,
+            "name": "EAT"
+        },
+        {
+            "score": 4900,
+            "name": "YOU"
+        },
+        {
+            "score": 4800,
+            "name": "RVE"
+        },
+        {
+            "score": 4750,
+            "name": "GET"
+        },
+        {
+            "score": 4500,
+            "name": "ABL"
+        },
+        {
+            "score": 4000,
+            "name": "ES"
+        },
+        {
+            "score": 3950,
+            "name": "STA"
+        },
+        {
+            "score": 3940,
+            "name": "Y S"
+        },
+        {
+            "score": 3910,
+            "name": "AFE"
+        },
+        {
+            "score": 3600,
+            "name": "HAP"
+        },
+        {
+            "score": 3590,
+            "name": "PY"
+        },
+        {
+            "score": 3500,
+            "name": "HOL"
+        },
+        {
+            "score": 3490,
+            "name": "IDA"
+        },
+        {
+            "score": 3420,
+            "name": "YS"
+        },
+        {
+            "score": 3120,
+            "name": "PEA"
+        },
+        {
+            "score": 3110,
+            "name": "CE"
+        },
+        {
+            "score": 3110,
+            "name": "SAL"
+        },
+        {
+            "score": 3080,
+            "name": "EM"
+        }
+    ]
+}
