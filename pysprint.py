@@ -13,8 +13,10 @@ import os
 from managers.sample_manager import SampleManager
 from managers.texture_manager import TextureManager
 from screens.highscores_screen import HighscoresScreen
+
 from screens.laprecords_screen import LapRecordsScreen
 from screens.credits_screen import CreditsScreen
+from managers.font_manager import FontManager
 
 from pathlib import Path
 from loguru import logger
@@ -62,6 +64,7 @@ FADEOUT_DURATION = 1000
 SampleManager.create_manager("sfx", "configuration/atarist_sfx.json")
 smp_manager = SampleManager.create_manager("music", "configuration/atarist_music.json")
 tex_manager = TextureManager.create_manager("sprites", "configuration/atarist_tex.json")
+font_manager = FontManager.create_manager("fonts", "configuration/atarist_fonts.json")
 
 cars = []
 
@@ -78,7 +81,7 @@ DEBUG_FPS = False
 DEBUG_FPS_DETAILED = False
 DEBUG_AI = False
 DISABLE_DRONES = False
-DISABLE_LOGGING = False
+DISABLE_LOGGING = True
 DEBUG_SELECT_ITEM = False
 if DISABLE_LOGGING:
     logger.remove()
@@ -121,11 +124,10 @@ attract_mode_display_duration = 5000
 podium_tunes = [ sample for name, sample in smp_manager.samples.items() if name.startswith('podium_tune') ]
 
 # fonts
-pysprint_tracks.tiny_font   = pygame.font.Font('Assets/SupersprintST-Regular.ttf',10)
-small_font                  = pygame.font.Font('Assets/SupersprintST-Regular.ttf',15)
-shadow_font                 = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',15)
-big_font                    = pygame.font.Font('Assets/SupersprintST-Regular.ttf',20)
-big_shadow_font             = pygame.font.Font('Assets/SupersprintST-Regular-Stroke.ttf',20)
+small_font                  = font_manager.get_truetype_font("small_font") 
+shadow_font                 = font_manager.get_truetype_font("shadow_font")
+big_font                    = font_manager.get_truetype_font("big_font")
+big_shadow_font             = font_manager.get_truetype_font("big_shadow_font")
 
 # ---------------------------------------------------------------------------------------------
 # TODO: move to pysprint_car
@@ -272,39 +274,7 @@ green_car_sprites       = tex_manager.get_textures(f"green_car")
 yellow_drone_sprites    = tex_manager.get_textures(f"yellow_drone")
 yellow_car_sprites      = tex_manager.get_textures(f"yellow_car")
 
-scrolling_font = {
-    'A':pygame.image.load('Assets/ScrollingFontA.png').convert_alpha(),
-    'B':pygame.image.load('Assets/ScrollingFontB.png').convert_alpha(),
-    'C':pygame.image.load('Assets/ScrollingFontC.png').convert_alpha(),
-    'D':pygame.image.load('Assets/ScrollingFontD.png').convert_alpha(),
-    'E':pygame.image.load('Assets/ScrollingFontE.png').convert_alpha(),
-    'F':pygame.image.load('Assets/ScrollingFontF.png').convert_alpha(),
-    'G':pygame.image.load('Assets/ScrollingFontG.png').convert_alpha(),
-    'H':pygame.image.load('Assets/ScrollingFontH.png').convert_alpha(),
-    'I':pygame.image.load('Assets/ScrollingFontI.png').convert_alpha(),
-    'J':pygame.image.load('Assets/ScrollingFontJ.png').convert_alpha(),
-    'K':pygame.image.load('Assets/ScrollingFontK.png').convert_alpha(),
-    'L':pygame.image.load('Assets/ScrollingFontL.png').convert_alpha(),
-    'M':pygame.image.load('Assets/ScrollingFontM.png').convert_alpha(),
-    'N':pygame.image.load('Assets/ScrollingFontN.png').convert_alpha(),
-    'O':pygame.image.load('Assets/ScrollingFontO.png').convert_alpha(),
-    'P':pygame.image.load('Assets/ScrollingFontP.png').convert_alpha(),
-    'Q':pygame.image.load('Assets/ScrollingFontQ.png').convert_alpha(),
-    'R':pygame.image.load('Assets/ScrollingFontR.png').convert_alpha(),
-    'S':pygame.image.load('Assets/ScrollingFontS.png').convert_alpha(),
-    'T':pygame.image.load('Assets/ScrollingFontT.png').convert_alpha(),
-    'U':pygame.image.load('Assets/ScrollingFontU.png').convert_alpha(),
-    'V':pygame.image.load('Assets/ScrollingFontV.png').convert_alpha(),
-    'W':pygame.image.load('Assets/ScrollingFontW.png').convert_alpha(),
-    'X':pygame.image.load('Assets/ScrollingFontX.png').convert_alpha(),
-    'Y':pygame.image.load('Assets/ScrollingFontY.png').convert_alpha(),
-    'Z':pygame.image.load('Assets/ScrollingFontZ.png').convert_alpha(),
-    '.':pygame.image.load('Assets/ScrollingFontDOT.png').convert_alpha(),
-    ' ':pygame.image.load('Assets/ScrollingFontSPACE.png').convert_alpha(),
-    '_':pygame.image.load('Assets/ScrollingFont_.png').convert_alpha(),
-    ':':pygame.image.load('Assets/ScrollingFontSemiColon.png').convert_alpha()
-}
-
+scrolling_font = font_manager.get_bitmap_font("scrolling")
 
 keyboard_1 = {}
 keyboard_1['ACCELERATE'] = pygame.K_RCTRL
@@ -426,48 +396,6 @@ def display_splash_screen():
 
     screen_fadeout()
     return key_pressed
-
-
-# def display_lap_records():
-#     screen_exit = False
-#     key_pressed = -1
-#     screen_fadein(lap_records_screen)
-#     top4 = (55, 270)
-#     top8 = (335, 270)
-#     for i in range(0,4):
-#         time = best_laps["best_laps"][i]["time"]
-#         name = best_laps["best_laps"][i]["name"]
-#         game_display.blit(small_font.render('Track', False, white_color), (top4[0], top4[1] + i * 15))
-#         game_display.blit(small_font.render('{}'.format(i+1), False, white_color), (top4[0] + 70, top4[1] + i * 15))
-#         game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top4[0] + 95, top4[1] + i * 15))
-#         game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top4[0] + 150, top4[1] + i * 15))
-
-#     for i in range(0,4):
-#         time = best_laps["best_laps"][i+4]["time"]
-#         name = best_laps["best_laps"][i+4]["name"]
-#         game_display.blit(small_font.render('Track', False, white_color), (top8[0], top8[1] + i * 15))
-#         game_display.blit(small_font.render('{}'.format(i+5), False, white_color), (top8[0] + 70, top8[1] + i * 15))
-#         game_display.blit(small_font.render('{:04.1f}'.format(time), False, white_color), (top8[0] + 95, top8[1] + i * 15))
-#         game_display.blit(small_font.render('secs  {}'.format(name), False, white_color), (top8[0] + 150, top8[1] + i * 15))
-
-#     pygame.display.update()
-#     screen_start_time = pygame.time.get_ticks()
-#     while not screen_exit:
-#         if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-#             screen_exit = True
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 screen_exit = True
-#                 key_pressed = pygame.K_ESCAPE
-#             if event.type == pygame.KEYDOWN:
-#                 screen_exit = True
-#                 key_pressed = event.key
-#         if any_joystick_button_pressed():
-#             screen_exit = True
-#             key_pressed = JOYSTICK_BUTTON_PRESSED
-#     screen_fadeout()
-#     return key_pressed
-
 
 def print_get_ready():
     prepare_surf = big_font.render("GET READY", False, white_color)
@@ -736,12 +664,14 @@ def display_start_race_screen():
 
                         car.reset_game_over()
 
+        try:
+            with open(".highscores.json","w") as high_scores_file:
+                json.dump(high_scores, high_scores_file)
 
-        with open(".highscores.json","w") as high_scores_file:
-            json.dump(high_scores, high_scores_file)
-
-        with open(".bestlaps.json","w") as best_laps_file:
-            json.dump(best_laps, best_laps_file)
+            with open(".bestlaps.json","w") as best_laps_file:
+                json.dump(best_laps, best_laps_file)
+        except:
+            logger.debug("Failed to save High Scores & Best Lap tables")
     smp_manager.get_sample("prepare_to_race_music").stop(fadeout_ms=FADEOUT_DURATION)
     screen_fadeout()
     return pygame.K_SPACE
@@ -819,14 +749,14 @@ def display_race_podium_screen(track, mechanic_frames, ranking, composed_race_po
             break
 
         clock.tick(10)
-    if not screen_exit:
-        #Update Score on top screen
-        for i in range(0, len(ranking)):
-            #Pre_calculate and pre-render scores based on lap_times
-            cars[ranking[i]].score += avg_lap_scores[i]
-            cars[ranking[i]].score += best_lap_scores[i]
-            cars[ranking[i]].score += score_positions[i]
+    #Update Score on top screen
+    for i in range(0, len(ranking)):
+        #Pre_calculate and pre-render scores based on lap_times
+        cars[ranking[i]].score += avg_lap_scores[i]
+        cars[ranking[i]].score += best_lap_scores[i]
+        cars[ranking[i]].score += score_positions[i]
 
+    if not screen_exit:
         #Animate Crowd Flags - Wave Flags 12 times & Animate Mechanic
         wave_count = 0
         frame_count = 0
