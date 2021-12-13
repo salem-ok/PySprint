@@ -17,8 +17,8 @@ from screens.highscores_screen import HighscoresScreen
 from screens.laprecords_screen import LapRecordsScreen
 from screens.credits_screen import CreditsScreen
 from screens.splash_screen import SplashScreen
+from screens.loading_screen import LoadingScreen
 from managers.font_manager import FontManager
-
 
 from pathlib import Path
 from loguru import logger
@@ -142,7 +142,6 @@ pysprint_car.vector_surf.set_colorkey((0,0,0))
 # ---------------------------------------------------------------------------------------------
 
 # Screens
-loading_screen_foreground   = tex_manager.get_texture("loading_screen_foreground")
 start_race_screen           = tex_manager.get_texture("start_race_screen")
 race_podium_screen          = tex_manager.get_texture("race_podium_screen")
 checkered_background        = tex_manager.get_texture("checkered_background")
@@ -312,6 +311,7 @@ highscores_screen   = HighscoresScreen(display=game_display, high_scores=high_sc
 laprecords_screen   = LapRecordsScreen(display=game_display, best_laps=best_laps)
 credits_screen      = CreditsScreen(display=game_display)
 splash_screen       = SplashScreen(display=game_display)
+loading_screen      = LoadingScreen(display=game_display, fps=FPS, display_width=display_width, display_height=display_width)
 
 
 def screen_fadeout():
@@ -333,49 +333,6 @@ def screen_fadein(screen):
         pygame.display.update()
         clock.tick(len(transition_dots)*1.5)
         frame -= 1
-
-def display_loading_screen(loop):
-    screen_fadein(loading_screen_foreground)
-    screen_exit = False
-    key_pressed = False
-    scroll_message = "SUPER SPRINT REMADE WITH PYGAME BY SALEM_OK. THANKS TO SHAZZ: CODE REVIEW AND REFACTORING. JOHNATHAN THOMAS: SPRITES RIP. COGWEASEL: SPLASH SCREEN. ORIGINAL CREATED FOR THE MIGHTY ATARI ST BY STATE OF THE ART. PROGRAMMING: NALIN SHARMA  MARTIN GREEN  JON STEELE. GRAPHICS: CHRIS GIBBS. SOUND: MARK TISDALE. A SOFTWARE STUDIOS PRODUCTION..."
-    right_end = 490
-    left_end = 148
-    scroll_y = 370
-    background = pygame.Surface((display_width,display_height))
-    background.fill(black_color)
-    text = pygame.Surface(((scrolling_font['A'].get_width() + 1) * len(scroll_message) + right_end - left_end, scrolling_font['A'].get_height()))
-    x_offset = right_end - left_end
-    for char in scroll_message:
-        text.blit(scrolling_font[char], (x_offset, 0))
-        x_offset += scrolling_font[char].get_width() + 1
-    dx = 0
-    if FPS == 30:
-        scroll_increment = -6
-    if FPS == 60:
-        scroll_increment = -3
-    while not screen_exit:
-        if dx >= text.get_width() and not loop:
-            screen_exit = True
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                screen_exit = True
-                key_pressed = pygame.K_ESCAPE
-            if event.type == pygame.KEYDOWN:
-                screen_exit = True
-                key_pressed = event.key
-        if any_joystick_button_pressed():
-            screen_exit = True
-            key_pressed = JOYSTICK_BUTTON_PRESSED
-        game_display.blit(background, (0, 0))
-        game_display.blit(text, (left_end, scroll_y))
-        game_display.blit(loading_screen_foreground, (0, 0))
-        pygame.display.update()
-        text.scroll(scroll_increment)
-        dx -= scroll_increment
-        clock.tick(FPS)
-    screen_fadeout()
-    return key_pressed
 
 def print_get_ready():
     prepare_surf = big_font.render("GET READY", False, white_color)
@@ -1393,7 +1350,7 @@ def accelerate_pressed(key_pressed, play_sound = False):
                 return True
     return False
 
-def wait_action():
+def wait_action(screen_to_update = None, use_timer: bool = True):
     """Wait any input (keyboard, joystick or timer) to go to the next screen"""
     screen_exit = False
     key_pressed = False
@@ -1404,8 +1361,9 @@ def wait_action():
     while not screen_exit:
 
         # go to next after some time
-        if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
-            screen_exit = True
+        if use_timer:
+            if pygame.time.get_ticks() - screen_start_time >= attract_mode_display_duration:
+                screen_exit = True
 
         # of if keyboard is pressed
         for event in pygame.event.get():
@@ -1420,6 +1378,10 @@ def wait_action():
         if any_joystick_button_pressed():
             screen_exit = True
             key_pressed = JOYSTICK_BUTTON_PRESSED    
+
+        if screen_to_update is not None:
+            screen_exit = True if screen_to_update.update() else screen_exit
+            clock.tick(FPS)
 
     return key_pressed
 
@@ -1685,7 +1647,13 @@ def game_loop():
         if not race_finished:
             track_index = 0
             race_counter = 0
-            key_pressed = display_loading_screen(False)
+
+            # loading screen and scroller
+            loading_screen.fadein()
+            loading_screen.display()
+            wait_action(loading_screen, use_timer=False)
+            loading_screen.fadeout()
+
             #Attract mode
             while not (accelerate_pressed(key_pressed) or (key_pressed == pygame.K_ESCAPE)):
                 splash_screen.fadein()
