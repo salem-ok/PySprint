@@ -1,0 +1,12 @@
+#Colors
+black_color = (0, 0, 0)
+white_color = (255, 255, 255)
+red_color = (238, 0, 34)
+blue_color = (68, 102, 238)
+yellow_color = (238, 238, 102)
+green_color = (34, 170, 102)
+green_secondary_color = (170, 204, 102)
+blue_secondary_color = (170, 204, 238)
+red_secondary_color = (170, 0, 0)
+yellow_secondary_color = (170, 170, 0)
+grey_color = (170, 170, 170)
