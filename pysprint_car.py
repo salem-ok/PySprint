@@ -1,16 +1,8 @@
-7#pysprint_car.py
-from typing import DefaultDict
-from numpy import False_, True_, angle, result_type, select
-from numpy.lib.polynomial import poly
-from numpy.lib.type_check import _is_type_dispatcher
+#pysprint_car.py
 import pygame
 from pygame import Surface, gfxdraw
 import math
 import random
-#from pygame.constants import CONTROLLER_AXIS_RIGHTX
-
-from pygame.key import name
-from pygame.mask import from_threshold
 import pysprint_tracks
 
 from managers.sample_manager import SampleManager
@@ -29,6 +21,23 @@ DEBUG_RAMPS = False
 DISABLE_LOGGING = True
 if DISABLE_LOGGING:
     logger.remove()
+
+# --- Precomputed trigonometry for the 16 sprite angles ---
+# calculate_vector_from_sprite is called every frame for every car.
+# Pre-computing avoids repeated math.sin/sqrt calls in the hot path.
+_ANGLE_SIN = [math.sin(math.radians(abs(a * 22.5 - 90))) for a in range(17)]
+_ANGLE_COS_SIGN = [0.0] * 17  # sqrt(1 - sin²) * x_sign, computed per angle below
+
+def _precompute_angle_tables(angle_vector_sign):
+    """Precompute (sin_val, x_sign, y_sign) for all 16 sprite angles."""
+    table = []
+    for a in range(17):
+        s = _ANGLE_SIN[a]
+        xs = angle_vector_sign[a][0]
+        ys = angle_vector_sign[a][1]
+        table.append((s, xs, ys))
+    return table
+# populated once Car class is defined (see below)
 
 #Timer during which 2 cars which collided can't collide again
 car_collision_grace_period = 500
@@ -489,7 +498,9 @@ class Car:
             self.angle += 16
         if self.angle >= 16:
             self.angle -= 16
-        self.sprite_angle = round(self.angle,0)
+        # round(x, 0) returns a float in Python 3 — use int(round(x)) to
+        # ensure sprite_angle is always an int safe for list indexing.
+        self.sprite_angle = int(round(self.angle))
         if self.sprite_angle == 16:
             self.sprite_angle = 0
         if self.on_ramp:
@@ -640,11 +651,15 @@ class Car:
             return False
 
     def calculate_vector_from_sprite(self):
-        self.sin_angle = math.sin(math.radians(abs(self.sprite_angle*22.5-90)))
-        self.y_vector = abs(self.speed * self.sin_angle)
-        self.y_vector = self.y_vector * self.angle_vector_sign[self.sprite_angle][1]
-        self.x_vector = math.sqrt(self.speed*self.speed-self.y_vector*self.y_vector)
-        self.x_vector = self.x_vector * self.angle_vector_sign[self.sprite_angle][0]
+        # Fast path: use precomputed tables instead of repeated math.sin/sqrt.
+        # sprite_angle is stored as a float (round() in Python 3 returns float),
+        # so cast to int before indexing the lookup table.
+        s, xs, ys = _SPRITE_ANGLE_TABLE[int(self.sprite_angle)]
+        y_abs = abs(self.speed * s)
+        self.sin_angle = s
+        self.y_vector = y_abs * ys
+        x_sq = self.speed * self.speed - y_abs * y_abs
+        self.x_vector = (math.sqrt(x_sq) if x_sq > 0 else 0.0) * xs
 
     def calculate_sprite_from_vector(self, new_vector):
 
@@ -675,13 +690,21 @@ class Car:
         self.calculate_vector_from_sprite()
 
     def calculate_falling_vector(self,track: pysprint_tracks.Track):
-        #dt = 0.02
-        dt = (pygame.time.get_ticks() - self.fall_start_timer)/5000
+        # Use a proper per-frame dt (seconds) for the falling trajectory.
+        # The original code used cumulative time/5000 which compounds errors
+        # and produces unrealistic curves at variable frame rates.
+        now = pygame.time.get_ticks()
+        dt = (now - self._fall_last_tick) / 1000.0  # seconds since last physics step
+        if dt <= 0:
+            dt = 0.033  # safety: default to ~30fps step
+        self._fall_last_tick = now
+
         new_vector = (self.vx * dt, self.vy * dt)
         self.calculate_sprite_from_vector(new_vector)
         self.x_vector = new_vector[0]
         self.y_vector = new_vector[1]
-        self.vy = self.vy + 0.5 * gravity * dt
+        # Semi-implicit Euler gravity integration (more stable than explicit)
+        self.vy = self.vy + gravity * dt
         if DEBUG_RAMPS:
             logger.debug('(x,y): ({},{})  vector({},{}) - vx:{} - vy:{}'.format(self.x_position,self.y_position,self.x_vector,self.y_vector,self.vx,self.vy))
 
@@ -910,9 +933,23 @@ class Car:
 
 
     def test_car_collisions(self, cars):
+        # Pre-compute this car's bounding rect once
+        car_w = self.sprites[self.sprite_angle].get_width()
+        car_h = self.sprites[self.sprite_angle].get_height()
+        # Expand by car size to capture any overlap
+        self_rect = pygame.Rect(self.x_position, self.y_position, car_w, car_h)
+        self_rect_inflated = self_rect.inflate(car_w, car_h)
+
         for i in range(0,len(cars)):
             #Check collision with other cars if they are on the same level
             if not cars[i].color_text==self.color_text and cars[i].on_ramp==self.on_ramp and cars[i].on_bridge==self.on_bridge:
+                # Fast bounding-box reject before expensive mask overlap
+                other_rect = pygame.Rect(cars[i].x_position, cars[i].y_position,
+                                         cars[i].sprites[cars[i].sprite_angle].get_width(),
+                                         cars[i].sprites[cars[i].sprite_angle].get_height())
+                if not self_rect_inflated.colliderect(other_rect):
+                    continue  # cars are too far apart — skip mask test entirely
+
                 if not self.car_collision_grace_timer is None:
                     if pygame.time.get_ticks() < self.car_collision_grace_timer:
                         if DEBUG__CAR_COLLISION:
@@ -936,13 +973,6 @@ class Car:
                         elif abs(angle_delta) <= 2 or abs(angle_delta) >=13:
                             if DEBUG__CAR_COLLISION:
                                 logger.debug('No Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                        #Sprites angle is equidisant from right angles and cars opposite directions
-                        # elif (abs(angle_delta)==6) or (abs(angle_delta)==10) and ((self.speed>0.75*self.speed_max and cars[i].speed>0.75*cars[i].speed_max) and (not self.is_drone or not cars[i].is_drone)):
-                        #     #If cars are at high speed, force spinning (if one of them is not a drone, as drones are almost always at max speed)
-                        #     if DEBUG__CAR_COLLISION:
-                        #         logger.debug('High Speed Colllision: {}-sprite:{} - {}-sprite:{}'.format(cars[i].color_text,cars[i].sprite_angle,self.color_text,self.sprite_angle))
-                        #     self.init_frontal_car_collision_loop(cars[i])
-                        #     cars[i].init_frontal_car_collision_loop(self)
                         else:
                             ##Side Collision
                             #Check if the other car's front area is touching
@@ -1647,6 +1677,7 @@ class Car:
         self.vx = 20*self.speed * math.cos(math.radians(self.fall_angle))
         self.vy = 20*self.speed * math.sin(math.radians(self.fall_angle))
         self.fall_start_timer = pygame.time.get_ticks()
+        self._fall_last_tick = self.fall_start_timer  # for per-frame dt in falling physics
         if DEBUG_RAMPS:
             logger.debug('{} - Falling'.format(self.color_text))
 
@@ -1904,14 +1935,24 @@ class Car:
             ramps_found = []
             for i in range(0, len(track.ramp_masks)):
                 test = False
-                # #only test for the polygon if the last past gates is on of the ramp gate or the immediate successor or predecessor
-                # if (self.last_passed_gate >= (track.ramp_gates[i][0][0] - 1)) and (self.last_passed_gate <= (track.ramp_gates[i][len(track.ramp_gates[i])-1][1] + 1)):
-                #only test for the polygon if the MOST RECENT gates is on of the ramp gate or the immediate successor or predecessor
-                if (self.most_recent_passed_gate >= (track.ramp_gates[i][0][0] - 1)) and (self.most_recent_passed_gate <= (track.ramp_gates[i][len(track.ramp_gates[i])-1][1] + 1)):
+                #only test for the polygon if the MOST RECENT gate is one of the ramp gates or the immediate successor or predecessor
+                ramp_first_gate = track.ramp_gates[i][0][0]
+                ramp_last_gate  = track.ramp_gates[i][len(track.ramp_gates[i])-1][1]
+
+                # --- FIX: expand the gate range check so that a car approaching at
+                # speed (or jumping) is never missed due to passing through a gate
+                # boundary in a single frame. Use a 3-gate margin instead of 1.
+                gate_margin = 3
+                near_ramp = (self.most_recent_passed_gate >= (ramp_first_gate - gate_margin)) and \
+                            (self.most_recent_passed_gate <= (ramp_last_gate + gate_margin))
+
+                if near_ramp:
                     test = True
 
-                #If there is a shortcut ramp then we test betwe
-                if not self.is_drone and not track.player_shortcut_bookend_gates is None and (self.most_recent_passed_gate >= (track.player_shortcut_bookend_gates[0])) and (self.most_recent_passed_gate <= (track.player_shortcut_bookend_gates[1])):
+                #If there is a shortcut ramp then we test between shortcut bookend gates
+                if not self.is_drone and not track.player_shortcut_bookend_gates is None and \
+                   (self.most_recent_passed_gate >= (track.player_shortcut_bookend_gates[0])) and \
+                   (self.most_recent_passed_gate <= (track.player_shortcut_bookend_gates[1])):
                     if self.sprite_angle == 12:
                         test = True
                     else:
@@ -2075,8 +2116,9 @@ class Car:
         if not overlay_blitted or self.on_ramp or self.on_bridge:
             #Car is not visible durign explosion
             if not self.crashing:
-                game_display.blit(self.sprites[self.sprite_angle], (self.x_position, self.y_position))
-                self.car_mask = self.sprites_masks[self.sprite_angle]
+                sprite_idx = int(self.sprite_angle)  # sprite_angle may be float; lists need int index
+                game_display.blit(self.sprites[sprite_idx], (self.x_position, self.y_position))
+                self.car_mask = self.sprites_masks[sprite_idx]
 
             if DEBUG_AI:
                 if self.is_drone:
@@ -2358,3 +2400,6 @@ class Car:
             else:
                 self.accelerate()
 
+
+# Populate the sprite-angle lookup table now that Car.angle_vector_sign is defined.
+_SPRITE_ANGLE_TABLE = _precompute_angle_tables(Car.angle_vector_sign)

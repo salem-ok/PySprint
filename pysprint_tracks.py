@@ -2,9 +2,6 @@
 import math
 import json
 import random
-from numpy import False_, object_, positive
-from numpy.lib.index_tricks import _fill_diagonal_dispatcher
-from numpy.lib.polynomial import poly
 import pygame
 from pygame import Surface, gfxdraw, draw
 
@@ -187,6 +184,13 @@ class Track:
         self.tornado_timer = None
         self.tornado_frame_index = None
         self.tornado_mask = None
+
+        # Render caches — avoid copying large surfaces every frame
+        self._bg_cache = None
+        self._bg_cache_gate_frames = None
+        self._overlay_cache = None
+        self._overlay_cache_gate_frames = None
+        self._track_mask_gate_frames = None  # for update_track_mask caching
 
     def load_track_definition(self, filename):
         with open(filename) as track_file:
@@ -440,25 +444,32 @@ class Track:
             car.previous_score_increment = score_increment
 
     def blit_background(self,race_started):
-        surf = self.background.copy()
+        # Use a cached composited background surface to avoid copying the full
+        # background image every frame. Only rebuild when gate frames change.
+        if self._bg_cache is None:
+            self._bg_cache = self.background.copy()
+            self._bg_cache_gate_frames = None  # force rebuild on first call
+
         if not self.road_gates_anchors is None:
             if len(self.road_gates_timers)==0:
                 #Initialise gates status and timers
                 i = 0
                 for anchor in self.road_gates_anchors:
                     self.road_gates_frames_index.append(0)
-                    # if race_started then set timer (gates should be closed and frozen when "get ready" is desplayed
                     if race_started:
                         self.road_gates_timers.append(pygame.time.get_ticks() + i * 500)
                         self.road_gates_opening.append(False)
                         i+=1
+
+            gate_frames_changed = (self._bg_cache_gate_frames != list(self.road_gates_frames_index))
+
             if race_started:
                 now = pygame.time.get_ticks()
-            for i in range(0, len(self.road_gates_anchors)):
-                if race_started:
+                for i in range(0, len(self.road_gates_anchors)):
+                    old_frame = self.road_gates_frames_index[i]
                     #If gate is closed or open (frame 0 or frame 4): blit the same frame until timer is reached
                     if self.road_gates_frames_index[i] == 0 or self.road_gates_frames_index[i] == 4:
-                        if now >=self.road_gates_timers[i]:
+                        if now >= self.road_gates_timers[i]:
                             self.road_gates_timers[i] = now + 100
                             if self.road_gates_frames_index[i] == 0:
                                 self.road_gates_opening[i] = True
@@ -468,25 +479,35 @@ class Track:
                                 self.road_gates_frames_index[i] -= 1
                     #If gate is closing or opening (Frames 1,2 & 3): blit the next (or previous) frame until timer is reached
                     if self.road_gates_frames_index[i] > 0 and self.road_gates_frames_index[i] < 4:
-                        if now >=self.road_gates_timers[i]:
+                        if now >= self.road_gates_timers[i]:
                             if self.road_gates_opening[i]:
                                 self.road_gates_frames_index[i] += 1
-                                #if Gate is fully open, randomize timer to start closing it
                                 if self.road_gates_frames_index[i] == 4:
                                     self.road_gates_timers[i] = now + random.randint(min_random_time,max_random_time)
                                 else:
                                     self.road_gates_timers[i] = now + 100
                             else:
                                 self.road_gates_frames_index[i] -= 1
-                                #if Gate is fully closed, randomize timer to start opening it
                                 if self.road_gates_frames_index[i] == 0:
                                     self.road_gates_timers[i] = now + random.randint(min_random_time,max_random_time)
                                 else:
                                     self.road_gates_timers[i] = now + 10
+                    if self.road_gates_frames_index[i] != old_frame:
+                        gate_frames_changed = True
 
-                surf.blit(road_gate_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+            # Rebuild the cached surface only when gate states have changed
+            if gate_frames_changed or self._bg_cache_gate_frames is None:
+                self._bg_cache.blit(self.background, (0, 0))
+                for i in range(0, len(self.road_gates_anchors)):
+                    self._bg_cache.blit(road_gate_frames[self.road_gates_frames_index[i]],
+                                        (self.road_gates_anchors[i][0], self.road_gates_anchors[i][1]))
+                self._bg_cache_gate_frames = list(self.road_gates_frames_index)
+        else:
+            # No gates: just blit the static background directly without copy()
+            pass
+
         self.update_track_mask()
-        game_display.blit(surf,(0,0))
+        game_display.blit(self._bg_cache if self.road_gates_anchors else self.background, (0,0))
 
     def blit_tornado(self, race_started):
         if self.display_tornado:
@@ -519,23 +540,36 @@ class Track:
                 game_display.blit(tornado_frames[self.tornado_frame_index],self.tornado_position)
 
     def blit_overlay(self, race_started):
-        surf = self.track_overlay.copy()
-        if not self.road_gates_anchors is None:
-            for i in range(0, len(self.road_gates_anchors)):
-                surf.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
-
-        if DEBUG_RAMPS:
-            for ramp in self.ramp_surfs:
-                surf.blit(ramp,(0,0))
-            for bridge in self.bridge_surfs:
-                surf.blit(bridge,(0,0))
-        game_display.blit(surf,(0,0))
+        # Rebuild the overlay cache only when gate states have changed (same
+        # change detection as blit_background uses _bg_cache_gate_frames).
+        gate_snapshot = list(self.road_gates_frames_index) if self.road_gates_anchors else []
+        if self._overlay_cache is None or self._overlay_cache_gate_frames != gate_snapshot:
+            self._overlay_cache = self.track_overlay.copy()
+            if not self.road_gates_anchors is None:
+                for i in range(0, len(self.road_gates_anchors)):
+                    self._overlay_cache.blit(road_gate_shade_frames[self.road_gates_frames_index[i]],
+                                             (self.road_gates_anchors[i][0], self.road_gates_anchors[i][1]))
+            if DEBUG_RAMPS:
+                for ramp in self.ramp_surfs:
+                    self._overlay_cache.blit(ramp,(0,0))
+                for bridge in self.bridge_surfs:
+                    self._overlay_cache.blit(bridge,(0,0))
+            self._overlay_cache_gate_frames = gate_snapshot
+        game_display.blit(self._overlay_cache,(0,0))
 
     def update_track_mask(self):
+        # Only rebuild the collision mask when gate frame indices have changed.
+        # Recomputing pygame.mask.from_surface is expensive (~3ms on a Pi 4).
+        current_frames = list(self.road_gates_frames_index) if self.road_gates_anchors else []
+        if current_frames == self._track_mask_gate_frames:
+            return  # nothing changed, reuse existing mask
+        self._track_mask_gate_frames = current_frames
+
         self.track_mask = self.base_mask.copy()
         if not self.road_gates_anchors is None:
             for i in range(0, len(self.road_gates_anchors)):
-                self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],(self.road_gates_anchors[i][0],self.road_gates_anchors[i][1]))
+                self.track_mask.blit(road_gate_mask_frames[self.road_gates_frames_index[i]],
+                                     (self.road_gates_anchors[i][0], self.road_gates_anchors[i][1]))
         self.track_mask_mask = pygame.mask.from_surface(self.track_mask, 50)
 
     def get_random_poles_position(self):

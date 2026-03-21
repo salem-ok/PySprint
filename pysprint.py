@@ -49,7 +49,9 @@ with open(".bestlaps.json") as best_laps_file:
 
 race_laps = 4
 pysprint_car.race_laps = race_laps
-flags = 0
+# HWSURFACE + DOUBLEBUF enable hardware double-buffering which reduces
+# CPU↔GPU blitting overhead and tear-free flipping, especially on Pi 4.
+flags = pygame.HWSURFACE | pygame.DOUBLEBUF
 game_display = pygame.display.set_mode((display_width, display_height), flags)
 
 pygame.display.set_caption('PySprint v{}'.format(version))
@@ -1587,15 +1589,17 @@ def init_track(filename):
 
     #TODO: validate json with jsonschema
     track.load_track_definition(filename)
-    track.background = pygame.image.load(track.background_filename)
+    # convert() / convert_alpha() align the surface pixel format with the
+    # display surface so every blit() avoids a per-pixel format conversion.
+    track.background = pygame.image.load(track.background_filename).convert()
 
     if not track.thumbnail_filename is None:
-        track.thumbnail = pygame.image.load(track.thumbnail_filename)
+        track.thumbnail = pygame.image.load(track.thumbnail_filename).convert()
     track.base_mask = pygame.image.load(track.track_mask_filename).convert_alpha()
 
     if not track.track_upper_mask_filename is None:
         track.track_upper_mask = pygame.image.load(track.track_upper_mask_filename).convert_alpha()
-        track.track_upper_mask_mask =  pygame.mask.from_surface(track.track_upper_mask, 50)
+        track.track_upper_mask_mask = pygame.mask.from_surface(track.track_upper_mask, 50)
     track.track_overlay = pygame.image.load(track.overlay_filename).convert_alpha()
     track.finish_line = pygame.Rect(track.finish_line_rect[0], track.finish_line_rect[1], track.finish_line_rect[2], track.finish_line_rect[3])
 
@@ -2036,6 +2040,11 @@ def game_loop():
                                     game_display.blit(index_surf, (track.internal_borders[i][0], track.internal_borders[i][1]))
 
                             frame_duration = pygame.time.get_ticks() - frame_start
+                            # Clamp to at least 1 ms — on some systems (and at
+                            # end-of-race when the loop exits instantly) the
+                            # timer resolution can return 0, causing ZeroDivisionError.
+                            if frame_duration < 1:
+                                frame_duration = 1
                             current_fps = round(1000/frame_duration)
                             if current_fps <= 90 and current_fps > 0:
                                 pysprint_car.frame_rate_speed_modifier = 1 + (100/current_fps)/11
@@ -2057,7 +2066,9 @@ def game_loop():
                                 game_display.blit(fps_surf, (565,385))
 
 
-                            pygame.display.update()
+                            # pygame.display.flip() is faster than update() when
+                            # using DOUBLEBUF - it swaps the back buffer in one call.
+                            pygame.display.flip()
                             trace_frame_time("Display Updated ", frame_start)
                             if DEBUG_FPS:
                                 logger.debug(' Frame: {}ms - {} FPS'.format(frame_duration, current_fps))
